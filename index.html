@@ -176,7 +176,10 @@ function Predict({event,me,guesses,setGuesses,submitPrediction,loading}){
     ...CATEGORIES.map(c=>e("div",{key:c.key,className:"fld"},
       e("label",{style:{fontSize:14,fontWeight:800,color:C.ink}},
         c.label, c.unit?e("span",{style:{color:C.inkSoft,fontWeight:600}},` (${c.unit})`):null),
+      (c.type==="date"||c.type==="time")?e("div",{style:{fontSize:12,color:C.inkSoft,marginBottom:6}},
+        c.type==="date"?"👇 Vajuta ja vali kalendrist":"👇 Vajuta ja vali kellaaeg"):null,
       e("input",{ type:c.type==="number"?"number":c.type, value:guesses[c.key]||"", placeholder:c.hint,
+        style:(c.type==="date"||c.type==="time")?{minHeight:52}:{},
         onChange:ev=>setGuesses(prev=>({...prev,[c.key]:ev.target.value})) })
     )),
     e(Btn,{color:C.rose,onClick:submitPrediction,disabled:loading},loading?"Salvestan…":"Esita ennustus ✨")
@@ -251,7 +254,10 @@ function Admin({event,actual,setActual,adminPinInput,setAdminPinInput,adminAuthe
     e("p",{className:"hint",style:{marginTop:-6,marginBottom:18}},"Kui beebi on sündinud, täida tegelikud väärtused. Punktid arvutatakse automaatselt."),
     ...CATEGORIES.map(c=>e("div",{key:c.key,className:"fld"},
       e("label",{style:{fontSize:14,fontWeight:800,color:C.ink}},c.label,c.unit?e("span",{style:{color:C.inkSoft,fontWeight:600}},` (${c.unit})`):null),
+      (c.type==="date"||c.type==="time")?e("div",{style:{fontSize:12,color:C.inkSoft,marginBottom:6}},
+        c.type==="date"?"👇 Vajuta ja vali kalendrist":"👇 Vajuta ja vali kellaaeg"):null,
       e("input",{ type:c.type==="number"?"number":c.type, value:actual[c.key]||"", placeholder:c.hint,
+        style:(c.type==="date"||c.type==="time")?{minHeight:52}:{},
         onChange:ev=>setActual(prev=>({...prev,[c.key]:ev.target.value})) })
     )),
     e(Btn,{color:C.sage,onClick:saveActual,disabled:loading},loading?"Salvestan…":"Salvesta & arvuta punktid 🏆")
@@ -310,7 +316,7 @@ function App(){
       } else {
         setMe({ name:joinName.trim(), pin:joinUserPin });
         setEvent(ev);
-        setGuesses({});
+        setGuesses({ time:"12:00" });
         setView("predict");
       }
     } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
