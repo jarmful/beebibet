@@ -39,25 +39,25 @@
 <div class="deco" id="deco"></div>
 <div id="app"></div>
 
-<!-- React + Supabase via CDN -->
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-// ============================================================
-// SEADISTUS — asenda need kahe väärtusega oma Supabase projektist
-// (Supabase Dashboard → Project Settings → Data API / API keys)
-// ============================================================
 const SUPABASE_URL  = "https://thrsacygpqwbnkcppmpk.supabase.co";
-const SUPABASE_ANON = "sb_publishable_-QaY7mGpitakhestu3w1fg_sCGquRvx";
-// ============================================================
+const SUPABASE_KEY  = "sb_publishable_-QaY7mGpitakhestu3w1fg_sCGquRvx";
 
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+let sb = null;
+try {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} catch (err) {
+  document.getElementById("app").innerHTML =
+    "<div style='padding:40px;text-align:center;font-family:sans-serif'>Supabase init viga: " + err.message + "</div>";
+}
+
 const e = React.createElement;
 const { useState, useEffect, useCallback } = React;
 
-// deco
 const decoEl = document.getElementById("deco");
 ["🍼","👶","⭐","🎈","🌙","☁️"].forEach((emoji,i)=>{
   const s=document.createElement("span");
@@ -99,178 +99,44 @@ function fmt(cat,val){
   return val;
 }
 
-function App(){
-  const [view,setView]=useState("home");
-  const [loading,setLoading]=useState(false);
-  const [event,setEvent]=useState(null);
-  const [preds,setPreds]=useState([]);
-  const [me,setMe]=useState(null);
-  const [toast,setToast]=useState("");
-  const flash=m=>{ setToast(m); setTimeout(()=>setToast(""),2800); };
+function Btn({color,outline,onClick,disabled,children}){
+  return e("button",{ className:"btn"+(outline?" outline":""),
+    style:{ background:outline?"transparent":color, color:outline?color:"#fff",
+      border:outline?`2px solid ${color}`:"none", boxShadow:outline?"none":`0 8px 20px ${color}55`,
+      opacity:disabled?.6:1 },
+    onClick, disabled }, children);
+}
 
-  // ---- create ----
-  const [babyName,setBabyName]=useState("");
-  const [adminPin,setAdminPin]=useState("");
-  async function createEvent(){
-    if(!babyName.trim()) return flash("Sisesta beebi/perekonna nimi");
-    if(!/^\d{4}$/.test(adminPin)) return flash("Admin PIN peab olema 4 numbrit");
-    setLoading(true);
-    const pin=genPin();
-    const { error }=await sb.from("bb_events").insert({ pin, title:babyName.trim(), admin_pin:adminPin });
-    setLoading(false);
-    if(error){ flash("Viga: "+error.message); return; }
-    setEvent({ pin, title:babyName.trim(), admin_pin:adminPin, actual:null });
-    setView("created");
-  }
-
-  // ---- join ----
-  const [joinPin,setJoinPin]=useState("");
-  const [joinName,setJoinName]=useState("");
-  const [joinUserPin,setJoinUserPin]=useState("");
-  async function joinEvent(){
-    if(!/^\d{6}$/.test(joinPin)) return flash("Mängu PIN on 6 numbrit");
-    if(!joinName.trim()) return flash("Sisesta oma nimi");
-    if(!/^\d{4}$/.test(joinUserPin)) return flash("Vali endale 4-numbriline PIN");
-    setLoading(true);
-    const { data:ev }=await sb.from("bb_events").select("*").eq("pin",joinPin).maybeSingle();
-    if(!ev){ setLoading(false); return flash("Sellise PIN-iga mängu ei leitud"); }
-    const { data:existing }=await sb.from("bb_predictions").select("*").eq("event_pin",joinPin).eq("name",joinName.trim()).maybeSingle();
-    setLoading(false);
-    if(existing){
-      if(existing.user_pin!==joinUserPin) return flash("Selle nimega osaleja juba olemas — vale PIN");
-      setMe({ name:joinName.trim(), pin:joinUserPin });
-      setEvent(ev);
-      await loadResults(joinPin);
-      setView("results");
-    } else {
-      setMe({ name:joinName.trim(), pin:joinUserPin });
-      setEvent(ev);
-      setView("predict");
-    }
-  }
-
-  // ---- predict ----
-  const [guesses,setGuesses]=useState({});
-  async function submitPrediction(){
-    for(const c of CATEGORIES){ if(guesses[c.key]==null||guesses[c.key]==="") return flash("Täida: "+c.label); }
-    setLoading(true);
-    const { error }=await sb.from("bb_predictions").upsert(
-      { event_pin:event.pin, name:me.name, user_pin:me.pin, guesses },
-      { onConflict:"event_pin,name" }
-    );
-    if(error){ setLoading(false); return flash("Viga: "+error.message); }
-    await loadResults(event.pin);
-    setLoading(false);
-    setView("results"); flash("Ennustus salvestatud!");
-  }
-
-  // ---- results ----
-  async function loadResults(pin){
-    const { data:ev }=await sb.from("bb_events").select("*").eq("pin",pin).maybeSingle();
-    if(ev) setEvent(ev);
-    const { data:ps }=await sb.from("bb_predictions").select("*").eq("event_pin",pin).order("created_at");
-    setPreds(ps||[]);
-  }
-  const refresh=useCallback(()=>{ if(event) loadResults(event.pin); },[event]);
-
-  // ---- admin ----
-  const [adminPinInput,setAdminPinInput]=useState("");
-  const [adminAuthed,setAdminAuthed]=useState(false);
-  const [actual,setActual]=useState({});
-  async function saveActual(){
-    setLoading(true);
-    const { error }=await sb.from("bb_events").update({ actual }).eq("pin",event.pin);
-    if(error){ setLoading(false); return flash("Viga: "+error.message); }
-    await loadResults(event.pin);
-    setLoading(false);
-    flash("Tegelikud tulemused salvestatud!"); setView("results");
-  }
-
-  function goHome(){ setView("home"); setEvent(null); setMe(null); setPreds([]); setAdminAuthed(false); setGuesses({}); }
-
-  // ---------- render helpers ----------
-  const Btn=(props)=>e("button",{ className:"btn"+(props.outline?" outline":""),
-    style:{ background:props.outline?"transparent":props.color, color:props.outline?props.color:"#fff",
-      border:props.outline?`2px solid ${props.color}`:"none", boxShadow:props.outline?"none":`0 8px 20px ${props.color}55`,
-      opacity:props.disabled?.6:1 },
-    onClick:props.onClick, disabled:props.disabled }, props.children);
-
-  const Field=(p)=>e("div",{className:"fld"},
-    e("label",null,p.label),
-    e("input",{ className:p.big?"big":"", type:p.type||"text", value:p.value||"", placeholder:p.placeholder,
-      inputMode:p.inputMode, onChange:ev=>p.onChange(ev.target.value) })
-  );
-
-  // ---------- views ----------
-  let body;
-  if(view==="home"){
-    body=e("div",{className:"card",style:{textAlign:"center"}},
-      e("div",{style:{fontSize:56,marginBottom:8}},"🍼"),
-      e("h2",{style:{fontSize:26,margin:"0 0 8px"}},"Kes arvab kõige täpsemini?"),
-      e("p",{style:{color:C.inkSoft,fontSize:15,lineHeight:1.5,margin:"0 0 24px"}},
-        "Ennusta beebi kaalu, pikkust, sünnikuupäeva, kellaaega, sünnituse kestust ja nime. Mida lähemal, seda rohkem punkte!"),
-      e(Btn,{color:C.sage,onClick:()=>setView("join")},"Liitu mänguga 🎈"),
-      e(Btn,{color:C.rose,outline:true,onClick:()=>setView("create")},"Loo uus mäng")
-    );
-  }
-  else if(view==="create"){
-    body=e("div",{className:"card"},
-      e("h2",{style:{fontSize:24,margin:"0 0 20px"}},"Loo uus mäng"),
-      e(Field,{label:"Beebi / perekonna nimi",value:babyName,onChange:setBabyName,placeholder:"nt Merka beebi"}),
-      e(Field,{label:"Admin PIN (4 numbrit) — sina sisestad hiljem tegeliku tulemuse",value:adminPin,
-        onChange:v=>setAdminPin(v.replace(/\D/g,"").slice(0,4)),placeholder:"••••",inputMode:"numeric"}),
-      e(Btn,{color:C.rose,onClick:createEvent,disabled:loading},loading?"Loon…":"Loo mäng ✨")
-    );
-  }
-  else if(view==="created"){
-    body=e(Created,{event,setView,flash});
-  }
-  else if(view==="join"){
-    body=e("div",{className:"card"},
-      e("h2",{style:{fontSize:24,margin:"0 0 20px"}},"Liitu mänguga"),
-      e(Field,{label:"Mängu PIN (6 numbrit)",value:joinPin,big:true,inputMode:"numeric",
-        onChange:v=>setJoinPin(v.replace(/\D/g,"").slice(0,6)),placeholder:"123456"}),
-      e(Field,{label:"Sinu nimi",value:joinName,onChange:setJoinName,placeholder:"nt Jarmo"}),
-      e(Field,{label:"Vali endale PIN (4 numbrit)",value:joinUserPin,inputMode:"numeric",
-        onChange:v=>setJoinUserPin(v.replace(/\D/g,"").slice(0,4)),placeholder:"••••"}),
-      e("p",{className:"hint",style:{marginTop:-4,marginBottom:14}},"PIN kaitseb su ennustust ja laseb hiljem tagasi tulla."),
-      e(Btn,{color:C.sage,onClick:joinEvent,disabled:loading},loading?"Otsin…":"Liitu →")
-    );
-  }
-  else if(view==="predict"){
-    body=e("div",{className:"card"},
-      e("h2",{style:{fontSize:24,margin:"0 0 6px"}},`Tere, ${me.name}! 👋`),
-      e("p",{style:{color:C.inkSoft,fontSize:14,marginTop:0,marginBottom:20}},
-        e("span",null,"Ennusta "),e("b",null,event.title),
-        e("span",null," kohta. Teiste vastuseid näed alles pärast oma ennustuse esitamist.")),
-      ...CATEGORIES.map(c=>e("div",{key:c.key,className:"fld"},
-        e("label",{style:{fontSize:14,fontWeight:800,color:C.ink}},
-          c.label, c.unit?e("span",{style:{color:C.inkSoft,fontWeight:600}},` (${c.unit})`):null),
-        e("input",{ type:c.type==="number"?"number":c.type, value:guesses[c.key]||"", placeholder:c.hint,
-          onChange:ev=>setGuesses({...guesses,[c.key]:ev.target.value}) })
-      )),
-      e(Btn,{color:C.rose,onClick:submitPrediction,disabled:loading},loading?"Salvestan…":"Esita ennustus ✨")
-    );
-  }
-  else if(view==="results"){
-    body=e(Results,{event,preds,me,refresh,setView});
-  }
-  else if(view==="admin"){
-    body=e(Admin,{event,actual,setActual,adminPinInput,setAdminPinInput,adminAuthed,setAdminAuthed,flash,save:saveActual,loading,Field,Btn});
-  }
-
-  return e(React.Fragment,null,
-    toast?e("div",{className:"toast"},toast):null,
-    e("div",{className:"hdr",onClick:goHome},
-      e("h1",{style:{fontSize:44,margin:0,letterSpacing:"-1px"}},
-        "beebi",e("span",{style:{color:C.rose}},"bet")),
-      e("p",{style:{margin:"4px 0 0",fontSize:13,letterSpacing:3,textTransform:"uppercase",color:C.inkSoft,fontWeight:700}},
-        "babyshower ennustusmäng")),
-    body
+function Field({label,value,onChange,placeholder,inputMode,big,type}){
+  return e("div",{className:"fld"},
+    e("label",null,label),
+    e("input",{ className:big?"big":"", type:type||"text", value:value||"", placeholder,
+      inputMode, onChange:ev=>onChange(ev.target.value) })
   );
 }
 
-function Created({event,setView,flash}){
+function Home({setView}){
+  return e("div",{className:"card",style:{textAlign:"center"}},
+    e("div",{style:{fontSize:56,marginBottom:8}},"🍼"),
+    e("h2",{style:{fontSize:26,margin:"0 0 8px"}},"Kes arvab kõige täpsemini?"),
+    e("p",{style:{color:C.inkSoft,fontSize:15,lineHeight:1.5,margin:"0 0 24px"}},
+      "Ennusta beebi kaalu, pikkust, sünnikuupäeva, kellaaega, sünnituse kestust ja nime. Mida lähemal, seda rohkem punkte!"),
+    e(Btn,{color:C.sage,onClick:()=>setView("join")},"Liitu mänguga 🎈"),
+    e(Btn,{color:C.rose,outline:true,onClick:()=>setView("create")},"Loo uus mäng")
+  );
+}
+
+function Create({babyName,setBabyName,adminPin,setAdminPin,createEvent,loading}){
+  return e("div",{className:"card"},
+    e("h2",{style:{fontSize:24,margin:"0 0 20px"}},"Loo uus mäng"),
+    e(Field,{label:"Beebi / perekonna nimi",value:babyName,onChange:setBabyName,placeholder:"nt Merka beebi"}),
+    e(Field,{label:"Admin PIN (4 numbrit) — sina sisestad hiljem tegeliku tulemuse",value:adminPin,
+      onChange:v=>setAdminPin(v.replace(/\D/g,"").slice(0,4)),placeholder:"••••",inputMode:"numeric"}),
+    e(Btn,{color:C.rose,onClick:createEvent,disabled:loading},loading?"Loon…":"Loo mäng ✨")
+  );
+}
+
+function Created({event,setView}){
   const [copied,setCopied]=useState(false);
   return e("div",{className:"card"},
     e("h2",{style:{fontSize:24,margin:"0 0 12px"}},"Mäng on loodud! 🎉"),
@@ -280,11 +146,40 @@ function Created({event,setView,flash}){
       e("div",{style:{fontFamily:"'Fraunces',serif",fontSize:52,fontWeight:600,letterSpacing:8,color:C.ink,margin:"4px 0"}},event.pin)
     ),
     e("button",{className:"btn",style:{background:C.sage,color:"#fff",boxShadow:`0 8px 20px ${C.sage}55`},
-      onClick:()=>{ try{navigator.clipboard.writeText(event.pin);}catch{} setCopied(true); setTimeout(()=>setCopied(false),1500); }},
+      onClick:()=>{ try{navigator.clipboard.writeText(event.pin);}catch(e){} setCopied(true); setTimeout(()=>setCopied(false),1500); }},
       copied?"Kopeeritud! ✓":"Kopeeri PIN"),
     e("button",{className:"btn outline",style:{color:C.rose,border:`2px solid ${C.rose}`},onClick:()=>setView("join")},"Mine ennustama →"),
     e("p",{className:"hint",style:{marginTop:16,lineHeight:1.5}},
       "💡 Hoia oma admin PIN alles — pärast beebi sündi sisestad selle abil tegelikud tulemused (avalehel → liitu → all \"Admin\").")
+  );
+}
+
+function Join({joinPin,setJoinPin,joinName,setJoinName,joinUserPin,setJoinUserPin,joinEvent,loading}){
+  return e("div",{className:"card"},
+    e("h2",{style:{fontSize:24,margin:"0 0 20px"}},"Liitu mänguga"),
+    e(Field,{label:"Mängu PIN (6 numbrit)",value:joinPin,big:true,inputMode:"numeric",
+      onChange:v=>setJoinPin(v.replace(/\D/g,"").slice(0,6)),placeholder:"123456"}),
+    e(Field,{label:"Sinu nimi",value:joinName,onChange:setJoinName,placeholder:"nt Jarmo"}),
+    e(Field,{label:"Vali endale PIN (4 numbrit)",value:joinUserPin,inputMode:"numeric",
+      onChange:v=>setJoinUserPin(v.replace(/\D/g,"").slice(0,4)),placeholder:"••••"}),
+    e("p",{className:"hint",style:{marginTop:-4,marginBottom:14}},"PIN kaitseb su ennustust ja laseb hiljem tagasi tulla."),
+    e(Btn,{color:C.sage,onClick:joinEvent,disabled:loading},loading?"Otsin…":"Liitu →")
+  );
+}
+
+function Predict({event,me,guesses,setGuesses,submitPrediction,loading}){
+  return e("div",{className:"card"},
+    e("h2",{style:{fontSize:24,margin:"0 0 6px"}},`Tere, ${me.name}! 👋`),
+    e("p",{style:{color:C.inkSoft,fontSize:14,marginTop:0,marginBottom:20}},
+      e("span",null,"Ennusta "),e("b",null,event.title),
+      e("span",null," kohta. Teiste vastuseid näed alles pärast oma ennustuse esitamist.")),
+    ...CATEGORIES.map(c=>e("div",{key:c.key,className:"fld"},
+      e("label",{style:{fontSize:14,fontWeight:800,color:C.ink}},
+        c.label, c.unit?e("span",{style:{color:C.inkSoft,fontWeight:600}},` (${c.unit})`):null),
+      e("input",{ type:c.type==="number"?"number":c.type, value:guesses[c.key]||"", placeholder:c.hint,
+        onChange:ev=>setGuesses(prev=>({...prev,[c.key]:ev.target.value})) })
+    )),
+    e(Btn,{color:C.rose,onClick:submitPrediction,disabled:loading},loading?"Salvestan…":"Esita ennustus ✨")
   );
 }
 
@@ -301,11 +196,10 @@ function Results({event,preds,me,refresh,setView}){
   const catWinners={};
   if(hasActual){ for(const c of CATEGORIES){ let best=-1,who=[]; scored.forEach(s=>{ if(s.perCat[c.key]>best){best=s.perCat[c.key];who=[s.name];} else if(s.perCat[c.key]===best&&best>0)who.push(s.name); }); catWinners[c.key]={who,score:best}; } }
 
-  const C2=C;
   return e("div",null,
-    (hasActual&&scored.length)?e("div",{style:{background:C2.butter,borderRadius:28,padding:26,textAlign:"center",marginBottom:18,boxShadow:`0 16px 40px rgba(244,208,111,.4)`}},
+    (hasActual&&scored.length)?e("div",{style:{background:C.butter,borderRadius:28,padding:26,textAlign:"center",marginBottom:18,boxShadow:`0 16px 40px rgba(244,208,111,.4)`}},
       e("div",{style:{fontSize:40}},"🏆"),
-      e("div",{style:{fontSize:13,fontWeight:700,letterSpacing:2,textTransform:"uppercase",color:C2.ink,opacity:.7}},"Üldvõitja"),
+      e("div",{style:{fontSize:13,fontWeight:700,letterSpacing:2,textTransform:"uppercase",color:C.ink,opacity:.7}},"Üldvõitja"),
       e("div",{style:{fontFamily:"'Fraunces',serif",fontSize:34,fontWeight:600}},scored[0].name),
       e("div",{style:{fontSize:15,fontWeight:700}},scored[0].total+" punkti")
     ):null,
@@ -315,35 +209,35 @@ function Results({event,preds,me,refresh,setView}){
         "Beebi pole veel sündinud 🤰 Allpool kõikide ennustused. Punktid ja võitja selguvad kui tegelikud tulemused sisestatakse."):null,
       scored.length===0?e("p",{className:"hint"},"Veel pole ühtegi ennustust."):null,
       ...scored.map((s,i)=>e("div",{key:s.name,className:"row",
-        style:{ background:s.name===(me&&me.name)?C2.peach+"55":C2.cream, border:`2px solid ${s.name===(me&&me.name)?C2.rose:"transparent"}` }},
-        hasActual?e("div",{style:{fontSize:20,fontWeight:800,color:C2.rose,minWidth:28}},i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`):null,
+        style:{ background:s.name===(me&&me.name)?C.peach+"55":C.cream, border:`2px solid ${s.name===(me&&me.name)?C.rose:"transparent"}` }},
+        hasActual?e("div",{style:{fontSize:20,fontWeight:800,color:C.rose,minWidth:28}},i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`):null,
         e("div",{style:{flex:1}},
           e("div",{style:{fontWeight:800,fontSize:16}},s.name+(s.name===(me&&me.name)?" (sina)":"")),
-          e("div",{style:{fontSize:12.5,color:C2.inkSoft,marginTop:2}},
+          e("div",{style:{fontSize:12.5,color:C.inkSoft,marginTop:2}},
             CATEGORIES.map(c=>`${c.label}: ${fmt(c,s.guesses?.[c.key])}`).join(" · "))
         ),
-        hasActual?e("div",{style:{fontWeight:800,fontSize:18,color:C2.sage}},s.total):null
+        hasActual?e("div",{style:{fontWeight:800,fontSize:18,color:C.sage}},s.total):null
       ))
     ),
     hasActual?e("div",{className:"card"},
       e("h2",{style:{fontSize:24,margin:"0 0 14px"}},"Kategooriate võitjad 🎯"),
       e("div",{style:{display:"grid",gap:10}},
-        ...CATEGORIES.map(c=>e("div",{key:c.key,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:C2.cream,borderRadius:14}},
+        ...CATEGORIES.map(c=>e("div",{key:c.key,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:C.cream,borderRadius:14}},
           e("div",null,
             e("div",{style:{fontWeight:800,fontSize:14}},c.label),
-            e("div",{style:{fontSize:12.5,color:C2.inkSoft}},"Õige: "+fmt(c,event.actual[c.key]))),
+            e("div",{style:{fontSize:12.5,color:C.inkSoft}},"Õige: "+fmt(c,event.actual[c.key]))),
           e("div",{style:{textAlign:"right"}},
-            e("div",{style:{fontWeight:800,color:C2.rose}},(catWinners[c.key]&&catWinners[c.key].who.join(", "))||"—"),
-            e("div",{style:{fontSize:12,color:C2.inkSoft}},(catWinners[c.key]&&catWinners[c.key].score)+" p"))
+            e("div",{style:{fontWeight:800,color:C.rose}},(catWinners[c.key]&&catWinners[c.key].who.join(", "))||"—"),
+            e("div",{style:{fontSize:12,color:C.inkSoft}},(catWinners[c.key]&&catWinners[c.key].score)+" p"))
         ))
       )
     ):null,
-    e("button",{className:"btn outline",style:{color:C2.sky,border:`2px solid ${C2.sky}`},onClick:refresh},"↻ Värskenda"),
-    e("button",{className:"btn outline",style:{color:C2.ink,border:`2px solid ${C2.ink}`},onClick:()=>setView("admin")},"⚙️ Admin — sisesta tegelik tulemus")
+    e("button",{className:"btn outline",style:{color:C.sky,border:`2px solid ${C.sky}`},onClick:refresh},"↻ Värskenda"),
+    e("button",{className:"btn outline",style:{color:C.ink,border:`2px solid ${C.ink}`},onClick:()=>setView("admin")},"⚙️ Admin — sisesta tegelik tulemus")
   );
 }
 
-function Admin({event,actual,setActual,adminPinInput,setAdminPinInput,adminAuthed,setAdminAuthed,flash,save,loading,Field,Btn}){
+function Admin({event,actual,setActual,adminPinInput,setAdminPinInput,adminAuthed,setAdminAuthed,flash,saveActual,loading}){
   if(!adminAuthed){
     return e("div",{className:"card"},
       e("h2",{style:{fontSize:24,margin:"0 0 12px"}},"Admin — tegelikud tulemused"),
@@ -358,9 +252,126 @@ function Admin({event,actual,setActual,adminPinInput,setAdminPinInput,adminAuthe
     ...CATEGORIES.map(c=>e("div",{key:c.key,className:"fld"},
       e("label",{style:{fontSize:14,fontWeight:800,color:C.ink}},c.label,c.unit?e("span",{style:{color:C.inkSoft,fontWeight:600}},` (${c.unit})`):null),
       e("input",{ type:c.type==="number"?"number":c.type, value:actual[c.key]||"", placeholder:c.hint,
-        onChange:ev=>setActual({...actual,[c.key]:ev.target.value}) })
+        onChange:ev=>setActual(prev=>({...prev,[c.key]:ev.target.value})) })
     )),
-    e(Btn,{color:C.sage,onClick:save,disabled:loading},loading?"Salvestan…":"Salvesta & arvuta punktid 🏆")
+    e(Btn,{color:C.sage,onClick:saveActual,disabled:loading},loading?"Salvestan…":"Salvesta & arvuta punktid 🏆")
+  );
+}
+
+function App(){
+  const [view,setView]=useState("home");
+  const [loading,setLoading]=useState(false);
+  const [event,setEvent]=useState(null);
+  const [preds,setPreds]=useState([]);
+  const [me,setMe]=useState(null);
+  const [toast,setToast]=useState("");
+  const flash=m=>{ setToast(m); setTimeout(()=>setToast(""),3200); };
+
+  const [babyName,setBabyName]=useState("");
+  const [adminPin,setAdminPin]=useState("");
+  const [joinPin,setJoinPin]=useState("");
+  const [joinName,setJoinName]=useState("");
+  const [joinUserPin,setJoinUserPin]=useState("");
+  const [guesses,setGuesses]=useState({});
+  const [adminPinInput,setAdminPinInput]=useState("");
+  const [adminAuthed,setAdminAuthed]=useState(false);
+  const [actual,setActual]=useState({});
+
+  async function createEvent(){
+    if(!babyName.trim()) return flash("Sisesta beebi/perekonna nimi");
+    if(!/^\d{4}$/.test(adminPin)) return flash("Admin PIN peab olema 4 numbrit");
+    setLoading(true);
+    try {
+      const pin=genPin();
+      const { error }=await sb.from("bb_events").insert({ pin, title:babyName.trim(), admin_pin:adminPin });
+      if(error){ flash("Viga: "+error.message); setLoading(false); return; }
+      setEvent({ pin, title:babyName.trim(), admin_pin:adminPin, actual:null });
+      setView("created");
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+    setLoading(false);
+  }
+
+  async function joinEvent(){
+    if(!/^\d{6}$/.test(joinPin)) return flash("Mängu PIN on 6 numbrit");
+    if(!joinName.trim()) return flash("Sisesta oma nimi");
+    if(!/^\d{4}$/.test(joinUserPin)) return flash("Vali endale 4-numbriline PIN");
+    setLoading(true);
+    try {
+      const { data:ev, error:e1 }=await sb.from("bb_events").select("*").eq("pin",joinPin).maybeSingle();
+      if(e1){ flash("Viga: "+e1.message); setLoading(false); return; }
+      if(!ev){ flash("Sellise PIN-iga mängu ei leitud"); setLoading(false); return; }
+      const { data:existing }=await sb.from("bb_predictions").select("*").eq("event_pin",joinPin).eq("name",joinName.trim()).maybeSingle();
+      if(existing){
+        if(existing.user_pin!==joinUserPin){ flash("Selle nimega osaleja juba olemas — vale PIN"); setLoading(false); return; }
+        setMe({ name:joinName.trim(), pin:joinUserPin });
+        setEvent(ev);
+        await loadResults(joinPin);
+        setView("results");
+      } else {
+        setMe({ name:joinName.trim(), pin:joinUserPin });
+        setEvent(ev);
+        setGuesses({});
+        setView("predict");
+      }
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+    setLoading(false);
+  }
+
+  async function submitPrediction(){
+    for(const c of CATEGORIES){ if(guesses[c.key]==null||guesses[c.key]==="") return flash("Täida: "+c.label); }
+    setLoading(true);
+    try {
+      const { error }=await sb.from("bb_predictions").upsert(
+        { event_pin:event.pin, name:me.name, user_pin:me.pin, guesses },
+        { onConflict:"event_pin,name" }
+      );
+      if(error){ flash("Viga: "+error.message); setLoading(false); return; }
+      await loadResults(event.pin);
+      setView("results"); flash("Ennustus salvestatud!");
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+    setLoading(false);
+  }
+
+  async function loadResults(pin){
+    try {
+      const { data:ev }=await sb.from("bb_events").select("*").eq("pin",pin).maybeSingle();
+      if(ev) setEvent(ev);
+      const { data:ps }=await sb.from("bb_predictions").select("*").eq("event_pin",pin).order("created_at");
+      setPreds(ps||[]);
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+  }
+  const refresh=useCallback(()=>{ if(event) loadResults(event.pin); },[event]);
+
+  async function saveActual(){
+    setLoading(true);
+    try {
+      const { error }=await sb.from("bb_events").update({ actual }).eq("pin",event.pin);
+      if(error){ flash("Viga: "+error.message); setLoading(false); return; }
+      await loadResults(event.pin);
+      flash("Tegelikud tulemused salvestatud!"); setView("results");
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+    setLoading(false);
+  }
+
+  function goHome(){ setView("home"); setEvent(null); setMe(null); setPreds([]); setAdminAuthed(false); setGuesses({}); setAdminPinInput(""); }
+
+  let body;
+  if(view==="home") body=e(Home,{setView});
+  else if(view==="create") body=e(Create,{babyName,setBabyName,adminPin,setAdminPin,createEvent,loading});
+  else if(view==="created") body=e(Created,{event,setView});
+  else if(view==="join") body=e(Join,{joinPin,setJoinPin,joinName,setJoinName,joinUserPin,setJoinUserPin,joinEvent,loading});
+  else if(view==="predict") body=e(Predict,{event,me,guesses,setGuesses,submitPrediction,loading});
+  else if(view==="results") body=e(Results,{event,preds,me,refresh,setView});
+  else if(view==="admin") body=e(Admin,{event,actual,setActual,adminPinInput,setAdminPinInput,adminAuthed,setAdminAuthed,flash,saveActual,loading});
+
+  return e(React.Fragment,null,
+    toast?e("div",{className:"toast"},toast):null,
+    e("div",{className:"hdr",onClick:goHome},
+      e("h1",{style:{fontSize:44,margin:0,letterSpacing:"-1px"}},
+        "beebi",e("span",{style:{color:C.rose}},"bet")),
+      e("p",{style:{margin:"4px 0 0",fontSize:13,letterSpacing:3,textTransform:"uppercase",color:C.inkSoft,fontWeight:700}},
+        "babyshower ennustusmäng")),
+    body
   );
 }
 
