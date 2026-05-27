@@ -200,6 +200,9 @@ function Results({event,preds,me,refresh,setView}){
   if(hasActual){ for(const c of CATEGORIES){ let best=-1,who=[]; scored.forEach(s=>{ if(s.perCat[c.key]>best){best=s.perCat[c.key];who=[s.name];} else if(s.perCat[c.key]===best&&best>0)who.push(s.name); }); catWinners[c.key]={who,score:best}; } }
 
   return e("div",null,
+    e("div",{style:{textAlign:"center",marginBottom:16}},
+      e("div",{style:{display:"inline-block",background:C.peach,color:C.ink,padding:"8px 20px",borderRadius:999,fontWeight:800,fontSize:16,fontFamily:"'Fraunces',serif"}},
+        "🍼 "+event.title)),
     (hasActual&&scored.length)?e("div",{style:{background:C.butter,borderRadius:28,padding:26,textAlign:"center",marginBottom:18,boxShadow:`0 16px 40px rgba(244,208,111,.4)`}},
       e("div",{style:{fontSize:40}},"🏆"),
       e("div",{style:{fontSize:13,fontWeight:700,letterSpacing:2,textTransform:"uppercase",color:C.ink,opacity:.7}},"Üldvõitja"),
