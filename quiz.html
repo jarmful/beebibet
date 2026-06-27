@@ -92,9 +92,9 @@
   <!-- Start screen -->
   <div class="screen active" id="screenStart">
     <div class="card pop" style="text-align:center">
-      <div style="font-size:56px;margin-bottom:12px">🧠</div>
+      <div style="font-size:56px;margin-bottom:12px">🦉</div>
       <h2 style="font-size:26px;margin-bottom:8px">BeebiQuiz</h2>
-      <p style="color:var(--inkSoft);font-size:14px;line-height:1.6;margin-bottom:24px">30 küsimust beebi arengu, hoolduse ja keha kohta.<br>Kiirus loeb — kiirema vastuse eest saad rohkem punkte!</p>
+      <p style="color:var(--inkSoft);font-size:14px;line-height:1.6;margin-bottom:24px">10 juhuslikku küsimust beebi arengu, hoolduse ja keha kohta.<br>Kiirus loeb — kiirema vastuse eest saad rohkem punkte!</p>
       <input class="name-input" id="nameInput" placeholder="Sinu nimi" maxlength="24" autocomplete="off" />
       <button class="btn btn-rose" id="startBtn">Alusta mängu 🍼</button>
     </div>
@@ -135,7 +135,7 @@
     <div class="card pop">
       <div style="font-size:52px;text-align:center;margin-bottom:8px" id="resultEmoji">🎉</div>
       <div class="result-score" id="resultScore">0</div>
-      <div class="result-label">punkti 30-st küsimusest</div>
+      <div class="result-label">punkti 10-st küsimusest</div>
       <div style="display:flex;gap:12px;justify-content:center;margin-bottom:24px">
         <div style="text-align:center">
           <div style="font-size:22px;font-weight:800;color:var(--sage)" id="resultCorrect">0</div>
@@ -202,6 +202,13 @@ const QUESTIONS = [
 const TIMER_MAX = 20;
 const CIRC = 2 * Math.PI * 22; // ~138.23
 
+const QUIZ_SIZE = 10;
+function pickQuestions() {
+  const shuffled = [...QUESTIONS].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, QUIZ_SIZE);
+}
+
+let ACTIVE_QUESTIONS = [];
 let currentQ = 0;
 let totalScore = 0;
 let correctCount = 0;
@@ -232,12 +239,12 @@ function setTimerArc(frac) {
 }
 
 function renderQuestion() {
-  const data = QUESTIONS[currentQ];
+  const data = ACTIVE_QUESTIONS[currentQ];
   answered = false;
   timeLeft = TIMER_MAX;
 
-  document.getElementById("qLabel").textContent = `Küsimus ${currentQ + 1} / ${QUESTIONS.length}`;
-  document.getElementById("progressFill").style.width = `${(currentQ / QUESTIONS.length) * 100}%`;
+  document.getElementById("qLabel").textContent = `Küsimus ${currentQ + 1} / ${ACTIVE_QUESTIONS.length}`;
+  document.getElementById("progressFill").style.width = `${(currentQ / ACTIVE_QUESTIONS.length) * 100}%`;
   document.getElementById("questionText").textContent = data.q;
   document.getElementById("feedback").textContent = "";
   document.getElementById("feedback").className = "feedback";
@@ -271,7 +278,7 @@ function pickAnswer(idx) {
   answered = true;
   clearInterval(timerInterval);
 
-  const data = QUESTIONS[currentQ];
+  const data = ACTIVE_QUESTIONS[currentQ];
   const correct = data.ans;
   const btns = document.getElementById("answerGrid").querySelectorAll(".ans-btn");
   btns.forEach(b => b.disabled = true);
@@ -301,7 +308,7 @@ function pickAnswer(idx) {
 function revealTimeout() {
   if (answered) return;
   answered = true;
-  const data = QUESTIONS[currentQ];
+  const data = ACTIVE_QUESTIONS[currentQ];
   const btns = document.getElementById("answerGrid").querySelectorAll(".ans-btn");
   btns.forEach(b => b.disabled = true);
   btns[data.ans].classList.add("reveal");
@@ -313,7 +320,7 @@ function revealTimeout() {
 
 function nextQuestion() {
   currentQ++;
-  if (currentQ < QUESTIONS.length) {
+  if (currentQ < ACTIVE_QUESTIONS.length) {
     renderQuestion();
   } else {
     endQuiz();
@@ -324,13 +331,13 @@ async function endQuiz() {
   clearInterval(timerInterval);
   show(screenResults);
 
-  const wrongCount = QUESTIONS.length - correctCount;
+  const wrongCount = ACTIVE_QUESTIONS.length - correctCount;
   document.getElementById("resultScore").textContent = totalScore;
   document.getElementById("resultCorrect").textContent = correctCount;
   document.getElementById("resultWrong").textContent = wrongCount;
   document.getElementById("resultSpeed").textContent = speedBonus;
 
-  const pct = correctCount / QUESTIONS.length;
+  const pct = correctCount / ACTIVE_QUESTIONS.length;
   document.getElementById("resultEmoji").textContent =
     pct >= 0.9 ? "🏆" : pct >= 0.7 ? "🎉" : pct >= 0.5 ? "😊" : "📚";
 
@@ -372,6 +379,7 @@ startBtn.onclick = () => {
   const name = nameInput.value.trim();
   if (!name) { nameInput.focus(); nameInput.style.borderColor = "var(--rose)"; return; }
   playerName = name;
+  ACTIVE_QUESTIONS = pickQuestions();
   show(screenQuiz);
   renderQuestion();
 };
