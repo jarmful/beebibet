@@ -6,14 +6,14 @@
 <title>BeebiCatch — beebibet</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
 <style>
-  :root { --cream:#FBF3E4; --peach:#F7C9B6; --rose:#E8889B; --sage:#A7C4A0; --ink:#4A3B47; --inkSoft:#7A6A75; }
+  :root { --cream:#FFF0F5; --peach:#F7C9B6; --rose:#E8889B; --sage:#A7C4A0; --ink:#4A3B47; --inkSoft:#7A6A75; }
   * { box-sizing:border-box; margin:0; padding:0; }
   body { background:var(--cream); font-family:'Nunito',sans-serif; color:var(--ink); min-height:100vh; -webkit-font-smoothing:antialiased; }
   h1,h2 { font-family:'Fraunces',serif; font-weight:600; }
   .wrap { max-width:480px; margin:0 auto; padding:0 16px 60px; }
   .back { display:inline-block; padding:14px 0 0; font-size:13px; font-weight:700; color:var(--inkSoft); text-decoration:none; letter-spacing:1px; }
   .hdr { text-align:center; padding:14px 0 16px; }
-  #arena { position:relative; width:100%; height:380px; background:#fff; border-radius:28px; overflow:hidden; border:2px solid var(--peach); box-shadow:0 16px 40px rgba(74,59,71,.1); touch-action:none; user-select:none; }
+  #arena { position:relative; width:100%; height:380px; background:#fff5f8; border-radius:28px; overflow:hidden; border:2px solid var(--peach); box-shadow:0 16px 40px rgba(74,59,71,.1); touch-action:none; user-select:none; }
   #basket { position:absolute; bottom:14px; width:72px; height:44px; transform:translateX(-50%); transition:left .05s linear; }
   #basket svg { width:100%; height:100%; }
   .item { position:absolute; font-size:32px; transform:translateX(-50%); pointer-events:none; }
@@ -25,14 +25,21 @@
   .hud-score { font-family:'Fraunces',serif; font-size:26px; font-weight:600; }
   .hud-combo { font-size:13px; font-weight:800; color:var(--rose); min-width:60px; text-align:center; }
   .hud-timer { font-size:18px; font-weight:800; color:var(--inkSoft); }
-  .overlay { position:absolute; inset:0; background:rgba(251,243,228,.93); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; border-radius:26px; }
-  .overlay h2 { font-size:30px; }
+  .overlay { position:absolute; inset:0; background:rgba(255,240,245,.95); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; border-radius:26px; padding:20px; }
+  .overlay h2 { font-size:28px; }
   .btn { padding:14px 32px; border-radius:999px; border:none; font-size:16px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; color:#fff; transition:transform .15s; }
   .btn:active { transform:scale(.96); }
   .btn-rose { background:var(--rose); box-shadow:0 8px 20px rgba(232,136,155,.5); }
   .btn-sage { background:var(--sage); box-shadow:0 8px 20px rgba(167,196,160,.5); }
   .name-input { width:200px; padding:12px 16px; border-radius:16px; border:2px solid var(--peach); font-size:16px; font-family:'Nunito',sans-serif; font-weight:700; color:var(--ink); background:var(--cream); text-align:center; }
   .name-input:focus { outline:none; border-color:var(--rose); }
+  .legend { display:flex; gap:14px; justify-content:center; width:100%; }
+  .legend-box { flex:1; background:#fff; border-radius:16px; padding:10px 8px; text-align:center; border:2px solid var(--peach); }
+  .legend-box.bad-box { border-color:#fcc; }
+  .legend-label { font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; color:var(--sage); }
+  .legend-box.bad-box .legend-label { color:#e07; }
+  .legend-emojis { font-size:20px; line-height:1.6; }
+  .hint { font-size:12px; color:var(--inkSoft); text-align:center; line-height:1.5; }
   .board { background:#fff; border-radius:28px; padding:24px; box-shadow:0 16px 40px rgba(74,59,71,.1); border:2px solid var(--peach); margin-top:16px; }
   .board h2 { font-size:22px; margin-bottom:14px; }
   .board-row { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; margin-bottom:6px; background:var(--cream); }
@@ -70,9 +77,19 @@
       </svg>
     </div>
     <div class="overlay" id="overlay">
-      <div style="font-size:52px">🧸</div>
+      <div style="font-size:44px">🧸</div>
       <h2>BeebiCatch</h2>
-      <p style="font-size:14px;color:var(--inkSoft);text-align:center;max-width:240px;line-height:1.5">Püüa heade beebiasjad, väldi halbu! 30 sekundit.</p>
+      <div class="legend">
+        <div class="legend-box">
+          <div class="legend-label">✅ Püüa</div>
+          <div class="legend-emojis">🍼 🧸 🦆<br>⭐ 🌙 🎈</div>
+        </div>
+        <div class="legend-box bad-box">
+          <div class="legend-label">❌ Väldi</div>
+          <div class="legend-emojis">🧦 🥬 🪳<br>💩 🤧</div>
+        </div>
+      </div>
+      <p class="hint">Lohista korvi alla langevate esemete alla.<br>Rohkem järjest → rohkem punkte & kiirem!</p>
       <input class="name-input" id="nameInput" placeholder="Sinu nimi" maxlength="20" />
       <button class="btn btn-rose" id="startBtn">Alusta mängu 🍼</button>
     </div>
@@ -134,8 +151,17 @@ function setFace(face) {
   faceTimer = setTimeout(() => { babyface.textContent = "😶"; }, 900);
 }
 
+// Speed and spawn rate driven by combo streak
 function speedMult() {
-  return 1 + ((30 - timeLeft) / 30) * 1.2;
+  return 1 + Math.min(combo, 12) * 0.12; // 1x at combo 0, up to ~2.4x at combo 12
+}
+
+function spawnMs() {
+  return Math.max(400, 900 - Math.min(combo, 12) * 40); // 900ms → 400ms
+}
+
+function pointsForCatch() {
+  return 10 + combo * 5; // combo 0→10pts, combo 1→15, combo 2→20 …
 }
 
 function spawnItem() {
@@ -157,9 +183,7 @@ function spawnItem() {
 
 function loop(ts) {
   if (!running) { animId=null; return; }
-  const elapsed = 30 - timeLeft;
-  const spawnMs = Math.max(550, 900 - elapsed*12);
-  if (ts - lastSpawn > spawnMs) { spawnItem(); lastSpawn=ts; }
+  if (ts - lastSpawn > spawnMs()) { spawnItem(); lastSpawn=ts; }
 
   const bL=basketX-8, bR=basketX+8, bTop=aH()-60, mult=speedMult();
 
@@ -174,9 +198,10 @@ function loop(ts) {
         combo=0; score=Math.max(0,score-5);
         setFace("😢"); comboEl.textContent="";
       } else {
-        combo++; score+=combo>2?15:10;
-        setFace(combo>2?"🤣":"😄");
-        comboEl.textContent=combo>1?`×${combo} kombo!`:"";
+        const pts = pointsForCatch();
+        combo++; score+=pts;
+        setFace(combo>4?"🤣":combo>1?"😄":"🙂");
+        comboEl.textContent=combo>1?`×${combo} kombo! +${pts}`:"";
       }
       scoreEl.textContent=score;
       el.remove(); items.splice(i,1); continue;
@@ -203,7 +228,7 @@ function startGame() {
 async function endGame() {
   running=false; clearInterval(tickId); cancelAnimationFrame(animId);
   items.forEach(el=>el.remove()); items=[];
-  babyface.textContent = score>30 ? "🤣" : "😄";
+  babyface.textContent = score>50 ? "🤣" : score>20 ? "😄" : "😶";
 
   overlay.innerHTML=`
     <div style="font-size:52px">🏆</div>
