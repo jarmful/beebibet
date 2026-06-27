@@ -1,1 +1,1 @@
-{"rewrites":[{"source":"/ennustus","destination":"/ennustus.html"},{"source":"/mang","destination":"/mang.html"}]}
+{"rewrites":[{"source":"/ennustus","destination":"/ennustus.html"},{"source":"/mang","destination":"/mang.html"},{"source":"/quiz","destination":"/quiz.html"}]}
