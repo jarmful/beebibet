@@ -243,7 +243,7 @@ function setFace(face) {
   void babyface.offsetWidth;
   babyface.classList.add("bounce");
   clearTimeout(faceTimer);
-  faceTimer = setTimeout(() => { babyface.textContent = "😶"; }, 900);
+  faceTimer = setTimeout(() => { babyface.textContent = "🍼"; }, 900);
 }
 
 function speedMult() { return 1 + Math.min(combo, 12) * 0.12; }
@@ -286,7 +286,7 @@ function loop(ts) {
       } else {
         const pts = pointsForCatch();
         combo++; score += pts;
-        setFace(combo > 4 ? "🤣" : combo > 1 ? "😄" : "🙂");
+        setFace(combo > 4 ? "🤩" : combo > 1 ? "😄" : "😊");
         comboEl.textContent = combo > 1 ? `×${combo} kombo! +${pts}` : "";
       }
       scoreEl.textContent = score;
@@ -324,7 +324,7 @@ function startGame() {
   // Reset state
   score = 0; combo = 0; timeLeft = 30; items = []; lastSpawn = 0;
   scoreEl.textContent = "0"; comboEl.textContent = ""; timerEl.textContent = "30";
-  babyface.textContent = "😶";
+  babyface.textContent = "🍼";
   setBasket(50);
 
   // Enter fullscreen game
@@ -356,7 +356,7 @@ function quitGame() {
 async function endGame() {
   running = false; clearInterval(tickId); cancelAnimationFrame(animId);
   items.forEach(el => el.remove()); items = [];
-  babyface.textContent = score > 50 ? "🤣" : score > 20 ? "😄" : "😶";
+  babyface.textContent = score > 50 ? "🤩" : score > 20 ? "😄" : "😊";
 
   endOverlay.innerHTML = `
     <div style="font-size:52px">🏆</div>
