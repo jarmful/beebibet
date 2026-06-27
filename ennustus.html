@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>beebibet — babyshower ennustusmäng</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cream:#FBF3E4; --peach:#F7C9B6; --rose:#E8889B; --sage:#A7C4A0;
+    --sky:#9CC3D5; --butter:#F4D06F; --ink:#4A3B47; --inkSoft:#7A6A75;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--cream); font-family:'Nunito',sans-serif; color:var(--ink); -webkit-font-smoothing:antialiased; }
+  #app { max-width:640px; margin:0 auto; padding:0 20px 80px; position:relative; z-index:2; }
+  h1,h2 { font-family:'Fraunces',serif; font-weight:600; }
+  .deco { position:fixed; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
+  .deco span { position:absolute; font-size:26px; opacity:.18; }
+  @keyframes float0 { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-16px) rotate(8deg)} }
+  @keyframes float1 { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-22px) rotate(-6deg)} }
+  @keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  @keyframes pop { 0%{transform:scale(.95);opacity:0} 100%{transform:scale(1);opacity:1} }
+  .card { background:#fff; border-radius:28px; padding:28px 24px; box-shadow:0 16px 40px rgba(74,59,71,.1); border:2px solid var(--peach); animation:pop .35s ease; margin-bottom:18px; }
+  label { display:block; font-size:13px; font-weight:700; margin-bottom:6px; color:var(--inkSoft); }
+  input { width:100%; padding:13px 16px; border-radius:16px; border:2px solid var(--peach); font-size:16px; font-family:'Nunito',sans-serif; font-weight:600; color:var(--ink); background:var(--cream); }
+  input:focus { outline:none; border-color:var(--rose); }
+  input.big { padding:16px 18px; font-size:24px; font-weight:800; letter-spacing:4px; text-align:center; }
+  .fld { margin-bottom:18px; }
+  .btn { width:100%; padding:15px; border-radius:16px; border:none; font-size:17px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; letter-spacing:.3px; color:#fff; transition:transform .15s; margin-bottom:10px; }
+  .btn:active { transform:scale(.97); }
+  .btn.outline { background:transparent !important; box-shadow:none !important; }
+  .toast { position:fixed; top:18px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--cream); padding:12px 22px; border-radius:999px; z-index:100; font-weight:700; font-size:14px; box-shadow:0 8px 30px rgba(74,59,71,.3); max-width:90%; text-align:center; }
+  .hdr { text-align:center; padding:36px 0 20px; cursor:pointer; }
+  .hint { font-size:13px; color:var(--inkSoft); }
+  .row { display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:16px; margin-bottom:8px; background:var(--cream); }
+</style>
+</head>
+<body>
+<div class="deco" id="deco"></div>
+<div id="app"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const SUPABASE_URL  = "https://thrsacygpqwbnkcppmpk.supabase.co";
+const SUPABASE_KEY  = "sb_publishable_-QaY7mGpitakhestu3w1fg_sCGquRvx";
+
+let sb = null;
+try {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} catch (err) {
+  document.getElementById("app").innerHTML =
+    "<div style='padding:40px;text-align:center;font-family:sans-serif'>Supabase init viga: " + err.message + "</div>";
+}
+
+const e = React.createElement;
+const { useState, useEffect, useCallback } = React;
+
+const decoEl = document.getElementById("deco");
+["🍼","👶","⭐","🎈","🌙","☁️"].forEach((emoji,i)=>{
+  const s=document.createElement("span");
+  s.textContent=emoji;
+  s.style.left=[8,82,15,88,45,70][i]+"%";
+  s.style.top=[12,8,70,60,90,35][i]+"%";
+  s.style.animation=`float${i%3} ${6+i}s ease-in-out infinite`;
+  decoEl.appendChild(s);
+});
+
+const C = { cream:"#FBF3E4",peach:"#F7C9B6",rose:"#E8889B",sage:"#A7C4A0",sky:"#9CC3D5",butter:"#F4D06F",ink:"#4A3B47",inkSoft:"#7A6A75" };
+
+const CATEGORIES = [
+  { key:"weight",  label:"Kaal",             unit:"g",  type:"number", hint:"nt 3450", tolerance:1500 },
+  { key:"length",  label:"Pikkus",           unit:"cm", type:"number", hint:"nt 51",   tolerance:12 },
+  { key:"date",    label:"Sünnikuupäev",     unit:"",   type:"date",   hint:"",        tolerance:14 },
+  { key:"time",    label:"Sünnikellaaeg",    unit:"",   type:"time",   hint:"",        tolerance:360 },
+  { key:"duration",label:"Sünnituse kestus", unit:"h",  type:"number", hint:"nt 8",    tolerance:12 },
+  { key:"name",    label:"Nimi",             unit:"",   type:"text",   hint:"mis nimi pannakse?", tolerance:0 },
+];
+
+function genPin(){ return String(Math.floor(100000+Math.random()*900000)); }
+
+function scoreOne(cat,guess,actual){
+  if(guess==null||actual==null||guess===""||actual==="") return 0;
+  const MAX=100;
+  if(cat.type==="text"){ const g=String(guess).trim().toLowerCase(), a=String(actual).trim().toLowerCase(); return g&&g===a?MAX:0; }
+  let g,a,tol;
+  if(cat.type==="number"){ g=parseFloat(guess);a=parseFloat(actual);tol=cat.tolerance; }
+  else if(cat.type==="date"){ g=new Date(guess).getTime()/86400000;a=new Date(actual).getTime()/86400000;tol=cat.tolerance; }
+  else if(cat.type==="time"){ const m=t=>{const[h,mi]=t.split(":").map(Number);return h*60+mi;}; g=m(guess);a=m(actual);tol=cat.tolerance; }
+  if(isNaN(g)||isNaN(a)) return 0;
+  return Math.round(Math.max(0, MAX*(1-Math.abs(g-a)/tol)));
+}
+function fmt(cat,val){
+  if(val==null||val==="") return "—";
+  if(cat.type==="number") return `${val} ${cat.unit}`;
+  if(cat.type==="date"){ try{ return new Date(val).toLocaleDateString("et-EE",{day:"numeric",month:"long"}); }catch{return val;} }
+  return val;
+}
+
+function Btn({color,outline,onClick,disabled,children}){
+  return e("button",{ className:"btn"+(outline?" outline":""),
+    style:{ background:outline?"transparent":color, color:outline?color:"#fff",
+      border:outline?`2px solid ${color}`:"none", boxShadow:outline?"none":`0 8px 20px ${color}55`,
+      opacity:disabled?.6:1 },
+    onClick, disabled }, children);
+}
+
+function Field({label,value,onChange,placeholder,inputMode,big,type}){
+  return e("div",{className:"fld"},
+    e("label",null,label),
+    e("input",{ className:big?"big":"", type:type||"text", value:value||"", placeholder,
+      inputMode, onChange:ev=>onChange(ev.target.value) })
+  );
+}
+
+function Home({setView}){
+  return e("div",{className:"card",style:{textAlign:"center"}},
+    e("div",{style:{fontSize:56,marginBottom:8}},"🍼"),
+    e("h2",{style:{fontSize:26,margin:"0 0 8px"}},"Kes arvab kõige täpsemini?"),
+    e("p",{style:{color:C.inkSoft,fontSize:15,lineHeight:1.5,margin:"0 0 24px"}},
+      "Ennusta beebi kaalu, pikkust, sünnikuupäeva, kellaaega, sünnituse kestust ja nime. Mida lähemal, seda rohkem punkte!"),
+    e(Btn,{color:C.sage,onClick:()=>setView("join")},"Liitu mänguga 🎈"),
+    e(Btn,{color:C.rose,outline:true,onClick:()=>setView("create")},"Loo uus mäng")
+  );
+}
+
+function Create({babyName,setBabyName,adminPin,setAdminPin,createEvent,loading}){
+  return e("div",{className:"card"},
+    e("h2",{style:{fontSize:24,margin:"0 0 20px"}},"Loo uus mäng"),
+    e(Field,{label:"Beebi / perekonna nimi",value:babyName,onChange:setBabyName,placeholder:"nt Merka beebi"}),
+    e(Field,{label:"Admin PIN (4 numbrit) — sina sisestad hiljem tegeliku tulemuse",value:adminPin,
+      onChange:v=>setAdminPin(v.replace(/\D/g,"").slice(0,4)),placeholder:"••••",inputMode:"numeric"}),
+    e(Btn,{color:C.rose,onClick:createEvent,disabled:loading},loading?"Loon…":"Loo mäng ✨")
+  );
+}
+
+function Created({event,setView}){
+  const [copied,setCopied]=useState(false);
+  return e("div",{className:"card"},
+    e("h2",{style:{fontSize:24,margin:"0 0 12px"}},"Mäng on loodud! 🎉"),
+    e("p",{className:"hint",style:{marginTop:-8}},"Jaga seda PIN-koodi pere ja sõpradega:"),
+    e("div",{style:{background:C.butter,borderRadius:20,padding:24,textAlign:"center",margin:"8px 0 20px"}},
+      e("div",{style:{fontSize:13,fontWeight:700,color:C.ink,opacity:.7,letterSpacing:2,textTransform:"uppercase"}},event.title),
+      e("div",{style:{fontFamily:"'Fraunces',serif",fontSize:52,fontWeight:600,letterSpacing:8,color:C.ink,margin:"4px 0"}},event.pin)
+    ),
+    e("button",{className:"btn",style:{background:C.sage,color:"#fff",boxShadow:`0 8px 20px ${C.sage}55`},
+      onClick:()=>{ try{navigator.clipboard.writeText(event.pin);}catch(e){} setCopied(true); setTimeout(()=>setCopied(false),1500); }},
+      copied?"Kopeeritud! ✓":"Kopeeri PIN"),
+    e("button",{className:"btn outline",style:{color:C.rose,border:`2px solid ${C.rose}`},onClick:()=>setView("join")},"Mine ennustama →"),
+    e("p",{className:"hint",style:{marginTop:16,lineHeight:1.5}},
+      "💡 Hoia oma admin PIN alles — pärast beebi sündi sisestad selle abil tegelikud tulemused (avalehel → liitu → all \"Admin\").")
+  );
+}
+
+function Join({joinPin,setJoinPin,joinName,setJoinName,joinUserPin,setJoinUserPin,joinEvent,loading}){
+  return e("div",{className:"card"},
+    e("h2",{style:{fontSize:24,margin:"0 0 20px"}},"Liitu mänguga"),
+    e(Field,{label:"Mängu PIN (6 numbrit)",value:joinPin,big:true,inputMode:"numeric",
+      onChange:v=>setJoinPin(v.replace(/\D/g,"").slice(0,6)),placeholder:"123456"}),
+    e(Field,{label:"Sinu nimi",value:joinName,onChange:setJoinName,placeholder:"nt Jarmo"}),
+    e(Field,{label:"Vali endale PIN (4 numbrit)",value:joinUserPin,inputMode:"numeric",
+      onChange:v=>setJoinUserPin(v.replace(/\D/g,"").slice(0,4)),placeholder:"••••"}),
+    e("p",{className:"hint",style:{marginTop:-4,marginBottom:14}},"PIN kaitseb su ennustust ja laseb hiljem tagasi tulla."),
+    e(Btn,{color:C.sage,onClick:joinEvent,disabled:loading},loading?"Otsin…":"Liitu →")
+  );
+}
+
+function Predict({event,me,guesses,setGuesses,submitPrediction,loading}){
+  return e("div",{className:"card"},
+    e("h2",{style:{fontSize:24,margin:"0 0 6px"}},`Tere, ${me.name}! 👋`),
+    e("p",{style:{color:C.inkSoft,fontSize:14,marginTop:0,marginBottom:20}},
+      e("span",null,"Ennusta "),e("b",null,event.title),
+      e("span",null," kohta. Teiste vastuseid näed alles pärast oma ennustuse esitamist.")),
+    ...CATEGORIES.map(c=>e("div",{key:c.key,className:"fld"},
+      e("label",{style:{fontSize:14,fontWeight:800,color:C.ink}},
+        c.label, c.unit?e("span",{style:{color:C.inkSoft,fontWeight:600}},` (${c.unit})`):null),
+      (c.type==="date"||c.type==="time")?e("div",{style:{fontSize:12,color:C.inkSoft,marginBottom:6}},
+        c.type==="date"?"👇 Vajuta ja vali kalendrist":"👇 Vajuta ja vali kellaaeg"):null,
+      e("input",{ type:c.type==="number"?"number":c.type, value:guesses[c.key]||"", placeholder:c.hint,
+        style:(c.type==="date"||c.type==="time")?{minHeight:52}:{},
+        onChange:ev=>setGuesses(prev=>({...prev,[c.key]:ev.target.value})) })
+    )),
+    e(Btn,{color:C.rose,onClick:submitPrediction,disabled:loading},loading?"Salvestan…":"Esita ennustus ✨")
+  );
+}
+
+function Results({event,preds,me,refresh,setView}){
+  useEffect(()=>{ refresh(); },[]);
+  const hasActual = event.actual && Object.keys(event.actual).length;
+  let scored = preds.map(p=>{
+    let total=0; const perCat={};
+    if(hasActual){ for(const c of CATEGORIES){ const s=scoreOne(c,p.guesses?.[c.key],event.actual?.[c.key]); perCat[c.key]=s; total+=s; } }
+    return { name:p.name, guesses:p.guesses, total, perCat };
+  });
+  if(hasActual) scored.sort((a,b)=>b.total-a.total);
+
+  const catWinners={};
+  if(hasActual){ for(const c of CATEGORIES){ let best=-1,who=[]; scored.forEach(s=>{ if(s.perCat[c.key]>best){best=s.perCat[c.key];who=[s.name];} else if(s.perCat[c.key]===best&&best>0)who.push(s.name); }); catWinners[c.key]={who,score:best}; } }
+
+  return e("div",null,
+    e("div",{style:{textAlign:"center",marginBottom:16}},
+      e("div",{style:{display:"inline-block",background:C.peach,color:C.ink,padding:"8px 20px",borderRadius:999,fontWeight:800,fontSize:16,fontFamily:"'Fraunces',serif"}},
+        "🍼 "+event.title)),
+    (hasActual&&scored.length)?e("div",{style:{background:C.butter,borderRadius:28,padding:26,textAlign:"center",marginBottom:18,boxShadow:`0 16px 40px rgba(244,208,111,.4)`}},
+      e("div",{style:{fontSize:40}},"🏆"),
+      e("div",{style:{fontSize:13,fontWeight:700,letterSpacing:2,textTransform:"uppercase",color:C.ink,opacity:.7}},"Üldvõitja"),
+      e("div",{style:{fontFamily:"'Fraunces',serif",fontSize:34,fontWeight:600}},scored[0].name),
+      e("div",{style:{fontSize:15,fontWeight:700}},scored[0].total+" punkti")
+    ):null,
+    e("div",{className:"card"},
+      e("h2",{style:{fontSize:24,margin:"0 0 12px"}},hasActual?"Edetabel":"Osalejad"),
+      !hasActual?e("p",{className:"hint",style:{marginTop:-6,marginBottom:16}},
+        "Beebi pole veel sündinud 🤰 Allpool kõikide ennustused. Punktid ja võitja selguvad kui tegelikud tulemused sisestatakse."):null,
+      scored.length===0?e("p",{className:"hint"},"Veel pole ühtegi ennustust."):null,
+      ...scored.map((s,i)=>e("div",{key:s.name,className:"row",
+        style:{ background:s.name===(me&&me.name)?C.peach+"55":C.cream, border:`2px solid ${s.name===(me&&me.name)?C.rose:"transparent"}` }},
+        hasActual?e("div",{style:{fontSize:20,fontWeight:800,color:C.rose,minWidth:28}},i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`):null,
+        e("div",{style:{flex:1}},
+          e("div",{style:{fontWeight:800,fontSize:16}},s.name+(s.name===(me&&me.name)?" (sina)":"")),
+          e("div",{style:{fontSize:12.5,color:C.inkSoft,marginTop:2}},
+            CATEGORIES.map(c=>`${c.label}: ${fmt(c,s.guesses?.[c.key])}`).join(" · "))
+        ),
+        hasActual?e("div",{style:{fontWeight:800,fontSize:18,color:C.sage}},s.total):null
+      ))
+    ),
+    hasActual?e("div",{className:"card"},
+      e("h2",{style:{fontSize:24,margin:"0 0 14px"}},"Kategooriate võitjad 🎯"),
+      e("div",{style:{display:"grid",gap:10}},
+        ...CATEGORIES.map(c=>e("div",{key:c.key,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:C.cream,borderRadius:14}},
+          e("div",null,
+            e("div",{style:{fontWeight:800,fontSize:14}},c.label),
+            e("div",{style:{fontSize:12.5,color:C.inkSoft}},"Õige: "+fmt(c,event.actual[c.key]))),
+          e("div",{style:{textAlign:"right"}},
+            e("div",{style:{fontWeight:800,color:C.rose}},(catWinners[c.key]&&catWinners[c.key].who.join(", "))||"—"),
+            e("div",{style:{fontSize:12,color:C.inkSoft}},(catWinners[c.key]&&catWinners[c.key].score)+" p"))
+        ))
+      )
+    ):null,
+    e("button",{className:"btn outline",style:{color:C.sky,border:`2px solid ${C.sky}`},onClick:refresh},"↻ Värskenda"),
+    e("button",{className:"btn outline",style:{color:C.ink,border:`2px solid ${C.ink}`},onClick:()=>setView("admin")},"⚙️ Admin — sisesta tegelik tulemus")
+  );
+}
+
+function Admin({event,actual,setActual,adminPinInput,setAdminPinInput,adminAuthed,setAdminAuthed,flash,saveActual,loading}){
+  if(!adminAuthed){
+    return e("div",{className:"card"},
+      e("h2",{style:{fontSize:24,margin:"0 0 12px"}},"Admin — tegelikud tulemused"),
+      e("p",{className:"hint",style:{marginTop:-6,marginBottom:14}},"Sisesta selle mängu admin PIN (4 numbrit), mille lõid mängu loomisel."),
+      e(Field,{label:"Admin PIN",value:adminPinInput,inputMode:"numeric",onChange:v=>setAdminPinInput(v.replace(/\D/g,"").slice(0,4)),placeholder:"••••"}),
+      e(Btn,{color:C.rose,onClick:()=>{ if(adminPinInput===event.admin_pin){ setAdminAuthed(true); setActual(event.actual||{}); } else flash("Vale admin PIN"); }},"Sisene")
+    );
+  }
+  return e("div",{className:"card"},
+    e("h2",{style:{fontSize:24,margin:"0 0 12px"}},"Sisesta tegelikud andmed 👶"),
+    e("p",{className:"hint",style:{marginTop:-6,marginBottom:18}},"Kui beebi on sündinud, täida tegelikud väärtused. Punktid arvutatakse automaatselt."),
+    ...CATEGORIES.map(c=>e("div",{key:c.key,className:"fld"},
+      e("label",{style:{fontSize:14,fontWeight:800,color:C.ink}},c.label,c.unit?e("span",{style:{color:C.inkSoft,fontWeight:600}},` (${c.unit})`):null),
+      (c.type==="date"||c.type==="time")?e("div",{style:{fontSize:12,color:C.inkSoft,marginBottom:6}},
+        c.type==="date"?"👇 Vajuta ja vali kalendrist":"👇 Vajuta ja vali kellaaeg"):null,
+      e("input",{ type:c.type==="number"?"number":c.type, value:actual[c.key]||"", placeholder:c.hint,
+        style:(c.type==="date"||c.type==="time")?{minHeight:52}:{},
+        onChange:ev=>setActual(prev=>({...prev,[c.key]:ev.target.value})) })
+    )),
+    e(Btn,{color:C.sage,onClick:saveActual,disabled:loading},loading?"Salvestan…":"Salvesta & arvuta punktid 🏆")
+  );
+}
+
+function App(){
+  const [view,setView]=useState("home");
+  const [loading,setLoading]=useState(false);
+  const [event,setEvent]=useState(null);
+  const [preds,setPreds]=useState([]);
+  const [me,setMe]=useState(null);
+  const [toast,setToast]=useState("");
+  const flash=m=>{ setToast(m); setTimeout(()=>setToast(""),3200); };
+
+  const [babyName,setBabyName]=useState("");
+  const [adminPin,setAdminPin]=useState("");
+  const [joinPin,setJoinPin]=useState("");
+  const [joinName,setJoinName]=useState("");
+  const [joinUserPin,setJoinUserPin]=useState("");
+  const [guesses,setGuesses]=useState({});
+  const [adminPinInput,setAdminPinInput]=useState("");
+  const [adminAuthed,setAdminAuthed]=useState(false);
+  const [actual,setActual]=useState({});
+
+  async function createEvent(){
+    if(!babyName.trim()) return flash("Sisesta beebi/perekonna nimi");
+    if(!/^\d{4}$/.test(adminPin)) return flash("Admin PIN peab olema 4 numbrit");
+    setLoading(true);
+    try {
+      const pin=genPin();
+      const { error }=await sb.from("bb_events").insert({ pin, title:babyName.trim(), admin_pin:adminPin });
+      if(error){ flash("Viga: "+error.message); setLoading(false); return; }
+      setEvent({ pin, title:babyName.trim(), admin_pin:adminPin, actual:null });
+      setView("created");
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+    setLoading(false);
+  }
+
+  async function joinEvent(){
+    if(!/^\d{6}$/.test(joinPin)) return flash("Mängu PIN on 6 numbrit");
+    if(!joinName.trim()) return flash("Sisesta oma nimi");
+    if(!/^\d{4}$/.test(joinUserPin)) return flash("Vali endale 4-numbriline PIN");
+    setLoading(true);
+    try {
+      const { data:ev, error:e1 }=await sb.from("bb_events").select("*").eq("pin",joinPin).maybeSingle();
+      if(e1){ flash("Viga: "+e1.message); setLoading(false); return; }
+      if(!ev){ flash("Sellise PIN-iga mängu ei leitud"); setLoading(false); return; }
+      const { data:existing }=await sb.from("bb_predictions").select("*").eq("event_pin",joinPin).eq("name",joinName.trim()).maybeSingle();
+      if(existing){
+        if(existing.user_pin!==joinUserPin){ flash("Selle nimega osaleja juba olemas — vale PIN"); setLoading(false); return; }
+        setMe({ name:joinName.trim(), pin:joinUserPin });
+        setEvent(ev);
+        await loadResults(joinPin);
+        setView("results");
+      } else {
+        setMe({ name:joinName.trim(), pin:joinUserPin });
+        setEvent(ev);
+        setGuesses({ time:"12:00" });
+        setView("predict");
+      }
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+    setLoading(false);
+  }
+
+  async function submitPrediction(){
+    for(const c of CATEGORIES){ if(guesses[c.key]==null||guesses[c.key]==="") return flash("Täida: "+c.label); }
+    setLoading(true);
+    try {
+      const { error }=await sb.from("bb_predictions").upsert(
+        { event_pin:event.pin, name:me.name, user_pin:me.pin, guesses },
+        { onConflict:"event_pin,name" }
+      );
+      if(error){ flash("Viga: "+error.message); setLoading(false); return; }
+      await loadResults(event.pin);
+      setView("results"); flash("Ennustus salvestatud!");
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+    setLoading(false);
+  }
+
+  async function loadResults(pin){
+    try {
+      const { data:ev }=await sb.from("bb_events").select("*").eq("pin",pin).maybeSingle();
+      if(ev) setEvent(ev);
+      const { data:ps }=await sb.from("bb_predictions").select("*").eq("event_pin",pin).order("created_at");
+      setPreds(ps||[]);
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+  }
+  const refresh=useCallback(()=>{ if(event) loadResults(event.pin); },[event]);
+
+  async function saveActual(){
+    setLoading(true);
+    try {
+      const { error }=await sb.from("bb_events").update({ actual }).eq("pin",event.pin);
+      if(error){ flash("Viga: "+error.message); setLoading(false); return; }
+      await loadResults(event.pin);
+      flash("Tegelikud tulemused salvestatud!"); setView("results");
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+    setLoading(false);
+  }
+
+  function goHome(){ setView("home"); setEvent(null); setMe(null); setPreds([]); setAdminAuthed(false); setGuesses({}); setAdminPinInput(""); }
+
+  let body;
+  if(view==="home") body=e(Home,{setView});
+  else if(view==="create") body=e(Create,{babyName,setBabyName,adminPin,setAdminPin,createEvent,loading});
+  else if(view==="created") body=e(Created,{event,setView});
+  else if(view==="join") body=e(Join,{joinPin,setJoinPin,joinName,setJoinName,joinUserPin,setJoinUserPin,joinEvent,loading});
+  else if(view==="predict") body=e(Predict,{event,me,guesses,setGuesses,submitPrediction,loading});
+  else if(view==="results") body=e(Results,{event,preds,me,refresh,setView});
+  else if(view==="admin") body=e(Admin,{event,actual,setActual,adminPinInput,setAdminPinInput,adminAuthed,setAdminAuthed,flash,saveActual,loading});
+
+  return e(React.Fragment,null,
+    toast?e("div",{className:"toast"},toast):null,
+    e("div",{className:"hdr",onClick:goHome},
+      e("h1",{style:{fontSize:44,margin:0,letterSpacing:"-1px"}},
+        "beebi",e("span",{style:{color:C.rose}},"bet")),
+      e("p",{style:{margin:"4px 0 0",fontSize:13,letterSpacing:3,textTransform:"uppercase",color:C.inkSoft,fontWeight:700}},
+        "babyshower ennustusmäng")),
+    body
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(e(App));
+</script>
+</body>
+</html>
