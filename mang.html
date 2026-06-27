@@ -4,47 +4,42 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
 <title>BeebiCatch — beebibet</title>
-<meta name="description" content="Püüa korvist beebiasjad ja kogu punkte! Pääse edetabelisse. Lõbus babyshower mäng kogu perele." />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://beebibet.ee/mang" />
-<meta property="og:title" content="BeebiCatch — beebibet" />
-<meta property="og:description" content="Püüa korvist beebiasjad ja kogu punkte! Pääse edetabelisse. Lõbus babyshower mäng kogu perele." />
-<meta property="og:image" content="https://beebibet.ee/og-image.png" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="BeebiCatch — beebibet" />
-<meta name="twitter:description" content="Püüa korvist beebiasjad ja kogu punkte! Pääse edetabelisse. Lõbus babyshower mäng kogu perele." />
-<meta name="twitter:image" content="https://beebibet.ee/og-image.png" />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
 <style>
   :root { --cream:#FFF0F5; --peach:#F7C9B6; --rose:#E8889B; --sage:#A7C4A0; --ink:#4A3B47; --inkSoft:#7A6A75; }
   * { box-sizing:border-box; margin:0; padding:0; }
   body { background:var(--cream); font-family:'Nunito',sans-serif; color:var(--ink); min-height:100vh; -webkit-font-smoothing:antialiased; }
   h1,h2 { font-family:'Fraunces',serif; font-weight:600; }
-
-  /* ── Start page ── */
   .wrap { max-width:480px; margin:0 auto; padding:0 16px 60px; }
   .back { display:inline-block; padding:14px 0 0; font-size:13px; font-weight:700; color:var(--inkSoft); text-decoration:none; letter-spacing:1px; }
-  .hdr { text-align:center; padding:14px 0 20px; }
-
-  /* start arena box – just hosts the overlay card */
-  #startArena { position:relative; width:100%; background:#fff5f8; border-radius:28px; border:2px solid var(--peach); box-shadow:0 16px 40px rgba(74,59,71,.1); padding:28px 20px 24px; }
-
-  .legend { display:flex; gap:14px; justify-content:center; width:100%; margin:16px 0; }
-  .legend-box { flex:1; background:#fff; border-radius:16px; padding:12px 8px; text-align:center; border:2px solid var(--peach); }
-  .legend-box.bad-box { border-color:#fcc; }
-  .legend-label { font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; color:var(--sage); }
-  .legend-box.bad-box .legend-label { color:#e07; }
-  .legend-emojis { font-size:22px; line-height:1.7; }
-  .hint { font-size:13px; color:var(--inkSoft); text-align:center; line-height:1.6; margin-bottom:18px; }
-  .name-input { width:100%; padding:13px 16px; border-radius:16px; border:2px solid var(--peach); font-size:16px; font-family:'Nunito',sans-serif; font-weight:700; color:var(--ink); background:var(--cream); text-align:center; margin-bottom:12px; }
-  .name-input:focus { outline:none; border-color:var(--rose); }
-  .btn { width:100%; padding:15px 32px; border-radius:999px; border:none; font-size:16px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; color:#fff; transition:transform .15s; }
+  .hdr { text-align:center; padding:14px 0 16px; }
+  #arena { position:relative; width:100%; height:380px; background:#fff5f8; border-radius:28px; overflow:hidden; border:2px solid var(--peach); box-shadow:0 16px 40px rgba(74,59,71,.1); touch-action:none; user-select:none; }
+  #basket { position:absolute; bottom:14px; width:72px; height:44px; transform:translateX(-50%); transition:left .05s linear; }
+  #basket svg { width:100%; height:100%; }
+  .item { position:absolute; font-size:32px; transform:translateX(-50%); pointer-events:none; }
+  .baby-bar { display:flex; align-items:center; justify-content:center; padding:6px 0 8px; }
+  #babyface { font-size:48px; display:inline-block; }
+  @keyframes bounce { 0%{transform:scale(1)} 40%{transform:scale(1.35)} 100%{transform:scale(1)} }
+  .bounce { animation:bounce .25s ease; }
+  .hud { display:flex; justify-content:space-between; align-items:center; padding:8px 4px 6px; }
+  .hud-score { font-family:'Fraunces',serif; font-size:26px; font-weight:600; }
+  .hud-combo { font-size:13px; font-weight:800; color:var(--rose); min-width:60px; text-align:center; }
+  .hud-timer { font-size:18px; font-weight:800; color:var(--inkSoft); }
+  .overlay { position:absolute; inset:0; background:rgba(255,240,245,.95); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; border-radius:26px; padding:20px; }
+  .overlay h2 { font-size:28px; }
+  .btn { padding:14px 32px; border-radius:999px; border:none; font-size:16px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; color:#fff; transition:transform .15s; }
   .btn:active { transform:scale(.96); }
   .btn-rose { background:var(--rose); box-shadow:0 8px 20px rgba(232,136,155,.5); }
   .btn-sage { background:var(--sage); box-shadow:0 8px 20px rgba(167,196,160,.5); }
-
+  .name-input { width:200px; padding:12px 16px; border-radius:16px; border:2px solid var(--peach); font-size:16px; font-family:'Nunito',sans-serif; font-weight:700; color:var(--ink); background:var(--cream); text-align:center; }
+  .name-input:focus { outline:none; border-color:var(--rose); }
+  .legend { display:flex; gap:14px; justify-content:center; width:100%; }
+  .legend-box { flex:1; background:#fff; border-radius:16px; padding:10px 8px; text-align:center; border:2px solid var(--peach); }
+  .legend-box.bad-box { border-color:#fcc; }
+  .legend-label { font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; color:var(--sage); }
+  .legend-box.bad-box .legend-label { color:#e07; }
+  .legend-emojis { font-size:20px; line-height:1.6; }
+  .hint { font-size:12px; color:var(--inkSoft); text-align:center; line-height:1.5; }
   .board { background:#fff; border-radius:28px; padding:24px; box-shadow:0 16px 40px rgba(74,59,71,.1); border:2px solid var(--peach); margin-top:16px; }
   .board h2 { font-size:22px; margin-bottom:14px; }
   .board-row { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; margin-bottom:6px; background:var(--cream); }
@@ -54,124 +49,20 @@
   .board-score { font-weight:800; font-size:17px; color:var(--sage); }
   .board-empty { color:var(--inkSoft); font-size:14px; text-align:center; padding:12px 0; }
   .db-error { background:#fee; border:1px solid #fcc; border-radius:12px; padding:10px 14px; font-size:12px; color:#c00; margin-top:8px; word-break:break-all; }
-
-  /* ── Fullscreen game ── */
-  #gameScreen {
-    display:none;
-    position:fixed;
-    inset:0;
-    z-index:200;
-    background:var(--cream);
-    flex-direction:column;
-  }
-  #gameScreen.active { display:flex; }
-
-  .game-hud {
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:env(safe-area-inset-top, 12px) 16px 10px;
-    padding-top:max(env(safe-area-inset-top), 12px);
-    flex-shrink:0;
-    gap:8px;
-  }
-  .quit-btn { background:none; border:none; font-size:20px; cursor:pointer; padding:4px 8px; color:var(--inkSoft); font-weight:800; font-family:'Nunito',sans-serif; }
-  #babyface { font-size:36px; }
-  @keyframes bounce { 0%{transform:scale(1)} 40%{transform:scale(1.35)} 100%{transform:scale(1)} }
-  .bounce { animation:bounce .25s ease; }
-  .hud-score { font-family:'Fraunces',serif; font-size:22px; font-weight:600; }
-  .hud-combo { font-size:12px; font-weight:800; color:var(--rose); flex:1; text-align:center; }
-  .hud-timer { font-size:17px; font-weight:800; color:var(--inkSoft); }
-
-  #arena {
-    position:relative;
-    flex:1;
-    overflow:hidden;
-    touch-action:none;
-    user-select:none;
-    margin:0 12px 12px;
-    border-radius:24px;
-    background:#fff5f8;
-    border:2px solid var(--peach);
-  }
-
-  #basket { position:absolute; bottom:14px; width:72px; height:44px; left:50%; transform:translateX(-50%); transition:left .05s linear; }
-  #basket svg { width:100%; height:100%; }
-  .item { position:absolute; font-size:32px; transform:translateX(-50%); pointer-events:none; }
-
-  /* countdown */
-  #countdown {
-    display:none;
-    position:absolute;
-    inset:0;
-    background:rgba(255,240,245,.92);
-    align-items:center;
-    justify-content:center;
-    font-family:'Fraunces',serif;
-    font-size:96px;
-    font-weight:600;
-    color:var(--rose);
-    border-radius:22px;
-  }
-  #countdown.show { display:flex; }
-  @keyframes cdPop { 0%{transform:scale(1.4);opacity:0} 30%{opacity:1;transform:scale(1)} 80%{opacity:1} 100%{opacity:0;transform:scale(.8)} }
-  .cd-num { animation:cdPop .9s ease forwards; }
-
-  /* end overlay */
-  .overlay {
-    display:none;
-    position:absolute;
-    inset:0;
-    background:rgba(255,240,245,.96);
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:12px;
-    border-radius:22px;
-    padding:24px;
-  }
-  .overlay.show { display:flex; }
 </style>
 </head>
 <body>
-
-<!-- ── Start page ── -->
-<div class="wrap" id="startPage">
+<div class="wrap">
   <a class="back" href="/">← Avaleht</a>
   <div class="hdr">
     <h1 style="font-size:40px;letter-spacing:-1px">beebi<span style="color:var(--rose)">bet</span></h1>
     <p style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--inkSoft);font-weight:700;margin-top:3px">BeebiCatch</p>
   </div>
 
-  <div id="startArena">
-    <h2 style="font-size:26px;text-align:center;margin-bottom:4px">BeebiCatch</h2>
-    <div class="legend">
-      <div class="legend-box">
-        <div class="legend-label">✅ Püüa</div>
-        <div class="legend-emojis">🍼 🧸 🦆<br>⭐ 🌙 🎈</div>
-      </div>
-      <div class="legend-box bad-box">
-        <div class="legend-label">❌ Väldi</div>
-        <div class="legend-emojis">🧦 🥬 🪳<br>💩 🤧</div>
-      </div>
-    </div>
-    <p class="hint">Lohista korvi alla langevate esemete alla.<br>Rohkem järjest → rohkem punkte & kiirem!</p>
-    <input class="name-input" id="nameInput" placeholder="Sinu nimi" maxlength="20" />
-    <button class="btn btn-rose" id="startBtn">Alusta mängu 🍼</button>
-  </div>
+  <div class="baby-bar"><span id="babyface">😶</span></div>
 
-  <div class="board">
-    <h2>🏆 Edetabel</h2>
-    <div id="boardList"><div class="board-empty">Laen…</div></div>
-  </div>
-</div>
-
-<!-- ── Fullscreen game ── -->
-<div id="gameScreen">
-  <div class="game-hud">
-    <button class="quit-btn" id="quitBtn">✕</button>
+  <div class="hud">
     <div class="hud-score">⭐ <span id="score">0</span></div>
-    <span id="babyface">😶</span>
     <div class="hud-combo" id="combo"></div>
     <div class="hud-timer">⏱ <span id="timer">30</span>s</div>
   </div>
@@ -185,8 +76,28 @@
         <line x1="52" y1="10" x2="62" y2="2" stroke="#A7C4A0" stroke-width="3" stroke-linecap="round"/>
       </svg>
     </div>
-    <div id="countdown"></div>
-    <div class="overlay" id="endOverlay"></div>
+    <div class="overlay" id="overlay">
+      <div style="font-size:44px">🧸</div>
+      <h2>BeebiCatch</h2>
+      <div class="legend">
+        <div class="legend-box">
+          <div class="legend-label">✅ Püüa</div>
+          <div class="legend-emojis">🍼 🧸 🦆<br>⭐ 🌙 🎈</div>
+        </div>
+        <div class="legend-box bad-box">
+          <div class="legend-label">❌ Väldi</div>
+          <div class="legend-emojis">🧦 🥬 🪳<br>💩 🤧</div>
+        </div>
+      </div>
+      <p class="hint">Lohista korvi alla langevate esemete alla.<br>Rohkem järjest → rohkem punkte & kiirem!</p>
+      <input class="name-input" id="nameInput" placeholder="Sinu nimi" maxlength="20" />
+      <button class="btn btn-rose" id="startBtn">Alusta mängu 🍼</button>
+    </div>
+  </div>
+
+  <div class="board">
+    <h2>🏆 Edetabel</h2>
+    <div id="boardList"><div class="board-empty">Laen…</div></div>
   </div>
 </div>
 
@@ -200,19 +111,16 @@ const sb = supabase.createClient(
 const GOOD_ITEMS = ["🍼","🧸","🦆","⭐","🌙","🎈"];
 const BAD_ITEMS  = ["🧦","🥬","🪳","💩","🤧"];
 
-const gameScreen = document.getElementById("gameScreen");
-const arena      = document.getElementById("arena");
-const basket     = document.getElementById("basket");
-const endOverlay = document.getElementById("endOverlay");
-const cdEl       = document.getElementById("countdown");
-const babyface   = document.getElementById("babyface");
-const scoreEl    = document.getElementById("score");
-const comboEl    = document.getElementById("combo");
-const timerEl    = document.getElementById("timer");
-const startBtn   = document.getElementById("startBtn");
-const nameInput  = document.getElementById("nameInput");
-const boardList  = document.getElementById("boardList");
-const quitBtn    = document.getElementById("quitBtn");
+const arena    = document.getElementById("arena");
+const basket   = document.getElementById("basket");
+const overlay  = document.getElementById("overlay");
+const babyface = document.getElementById("babyface");
+const scoreEl  = document.getElementById("score");
+const comboEl  = document.getElementById("combo");
+const timerEl  = document.getElementById("timer");
+const startBtn = document.getElementById("startBtn");
+const nameInput= document.getElementById("nameInput");
+const boardList= document.getElementById("boardList");
 
 let score=0, combo=0, timeLeft=30, running=false;
 let items=[], animId=null, tickId=null, faceTimer=null;
@@ -220,22 +128,19 @@ let basketX=50, lastSpawn=0, currentPlayer="";
 
 const aH = () => arena.offsetHeight;
 
-function setBasket(p) {
-  basketX = Math.max(5, Math.min(95, p));
-  basket.style.left = basketX + "%";
-}
+function setBasket(p) { basketX=Math.max(5,Math.min(95,p)); basket.style.left=basketX+"%"; }
 
 arena.addEventListener("pointermove", ev => {
   if (!running) return;
   const r = arena.getBoundingClientRect();
-  setBasket((ev.clientX - r.left) / r.width * 100);
+  setBasket((ev.clientX-r.left)/r.width*100);
 });
 arena.addEventListener("touchmove", ev => {
   if (!running) return;
   ev.preventDefault();
   const r = arena.getBoundingClientRect();
-  setBasket((ev.touches[0].clientX - r.left) / r.width * 100);
-}, {passive:false});
+  setBasket((ev.touches[0].clientX-r.left)/r.width*100);
+},{passive:false});
 
 function setFace(face) {
   babyface.textContent = face;
@@ -243,166 +148,123 @@ function setFace(face) {
   void babyface.offsetWidth;
   babyface.classList.add("bounce");
   clearTimeout(faceTimer);
-  faceTimer = setTimeout(() => { babyface.textContent = "🍼"; }, 900);
+  faceTimer = setTimeout(() => { babyface.textContent = "😶"; }, 900);
 }
 
-function speedMult() { return 1 + Math.min(combo, 12) * 0.12; }
-function spawnMs()   { return Math.max(400, 900 - Math.min(combo, 12) * 40); }
-function pointsForCatch() { return 10 + combo * 5; }
+// Speed scales with combo: 1x at 0, up to ~2x at combo 10
+function speedMult() {
+  return 1 + Math.min(combo, 10) * 0.1;
+}
+
+function spawnInterval() {
+  return Math.max(500, 1000 - Math.min(combo, 10) * 40);
+}
+
+function pointsForCatch() {
+  return 10 + combo * 5;
+}
 
 function spawnItem() {
   const bad = Math.random() < 0.32;
   const list = bad ? BAD_ITEMS : GOOD_ITEMS;
-  const emoji = list[Math.floor(Math.random() * list.length)];
+  const emoji = list[Math.floor(Math.random()*list.length)];
   const el = document.createElement("div");
   el.className = "item";
   el.textContent = emoji;
   el.dataset.bad = bad ? "1" : "0";
-  el.dataset.x = 10 + Math.random() * 80;
+  el.dataset.x = 10 + Math.random()*80;
   el.dataset.y = -8;
-  el.dataset.base = 1.8 + Math.random() * 1.8;
-  el.style.left = el.dataset.x + "%";
-  el.style.top  = el.dataset.y + "%";
+  el.dataset.base = 1.0 + Math.random()*1.0;
+  el.style.left = el.dataset.x+"%";
+  el.style.top  = el.dataset.y+"%";
   arena.appendChild(el);
   items.push(el);
 }
 
 function loop(ts) {
-  if (!running) { animId = null; return; }
-  if (ts - lastSpawn > spawnMs()) { spawnItem(); lastSpawn = ts; }
+  if (!running) { animId=null; return; }
+  if (ts - lastSpawn > spawnInterval()) { spawnItem(); lastSpawn=ts; }
 
-  const bL = basketX - 8, bR = basketX + 8, bTop = aH() - 60, mult = speedMult();
+  const bL=basketX-8, bR=basketX+8, bTop=aH()-60, mult=speedMult();
 
-  for (let i = items.length - 1; i >= 0; i--) {
-    const el = items[i];
-    let y = parseFloat(el.dataset.y) + parseFloat(el.dataset.base) * mult * 0.55;
-    el.dataset.y = y; el.style.top = y + "%";
-    const x = parseFloat(el.dataset.x), yPx = y / 100 * aH();
+  for (let i=items.length-1; i>=0; i--) {
+    const el=items[i];
+    let y = parseFloat(el.dataset.y) + parseFloat(el.dataset.base)*mult*0.4;
+    el.dataset.y=y; el.style.top=y+"%";
+    const x=parseFloat(el.dataset.x), yPx=y/100*aH();
 
-    if (yPx > bTop - 10 && yPx < bTop + 30 && x > bL && x < bR) {
-      if (el.dataset.bad === "1") {
-        combo = 0; score = Math.max(0, score - 5);
-        setFace("😢"); comboEl.textContent = "";
+    if (yPx>bTop-10 && yPx<bTop+30 && x>bL && x<bR) {
+      if (el.dataset.bad==="1") {
+        combo=0; score=Math.max(0,score-5);
+        setFace("😢"); comboEl.textContent="";
       } else {
         const pts = pointsForCatch();
-        combo++; score += pts;
-        setFace(combo > 4 ? "🤩" : combo > 1 ? "😄" : "😊");
-        comboEl.textContent = combo > 1 ? `×${combo} kombo! +${pts}` : "";
+        combo++; score+=pts;
+        setFace(combo>4?"🤣":combo>1?"😄":"🙂");
+        comboEl.textContent=combo>1?`×${combo} kombo! +${pts}`:"";
       }
-      scoreEl.textContent = score;
-      el.remove(); items.splice(i, 1); continue;
+      scoreEl.textContent=score;
+      el.remove(); items.splice(i,1); continue;
     }
-    if (y > 108) { el.remove(); items.splice(i, 1); }
+    if (y>108) { el.remove(); items.splice(i,1); }
   }
   animId = requestAnimationFrame(loop);
 }
 
-function showCountdown(cb) {
-  const nums = ["3","2","1","Mängi! 🍼"];
-  let i = 0;
-  cdEl.classList.add("show");
-
-  function tick() {
-    if (i >= nums.length) {
-      cdEl.classList.remove("show");
-      cdEl.innerHTML = "";
-      cb();
-      return;
-    }
-    cdEl.innerHTML = `<span class="cd-num">${nums[i]}</span>`;
-    i++;
-    setTimeout(tick, i <= 3 ? 900 : 600);
-  }
-  tick();
-}
-
 function startGame() {
   const name = nameInput.value.trim();
-  if (!name) { nameInput.focus(); nameInput.style.borderColor = "var(--rose)"; return; }
-  currentPlayer = name;
-
-  // Reset state
-  score = 0; combo = 0; timeLeft = 30; items = []; lastSpawn = 0;
-  scoreEl.textContent = "0"; comboEl.textContent = ""; timerEl.textContent = "30";
-  babyface.textContent = "🍼";
-  setBasket(50);
-
-  // Enter fullscreen game
-  document.body.style.overflow = "hidden";
-  gameScreen.classList.add("active");
-  endOverlay.classList.remove("show");
-
-  showCountdown(() => {
-    running = true;
-    animId = requestAnimationFrame(loop);
-    tickId = setInterval(() => {
-      timeLeft--;
-      timerEl.textContent = timeLeft;
-      if (timeLeft <= 0) endGame();
-    }, 1000);
-  });
-}
-
-function quitGame() {
-  running = false;
-  clearInterval(tickId);
-  cancelAnimationFrame(animId);
-  items.forEach(el => el.remove()); items = [];
-  cdEl.classList.remove("show");
-  gameScreen.classList.remove("active");
-  document.body.style.overflow = "";
+  if (!name) { nameInput.focus(); nameInput.style.borderColor="var(--rose)"; return; }
+  currentPlayer=name; score=0; combo=0; timeLeft=30; items=[]; running=true; lastSpawn=0;
+  scoreEl.textContent="0"; comboEl.textContent=""; timerEl.textContent="30";
+  babyface.textContent="😶";
+  overlay.style.display="none";
+  animId=requestAnimationFrame(loop);
+  tickId=setInterval(()=>{
+    timeLeft--; timerEl.textContent=timeLeft;
+    if (timeLeft<=0) endGame();
+  },1000);
 }
 
 async function endGame() {
-  running = false; clearInterval(tickId); cancelAnimationFrame(animId);
-  items.forEach(el => el.remove()); items = [];
-  babyface.textContent = score > 50 ? "🤩" : score > 20 ? "😄" : "😊";
+  running=false; clearInterval(tickId); cancelAnimationFrame(animId);
+  items.forEach(el=>el.remove()); items=[];
+  babyface.textContent = score>50 ? "🤣" : score>20 ? "😄" : "😶";
 
-  endOverlay.innerHTML = `
+  overlay.innerHTML=`
     <div style="font-size:52px">🏆</div>
-    <h2 style="font-size:26px">Mäng läbi!</h2>
-    <p style="font-size:26px;font-weight:800;font-family:'Fraunces',serif">${score} punkti</p>
-    <p style="font-size:14px;color:var(--inkSoft)">${esc(currentPlayer)}</p>
-    <button class="btn btn-sage" id="restartBtn" style="margin-top:8px">Uuesti →</button>
-    <button class="btn" style="background:var(--inkSoft);margin-top:4px" id="homeBtn">Avaleht</button>
+    <h2>Mäng läbi!</h2>
+    <p style="font-size:22px;font-weight:800;font-family:'Fraunces',serif">${score} punkti</p>
+    <p style="font-size:14px;color:var(--inkSoft)">${currentPlayer}</p>
+    <button class="btn btn-sage" id="restartBtn">Uuesti →</button>
   `;
-  endOverlay.classList.add("show");
-  document.getElementById("restartBtn").onclick = () => {
-    endOverlay.classList.remove("show");
-    quitGame();
-    setTimeout(() => startGame(), 100);
-  };
-  document.getElementById("homeBtn").onclick = () => {
-    quitGame();
-    location.href = "/";
-  };
+  overlay.style.display="flex";
+  document.getElementById("restartBtn").onclick=()=>location.reload();
 
-  const { error: saveErr } = await sb.from("scores").insert({name: currentPlayer, score});
+  const { error: saveErr } = await sb.from("scores").insert({name:currentPlayer, score});
   if (saveErr) {
-    boardList.innerHTML = `<div class="db-error">Salvestamine ebaõnnestus: ${saveErr.message}</div>`;
+    boardList.innerHTML = `<div class="db-error">Salvestamine ebaõnnestus: ${saveErr.message} (${saveErr.code})</div>`;
     return;
   }
   await loadBoard();
 }
 
-function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML;}
 
 async function loadBoard() {
   const { data, error } = await sb.from("scores")
     .select("name,score")
-    .order("score", {ascending:false})
+    .order("score",{ascending:false})
     .limit(10);
 
   if (error) {
-    boardList.innerHTML = `<div class="db-error">Laadimine ebaõnnestus: ${error.message}</div>`;
+    boardList.innerHTML = `<div class="db-error">Laadimine ebaõnnestus: ${error.message} (${error.code})</div>`;
     return;
   }
-  if (!data || !data.length) {
-    boardList.innerHTML = '<div class="board-empty">Ole esimene edetabelis!</div>';
-    return;
+  if (!data||!data.length) {
+    boardList.innerHTML='<div class="board-empty">Ole esimene edetabelis!</div>'; return;
   }
-  boardList.innerHTML = data.map((r, i) => {
-    const me = r.name === currentPlayer;
+  boardList.innerHTML=data.map((r,i)=>{
+    const me = r.name===currentPlayer;
     const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`;
     return `<div class="board-row${me?' me':''}">
       <span class="board-rank">${medal}</span>
@@ -412,9 +274,8 @@ async function loadBoard() {
   }).join("");
 }
 
-startBtn.onclick = startGame;
-quitBtn.onclick = quitGame;
-nameInput.addEventListener("keydown", e => { if (e.key === "Enter") startGame(); });
+startBtn.onclick=startGame;
+nameInput.addEventListener("keydown",e=>{if(e.key==="Enter")startGame();});
 loadBoard();
 </script>
 </body>
