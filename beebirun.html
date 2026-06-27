@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>BeebiRun — beebibet</title>
+<meta name="description" content="Juhi beebi turvaliselt finišisse! Vali igal etapil õige tee — 5 etappi, 5 valikut, vaid 1 õige!" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://beebibet.ee/beebirun" />
+<meta property="og:title" content="BeebiRun — beebibet" />
+<meta property="og:description" content="Juhi beebi turvaliselt finišisse! Vali igal etapil õige tee — 5 etappi, 5 valikut, vaid 1 õige!" />
+<meta property="og:image" content="https://beebibet.ee/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="BeebiRun — beebibet" />
+<meta name="twitter:description" content="Juhi beebi turvaliselt finišisse! Vali igal etapil õige tee — 5 etappi, 5 valikut, vaid 1 õige!" />
+<meta name="twitter:image" content="https://beebibet.ee/og-image.png" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root { --cream:#FBF3E4; --peach:#F7C9B6; --rose:#E8889B; --sage:#A7C4A0; --sky:#9CC3D5; --butter:#F4D06F; --ink:#4A3B47; --inkSoft:#7A6A75; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--cream); font-family:'Nunito',sans-serif; color:var(--ink); min-height:100vh; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3 { font-family:'Fraunces',serif; font-weight:600; }
+  .deco { position:fixed; inset:0; pointer-events:none; overflow:hidden; }
+  .deco span { position:absolute; font-size:28px; opacity:.12; }
+  @keyframes float0 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px) rotate(8deg)} }
+  @keyframes float1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-22px) rotate(-6deg)} }
+  @keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  @keyframes pop { 0%{opacity:0;transform:scale(.92)} 100%{opacity:1;transform:scale(1)} }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+  @keyframes celebrate { 0%{transform:scale(1) rotate(0)} 25%{transform:scale(1.5) rotate(-15deg)} 50%{transform:scale(1.3) rotate(15deg)} 75%{transform:scale(1.4) rotate(-10deg)} 100%{transform:scale(1) rotate(0)} }
+  @keyframes babybounce { 0%,100%{transform:translateY(0) rotate(0)} 25%{transform:translateY(-14px) rotate(-8deg)} 75%{transform:translateY(-9px) rotate(8deg)} }
+  @keyframes slideUp { 0%{opacity:0;transform:translateY(16px)} 100%{opacity:1;transform:translateY(0)} }
+
+  .wrap { max-width:480px; margin:0 auto; padding:0 20px 80px; position:relative; z-index:2; }
+  .back { display:inline-block; padding:14px 0 0; font-size:13px; font-weight:700; color:var(--inkSoft); text-decoration:none; letter-spacing:1px; }
+  .hdr { text-align:center; padding:14px 0 20px; }
+  .card { background:#fff; border-radius:28px; padding:28px 24px; box-shadow:0 16px 40px rgba(74,59,71,.1); border:2px solid var(--peach); }
+  .btn { display:block; width:100%; padding:15px 32px; border-radius:999px; border:none; font-size:16px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; color:#fff; transition:transform .15s; text-align:center; text-decoration:none; }
+  .btn:active { transform:scale(.96); }
+  .btn:disabled { opacity:.5; cursor:default; transform:none; }
+  .btn-rose   { background:var(--rose);   box-shadow:0 8px 20px rgba(232,136,155,.4); }
+  .btn-sky    { background:var(--sky);    box-shadow:0 8px 20px rgba(156,195,213,.4); }
+  .btn-sage   { background:var(--sage);   box-shadow:0 8px 20px rgba(167,196,160,.4); }
+  .btn-butter { background:var(--butter); color:var(--ink); box-shadow:0 8px 20px rgba(244,208,111,.4); }
+  .name-input { width:100%; padding:14px 18px; border-radius:16px; border:2px solid var(--peach); font-size:17px; font-family:'Nunito',sans-serif; font-weight:700; color:var(--ink); background:var(--cream); text-align:center; margin-bottom:14px; }
+  .name-input:focus { outline:none; border-color:var(--rose); }
+  .pop { animation:pop .3s ease both; }
+  .screen { display:none; }
+  .screen.active { display:block; }
+
+  /* Start screen baby */
+  .start-baby { font-size:72px; display:block; text-align:center; margin-bottom:10px; animation:babybounce 2.4s ease-in-out infinite; }
+
+  /* Stage pills on start */
+  .stage-pills { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:20px; }
+  .stage-pill { background:var(--cream); border:1.5px solid var(--peach); border-radius:999px; padding:5px 12px; font-size:12px; font-weight:700; color:var(--inkSoft); }
+
+  /* Progress track */
+  .run-progress { margin-bottom:14px; }
+  .run-progress-label { display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:700; color:var(--inkSoft); margin-bottom:8px; }
+  .run-bar { height:8px; background:var(--peach); border-radius:99px; overflow:hidden; }
+  .run-bar-fill { height:100%; background:var(--rose); border-radius:99px; transition:width .5s cubic-bezier(.34,1.56,.64,1); }
+
+  /* Baby path track */
+  .baby-track { position:relative; height:54px; margin:10px 0 14px; background:linear-gradient(90deg,#e6f5e4,#e8f4fa); border-radius:18px; border:2px solid var(--peach); overflow:hidden; }
+  .track-road { position:absolute; bottom:12px; left:12px; right:12px; height:4px; background:var(--peach); border-radius:99px; }
+  .track-dots { position:absolute; bottom:8px; left:0; right:0; display:flex; align-items:center; justify-content:space-around; padding:0 20px; }
+  .track-dot { width:12px; height:12px; border-radius:50%; background:var(--peach); border:2px solid #fff; flex-shrink:0; transition:background .4s, transform .3s; }
+  .track-dot.done    { background:var(--sage); }
+  .track-dot.current { background:var(--rose); transform:scale(1.3); }
+  .finish-flag { font-size:18px; line-height:1; }
+  .baby-char { position:absolute; bottom:6px; font-size:28px; line-height:1; transition:left .6s cubic-bezier(.34,1.56,.64,1); }
+
+  /* Score pill */
+  .score-pill { display:inline-flex; align-items:center; gap:6px; background:var(--butter); color:var(--ink); border-radius:999px; padding:5px 14px; font-size:14px; font-weight:800; }
+
+  /* Stage header */
+  .stage-header { text-align:center; margin-bottom:6px; }
+  .stage-icon { font-size:44px; display:block; margin-bottom:3px; animation:slideUp .35s ease both; }
+  .stage-title { font-family:'Fraunces',serif; font-size:19px; font-weight:600; animation:slideUp .35s .05s ease both; }
+  .stage-question { text-align:center; font-size:15px; font-weight:700; color:var(--inkSoft); margin:8px 0 14px; line-height:1.5; animation:slideUp .35s .1s ease both; }
+
+  /* Timer */
+  .timer-row { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:14px; }
+  .timer-ring { width:42px; height:42px; flex-shrink:0; }
+  .timer-ring circle { fill:none; stroke-width:5; }
+  .timer-track { stroke:var(--peach); }
+  .timer-arc { stroke:var(--rose); stroke-linecap:round; transition:stroke-dashoffset .9s linear, stroke .3s; transform-origin:center; transform:rotate(-90deg); }
+  .timer-num { font-family:'Fraunces',serif; font-size:15px; font-weight:600; color:var(--ink); min-width:22px; text-align:center; }
+
+  /* Choice grid — 2 cols, 5th centered */
+  .choice-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:8px; }
+  .choice-btn { padding:14px 8px 12px; border-radius:18px; border:2.5px solid var(--peach); background:#fff; font-family:'Nunito',sans-serif; font-size:12px; font-weight:700; color:var(--ink); cursor:pointer; transition:transform .1s, background .15s, border-color .15s; line-height:1.35; text-align:center; display:flex; flex-direction:column; align-items:center; gap:5px; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+  .choice-btn .ce { font-size:34px; line-height:1; display:block; }
+  .choice-btn:active { transform:scale(.94); background:var(--cream); }
+  .choice-btn.correct { border-color:var(--sage); background:#e6f5e4; color:#2a6b25; }
+  .choice-btn.wrong   { border-color:var(--rose); background:#fce8ec; color:#a0283a; animation:shake .4s ease; }
+  .choice-btn.reveal  { border-color:var(--sage); background:#e6f5e4; color:#2a6b25; }
+  .choice-btn:disabled { cursor:default; transform:none !important; }
+  .choice-grid .choice-btn:nth-child(5) { grid-column:1 / -1; max-width:calc(50% - 4.5px); margin:0 auto; width:100%; }
+
+  .feedback-msg { text-align:center; font-size:14px; font-weight:800; min-height:20px; margin-top:8px; }
+  .feedback-msg.ok  { color:#2a8c22; }
+  .feedback-msg.bad { color:var(--rose); }
+
+  /* Result screens */
+  .big-emoji { font-size:68px; text-align:center; display:block; margin-bottom:10px; }
+  .result-score { font-family:'Fraunces',serif; font-size:56px; font-weight:600; text-align:center; line-height:1; }
+  .result-label { text-align:center; color:var(--inkSoft); font-size:14px; margin-top:4px; margin-bottom:18px; }
+  .btn-gap { display:flex; flex-direction:column; gap:10px; margin-top:18px; }
+
+  /* Score breakdown */
+  .score-breakdown { border:2px solid var(--peach); border-radius:16px; padding:14px 16px; margin-bottom:18px; text-align:left; }
+  .score-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--peach); font-size:13px; font-weight:700; }
+  .score-row:last-child { border-bottom:none; }
+  .score-row .val { font-weight:800; color:var(--rose); }
+  .score-row.bonus .val { color:var(--sage); }
+  .score-row.total { font-size:15px; }
+  .score-row.total .val { color:var(--butter); font-size:19px; }
+
+  /* Leaderboard */
+  .board-row { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; margin-bottom:6px; background:var(--cream); }
+  .board-row.me { background:#F7C9B655; border:2px solid var(--rose); }
+  .board-rank { font-size:18px; min-width:28px; }
+  .board-name { flex:1; font-weight:700; font-size:15px; }
+  .board-score { font-weight:800; font-size:17px; color:var(--butter); }
+  .board-empty { color:var(--inkSoft); font-size:14px; text-align:center; padding:12px 0; }
+  .db-error { background:#fee; border:1px solid #fcc; border-radius:12px; padding:10px 14px; font-size:12px; color:#c00; margin-top:8px; }
+</style>
+</head>
+<body>
+<div class="deco" id="deco"></div>
+<div class="wrap">
+  <a class="back" href="/">← Avaleht</a>
+  <div class="hdr">
+    <h1 style="font-size:40px;letter-spacing:-1px">beebi<span style="color:var(--rose)">bet</span></h1>
+    <p style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--inkSoft);font-weight:700;margin-top:3px">BeebiRun</p>
+  </div>
+
+  <!-- ══ START ══ -->
+  <div class="screen active" id="screenStart">
+    <div class="card pop" style="text-align:center">
+      <span class="start-baby">👶</span>
+      <h2 style="font-size:26px;margin-bottom:8px">BeebiRun</h2>
+      <p style="color:var(--inkSoft);font-size:14px;line-height:1.65;margin-bottom:16px">
+        Juhi beebi turvaliselt finišisse!<br>
+        Igal etapil on <strong>5 ust</strong> — vaid <strong>1 on õige</strong>.<br>
+        Vale uks = mäng läbi. Kiirus = boonuspunktid! ⭐
+      </p>
+      <div class="stage-pills">
+        <span class="stage-pill">🌙 Uneaeg</span>
+        <span class="stage-pill">🍌 Söömisaeg</span>
+        <span class="stage-pill">🧸 Mänguaeg</span>
+        <span class="stage-pill">🛁 Suplusaeg</span>
+        <span class="stage-pill">🌿 Esimesed sammud</span>
+      </div>
+      <input class="name-input" id="nameInput" placeholder="Sinu nimi" maxlength="24" autocomplete="off" />
+      <button class="btn btn-rose" id="startBtn">Alusta BeebiRun 🍼</button>
+    </div>
+    <div class="card pop" style="margin-top:14px">
+      <h2 style="font-size:18px;margin-bottom:12px">🏆 Edetabel</h2>
+      <div id="startBoard"><div class="board-empty">Laen…</div></div>
+    </div>
+  </div>
+
+  <!-- ══ GAME ══ -->
+  <div class="screen" id="screenGame">
+    <div class="card pop" id="gameCard">
+
+      <div class="run-progress">
+        <div class="run-progress-label">
+          <span id="stageLabel">Etapp 1 / 5</span>
+          <div class="score-pill">⭐ <span id="liveScore">0</span></div>
+        </div>
+        <div class="run-bar"><div class="run-bar-fill" id="runBarFill" style="width:0%"></div></div>
+      </div>
+
+      <div class="baby-track">
+        <div class="track-road"></div>
+        <div class="track-dots" id="trackDots"></div>
+        <div class="baby-char" id="babyChar">👶</div>
+      </div>
+
+      <div class="stage-header">
+        <span class="stage-icon" id="stageIcon"></span>
+        <div class="stage-title" id="stageTitle"></div>
+      </div>
+      <div class="stage-question" id="stageQuestion"></div>
+
+      <div class="timer-row">
+        <svg class="timer-ring" viewBox="0 0 44 44">
+          <circle class="timer-track" cx="22" cy="22" r="18"/>
+          <circle class="timer-arc" id="timerArc" cx="22" cy="22" r="18"
+            stroke-dasharray="113.1" stroke-dashoffset="0"/>
+        </svg>
+        <span class="timer-num" id="timerNum">20</span>
+        <span style="font-size:12px;color:var(--inkSoft);font-weight:700">sek</span>
+      </div>
+
+      <div class="choice-grid" id="choiceGrid"></div>
+      <div class="feedback-msg" id="feedbackMsg"></div>
+    </div>
+  </div>
+
+  <!-- ══ GAME OVER ══ -->
+  <div class="screen" id="screenOver">
+    <div class="card pop" style="text-align:center">
+      <span class="big-emoji" id="overEmoji">😢</span>
+      <h2 style="font-size:22px;margin-bottom:8px">Oops! Vale uks!</h2>
+      <p style="color:var(--inkSoft);font-size:14px;line-height:1.6;margin-bottom:10px" id="overMsg"></p>
+      <div class="result-score" id="overScore">0</div>
+      <div class="result-label" id="overLabel">punkti</div>
+      <div class="btn-gap">
+        <button class="btn btn-rose" onclick="location.reload()">Proovi uuesti 🍼</button>
+        <a class="btn btn-sky" href="/">← Avaleht</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ VICTORY ══ -->
+  <div class="screen" id="screenVictory">
+    <div class="card pop" style="text-align:center">
+      <span class="big-emoji">🏆</span>
+      <h2 style="font-size:24px;margin-bottom:6px">Beebi jõudis finišisse!</h2>
+      <p style="color:var(--inkSoft);font-size:14px;line-height:1.6;margin-bottom:16px">
+        Tubli! Sa viisid beebi turvaliselt läbi kõigi 5 etapi! 🎉
+      </p>
+
+      <div class="result-score" id="victoryScore">0</div>
+      <div class="result-label">lõplik tulemus</div>
+
+      <div class="score-breakdown">
+        <div class="score-row"><span>Etapiboonused (5 × 100)</span><span class="val" id="vBase">500</span></div>
+        <div class="score-row bonus"><span>Kiirusboonus</span><span class="val" id="vSpeed">+0</span></div>
+        <div class="score-row bonus"><span>Läbimise boonus</span><span class="val" id="vCompletion">+100</span></div>
+        <div class="score-row total"><span>Kokku</span><span class="val" id="vTotal">0</span></div>
+      </div>
+
+      <div id="submitArea">
+        <button class="btn btn-butter" id="submitBtn">Lisa edetabelisse 🏅</button>
+      </div>
+      <div id="submitDone" style="display:none;color:var(--sage);font-weight:800;font-size:15px;margin-bottom:4px">
+        ✅ Tulemus salvestatud!
+      </div>
+
+      <div class="btn-gap">
+        <button class="btn btn-rose" onclick="location.reload()">Mängi uuesti 🍼</button>
+        <a class="btn btn-sky" href="/">← Avaleht</a>
+      </div>
+    </div>
+    <div class="card pop" style="margin-top:14px">
+      <h2 style="font-size:18px;margin-bottom:12px">🏆 Edetabel</h2>
+      <div id="victoryBoard"><div class="board-empty">Laen…</div></div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const sb = supabase.createClient(
+  "https://thrsacygpqwbnkcppmpk.supabase.co",
+  "sb_publishable_-QaY7mGpitakhestu3w1fg_sCGquRvx"
+);
+
+/* ── Stage data ─────────────────────────────────────────────────────────── */
+const STAGES = [
+  {
+    icon:"🌙", title:"Uneaeg",
+    question:"Kuhu peaks beebi magama panema?",
+    choices:[
+      { e:"🛏️", l:"Hubane võrevoodi" },   // correct
+      { e:"🎸", l:"Rokk-kontsert" },
+      { e:"☀️", l:"Ere päikeseplats" },
+      { e:"🎡", l:"Lõbustuspark" },
+      { e:"🌊", l:"Lainemasin" },
+    ],
+    correct: 0
+  },
+  {
+    icon:"🍌", title:"Söömisaeg",
+    question:"Mis sobib beebile suupisteks?",
+    choices:[
+      { e:"🌶️", l:"Kibe punane pipar" },
+      { e:"🍌", l:"Küps pehme banaan" },   // correct
+      { e:"☕", l:"Kuum must kohv" },
+      { e:"🧅", l:"Toores sibul" },
+      { e:"🍺", l:"Vahune õlu" },
+    ],
+    correct: 1
+  },
+  {
+    icon:"🧸", title:"Mänguaeg",
+    question:"Milline mänguasi sobib beebile?",
+    choices:[
+      { e:"🔨", l:"Raske haamer" },
+      { e:"🪚", l:"Terav saag" },
+      { e:"🧸", l:"Pehme kaisukaru" },     // correct
+      { e:"🪴", l:"Okkaline kaktus" },
+      { e:"🧪", l:"Keemia komplekt" },
+    ],
+    correct: 2
+  },
+  {
+    icon:"🛁", title:"Suplusaeg",
+    question:"Kus on beebi kõige mugavam supelda?",
+    choices:[
+      { e:"🌊", l:"Tormine meri" },
+      { e:"🦈", l:"Haide bassein" },
+      { e:"❄️", l:"Jäine bassein" },
+      { e:"🛁", l:"Soe mulli vann" },      // correct
+      { e:"🌋", l:"Vulkaani jalamil" },
+    ],
+    correct: 3
+  },
+  {
+    icon:"🌿", title:"Esimesed sammud",
+    question:"Kuhu viivad beebi esimesed sammud?",
+    choices:[
+      { e:"🗻", l:"Kõrge mäetipp" },
+      { e:"🌋", l:"Vulkaani kaldal" },
+      { e:"🌊", l:"Mere põhi" },
+      { e:"🏜️", l:"Kuum kõrb" },
+      { e:"🌿", l:"Pehme roheline niit" }, // correct
+    ],
+    correct: 4
+  }
+];
+
+const TIMER_MAX   = 20;
+const BASE_PTS    = 100;
+const COMPL_BONUS = 100;
+const CIRC        = 2 * Math.PI * 18; // ≈113.1
+
+/* ── State ─────────────────────────────────────────────────────────────── */
+let playerName    = "";
+let currentStage  = 0;
+let totalScore    = 0;
+let speedBonus    = 0;
+let timeLeft      = TIMER_MAX;
+let timerInterval = null;
+let answered      = false;
+let shuffled      = null; // { choices, correctIdx }
+
+/* ── Helpers ────────────────────────────────────────────────────────────── */
+function show(id) {
+  ["screenStart","screenGame","screenOver","screenVictory"]
+    .forEach(s => document.getElementById(s).classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+function setArc(frac) {
+  const arc = document.getElementById("timerArc");
+  arc.style.strokeDashoffset = CIRC * (1 - frac);
+  arc.style.stroke = frac > 0.4 ? "var(--rose)" : frac > 0.2 ? "var(--butter)" : "#e05555";
+}
+
+/* ── Baby track ─────────────────────────────────────────────────────────── */
+function buildTrack() {
+  const dots = document.getElementById("trackDots");
+  dots.innerHTML = "";
+  for (let i = 0; i < 5; i++) {
+    const d = document.createElement("div");
+    d.className = "track-dot" + (i === 0 ? " current" : "");
+    d.id = "dot" + i;
+    dots.appendChild(d);
+  }
+  const flag = document.createElement("span");
+  flag.className = "finish-flag";
+  flag.textContent = "🏁";
+  dots.appendChild(flag);
+  placeBaby(0);
+}
+
+// Positions as % from left for baby emoji at each stage (0=start … 5=finish)
+const BABY_POS = [3, 18, 35, 52, 68, 85];
+
+function placeBaby(stageIdx) {
+  const baby  = document.getElementById("babyChar");
+  const track = document.getElementById("babyTrack");
+  const pct   = BABY_POS[Math.min(stageIdx, 5)];
+  baby.style.left = `calc(${pct}% - 14px)`;
+}
+
+function updateDots(completed) {
+  for (let i = 0; i < 5; i++) {
+    const dot = document.getElementById("dot" + i);
+    if (!dot) continue;
+    dot.className = "track-dot" +
+      (i < completed ? " done" : i === completed ? " current" : "");
+  }
+}
+
+/* ── Shuffle choices while keeping the correct one identifiable ────────── */
+function shuffleStage(stage) {
+  const choices   = [...stage.choices];
+  const correct   = choices[stage.correct];
+  for (let i = choices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [choices[i], choices[j]] = [choices[j], choices[i]];
+  }
+  return { choices, correctIdx: choices.indexOf(correct) };
+}
+
+/* ── Render one stage ───────────────────────────────────────────────────── */
+function renderStage() {
+  const stage = STAGES[currentStage];
+  shuffled    = shuffleStage(stage);
+  answered    = false;
+  timeLeft    = TIMER_MAX;
+
+  document.getElementById("stageLabel").textContent   = `Etapp ${currentStage + 1} / 5`;
+  document.getElementById("runBarFill").style.width   = `${(currentStage / 5) * 100}%`;
+  document.getElementById("liveScore").textContent    = totalScore;
+  document.getElementById("stageIcon").textContent    = stage.icon;
+  document.getElementById("stageTitle").textContent   = stage.title;
+  document.getElementById("stageQuestion").textContent = stage.question;
+  document.getElementById("feedbackMsg").textContent  = "";
+  document.getElementById("feedbackMsg").className    = "feedback-msg";
+  document.getElementById("timerNum").textContent     = TIMER_MAX;
+  setArc(1);
+
+  updateDots(currentStage);
+  placeBaby(currentStage);
+
+  // Re-trigger animations by cloning stage header children
+  ["stageIcon","stageTitle"].forEach(id => {
+    const el = document.getElementById(id);
+    el.style.animation = "none";
+    el.offsetHeight; // reflow
+    el.style.animation = "";
+  });
+
+  const grid = document.getElementById("choiceGrid");
+  grid.innerHTML = "";
+  shuffled.choices.forEach((ch, i) => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerHTML = `<span class="ce">${ch.e}</span><span>${ch.l}</span>`;
+    btn.addEventListener("click", () => pick(i));
+    grid.appendChild(btn);
+  });
+
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    document.getElementById("timerNum").textContent = timeLeft;
+    setArc(timeLeft / TIMER_MAX);
+    if (timeLeft <= 0) { clearInterval(timerInterval); onTimeout(); }
+  }, 1000);
+}
+
+/* ── Player picks a choice ──────────────────────────────────────────────── */
+function pick(idx) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  const btns = [...document.getElementById("choiceGrid").querySelectorAll(".choice-btn")];
+  btns.forEach(b => b.disabled = true);
+
+  const isCorrect = idx === shuffled.correctIdx;
+  const baby      = document.getElementById("babyChar");
+  const fb        = document.getElementById("feedbackMsg");
+
+  if (isCorrect) {
+    btns[idx].classList.add("correct");
+    const bonus  = Math.round((timeLeft / TIMER_MAX) * 50);
+    totalScore  += BASE_PTS + bonus;
+    speedBonus  += bonus;
+    document.getElementById("liveScore").textContent = totalScore;
+
+    const msgs = ["🌟 Suurepärane!", "✨ Tubli beebi!", "🎉 Täpselt õige!", "💛 Väga hästi!", "🍀 Ideaalne valik!"];
+    fb.textContent  = `${msgs[currentStage]} +${BASE_PTS + bonus} punkti`;
+    fb.className    = "feedback-msg ok";
+
+    baby.textContent = "😄";
+    baby.style.animation = "celebrate .65s ease";
+    setTimeout(() => { baby.style.animation = ""; baby.textContent = "👶"; }, 650);
+
+    setTimeout(() => {
+      currentStage++;
+      if (currentStage < STAGES.length) renderStage();
+      else showVictory();
+    }, 1450);
+
+  } else {
+    btns[idx].classList.add("wrong");
+    btns[shuffled.correctIdx].classList.add("reveal");
+
+    fb.textContent = `❌ Vale uks! Õige oli: ${shuffled.choices[shuffled.correctIdx].l}`;
+    fb.className   = "feedback-msg bad";
+
+    baby.textContent = "😢";
+    baby.style.animation = "shake .4s ease";
+    setTimeout(() => { baby.style.animation = ""; }, 400);
+
+    setTimeout(showGameOver, 1800);
+  }
+}
+
+function onTimeout() {
+  if (answered) return;
+  answered = true;
+  const btns = [...document.getElementById("choiceGrid").querySelectorAll(".choice-btn")];
+  btns.forEach(b => b.disabled = true);
+  btns[shuffled.correctIdx].classList.add("reveal");
+  const fb = document.getElementById("feedbackMsg");
+  fb.textContent = "⏱ Aeg sai läbi! Beebi jäi magama…";
+  fb.className   = "feedback-msg bad";
+  document.getElementById("babyChar").textContent = "😴";
+  setTimeout(showGameOver, 1800);
+}
+
+/* ── Game over ─────────────────────────────────────────────────────────── */
+function showGameOver() {
+  show("screenOver");
+  document.getElementById("overScore").textContent = totalScore;
+  document.getElementById("overLabel").textContent =
+    `punkti — jõudsid etappi ${currentStage} / 5`;
+
+  const msgs = [
+    "Mäng alles algas — järgmine kord läheb kindlasti paremini! 💪",
+    "Beebi komistas esimesel etapil — proovi uuesti! 🌟",
+    "Poolele teele jõudnud — peaaegu! 🎈",
+    "Kolm etappi läbitud, sa oled peaaegu ekspert! 🦉",
+    "Nii lähedal! Viimane etapp jäi puudu! 🏁",
+  ];
+  const emojis = ["😢","🤔","😅","😮","😬"];
+  document.getElementById("overMsg").textContent   = msgs[currentStage] || msgs[0];
+  document.getElementById("overEmoji").textContent = emojis[Math.min(currentStage, 4)];
+}
+
+/* ── Victory ────────────────────────────────────────────────────────────── */
+async function showVictory() {
+  totalScore += COMPL_BONUS;
+  placeBaby(5);
+  updateDots(5);
+  document.getElementById("runBarFill").style.width = "100%";
+
+  show("screenVictory");
+
+  document.getElementById("vBase").textContent       = BASE_PTS * 5;
+  document.getElementById("vSpeed").textContent      = `+${speedBonus}`;
+  document.getElementById("vCompletion").textContent = `+${COMPL_BONUS}`;
+  document.getElementById("vTotal").textContent      = totalScore;
+  document.getElementById("victoryScore").textContent = totalScore;
+
+  await loadBoard(document.getElementById("victoryBoard"));
+}
+
+document.getElementById("submitBtn").addEventListener("click", async () => {
+  document.getElementById("submitBtn").disabled = true;
+  const { error } = await sb.from("beebirun_scores").insert({ name: playerName, score: totalScore });
+  if (error) {
+    document.getElementById("submitArea").innerHTML =
+      `<div class="db-error">Salvestamine ebaõnnestus: ${esc(error.message)}</div>`;
+    return;
+  }
+  document.getElementById("submitArea").style.display  = "none";
+  document.getElementById("submitDone").style.display  = "block";
+  await loadBoard(document.getElementById("victoryBoard"));
+});
+
+/* ── Leaderboard ────────────────────────────────────────────────────────── */
+async function loadBoard(el) {
+  const { data, error } = await sb.from("beebirun_scores")
+    .select("name,score")
+    .order("score", { ascending: false })
+    .limit(10);
+
+  if (error) {
+    el.innerHTML = `<div class="db-error">Laadimine ebaõnnestus: ${esc(error.message)}</div>`;
+    return;
+  }
+  if (!data || !data.length) {
+    el.innerHTML = '<div class="board-empty">Ole esimene edetabelis!</div>';
+    return;
+  }
+  el.innerHTML = data.map((r, i) => {
+    const me    = r.name === playerName;
+    const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`;
+    return `<div class="board-row${me ? " me" : ""}">
+      <span class="board-rank">${medal}</span>
+      <span class="board-name">${esc(r.name)}${me ? " ⬅ sina" : ""}</span>
+      <span class="board-score">${r.score}</span>
+    </div>`;
+  }).join("");
+}
+
+/* ── Start ──────────────────────────────────────────────────────────────── */
+document.getElementById("startBtn").addEventListener("click", () => {
+  const name = document.getElementById("nameInput").value.trim();
+  if (!name) {
+    const inp = document.getElementById("nameInput");
+    inp.focus();
+    inp.style.borderColor = "var(--rose)";
+    return;
+  }
+  playerName   = name;
+  currentStage = 0;
+  totalScore   = 0;
+  speedBonus   = 0;
+  show("screenGame");
+  buildTrack();
+  renderStage();
+});
+
+document.getElementById("nameInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("startBtn").click();
+});
+
+/* ── Load start leaderboard ─────────────────────────────────────────────── */
+loadBoard(document.getElementById("startBoard"));
+
+/* ── Decorative background emojis ──────────────────────────────────────── */
+const deco = document.getElementById("deco");
+["🍼","👶","⭐","🎈","🌙","☁️"].forEach((e, i) => {
+  const s = document.createElement("span");
+  s.textContent = e;
+  s.style.left      = [8,82,15,88,45,70][i] + "%";
+  s.style.top       = [12,8,70,60,90,35][i] + "%";
+  s.style.animation = `float${i % 3} ${6 + i}s ease-in-out infinite`;
+  deco.appendChild(s);
+});
+</script>
+</body>
+</html>
