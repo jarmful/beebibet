@@ -8,37 +8,39 @@
 <style>
   :root { --cream:#FBF3E4; --peach:#F7C9B6; --rose:#E8889B; --sage:#A7C4A0; --ink:#4A3B47; --inkSoft:#7A6A75; }
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { background:var(--cream); font-family:'Nunito',sans-serif; color:var(--ink); min-height:100vh; }
+  body { background:var(--cream); font-family:'Nunito',sans-serif; color:var(--ink); min-height:100vh; -webkit-font-smoothing:antialiased; }
   h1,h2 { font-family:'Fraunces',serif; font-weight:600; }
   .wrap { max-width:480px; margin:0 auto; padding:0 16px 60px; }
-  .back { display:inline-block; padding:14px 0 0; font-size:13px; font-weight:700; color:var(--inkSoft); text-decoration:none; }
-  .hdr { text-align:center; padding:18px 0 20px; }
+  .back { display:inline-block; padding:14px 0 0; font-size:13px; font-weight:700; color:var(--inkSoft); text-decoration:none; letter-spacing:1px; }
+  .hdr { text-align:center; padding:14px 0 16px; }
   #arena { position:relative; width:100%; height:380px; background:#fff; border-radius:28px; overflow:hidden; border:2px solid var(--peach); box-shadow:0 16px 40px rgba(74,59,71,.1); touch-action:none; user-select:none; }
   #basket { position:absolute; bottom:14px; width:72px; height:44px; transform:translateX(-50%); transition:left .05s linear; }
   #basket svg { width:100%; height:100%; }
   .item { position:absolute; font-size:32px; transform:translateX(-50%); pointer-events:none; }
-  .hud { display:flex; justify-content:space-between; align-items:center; padding:12px 4px 8px; }
-  .hud-score { font-family:'Fraunces',serif; font-size:28px; font-weight:600; }
+  .baby-bar { display:flex; align-items:center; justify-content:center; padding:6px 0 8px; }
+  #babyface { font-size:48px; display:inline-block; }
+  @keyframes bounce { 0%{transform:scale(1)} 40%{transform:scale(1.35)} 100%{transform:scale(1)} }
+  .bounce { animation:bounce .25s ease; }
+  .hud { display:flex; justify-content:space-between; align-items:center; padding:8px 4px 6px; }
+  .hud-score { font-family:'Fraunces',serif; font-size:26px; font-weight:600; }
   .hud-combo { font-size:13px; font-weight:800; color:var(--rose); min-width:60px; text-align:center; }
   .hud-timer { font-size:18px; font-weight:800; color:var(--inkSoft); }
-  #reaction { position:absolute; top:50%; left:50%; transform:translate(-50%,-60%); font-size:48px; pointer-events:none; opacity:0; }
-  .overlay { position:absolute; inset:0; background:rgba(251,243,228,.92); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; border-radius:26px; }
+  .overlay { position:absolute; inset:0; background:rgba(251,243,228,.93); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; border-radius:26px; }
   .overlay h2 { font-size:30px; }
   .btn { padding:14px 32px; border-radius:999px; border:none; font-size:16px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; color:#fff; transition:transform .15s; }
   .btn:active { transform:scale(.96); }
   .btn-rose { background:var(--rose); box-shadow:0 8px 20px rgba(232,136,155,.5); }
-  .btn-sage { background:#A7C4A0; box-shadow:0 8px 20px rgba(167,196,160,.5); }
+  .btn-sage { background:var(--sage); box-shadow:0 8px 20px rgba(167,196,160,.5); }
   .name-input { width:200px; padding:12px 16px; border-radius:16px; border:2px solid var(--peach); font-size:16px; font-family:'Nunito',sans-serif; font-weight:700; color:var(--ink); background:var(--cream); text-align:center; }
   .name-input:focus { outline:none; border-color:var(--rose); }
   .board { background:#fff; border-radius:28px; padding:24px; box-shadow:0 16px 40px rgba(74,59,71,.1); border:2px solid var(--peach); margin-top:16px; }
   .board h2 { font-size:22px; margin-bottom:14px; }
   .board-row { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; margin-bottom:6px; background:var(--cream); }
+  .board-row.me { background:#F7C9B655; border:2px solid var(--rose); }
   .board-rank { font-size:18px; min-width:28px; }
   .board-name { flex:1; font-weight:700; font-size:15px; }
-  .board-score { font-weight:800; font-size:17px; color:#A7C4A0; }
+  .board-score { font-weight:800; font-size:17px; color:var(--sage); }
   .board-empty { color:var(--inkSoft); font-size:14px; text-align:center; padding:12px 0; }
-  @keyframes pop { 0%{transform:translate(-50%,-60%) scale(.5);opacity:1} 60%{transform:translate(-50%,-60%) scale(1.1);opacity:1} 100%{transform:translate(-50%,-80%) scale(1);opacity:0} }
-  .pop-anim { animation:pop .5s ease forwards; }
 </style>
 </head>
 <body>
@@ -48,13 +50,16 @@
     <h1 style="font-size:40px;letter-spacing:-1px">beebi<span style="color:var(--rose)">bet</span></h1>
     <p style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--inkSoft);font-weight:700;margin-top:3px">BeebiCatch</p>
   </div>
+
+  <div class="baby-bar"><span id="babyface">😶</span></div>
+
   <div class="hud">
-    <div class="hud-score">&#11088; <span id="score">0</span></div>
+    <div class="hud-score">⭐ <span id="score">0</span></div>
     <div class="hud-combo" id="combo"></div>
-    <div class="hud-timer">&#9201; <span id="timer">30</span>s</div>
+    <div class="hud-timer">⏱ <span id="timer">30</span>s</div>
   </div>
+
   <div id="arena">
-    <div id="reaction"></div>
     <div id="basket">
       <svg viewBox="0 0 72 44" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="4" y="10" width="64" height="30" rx="10" fill="#F7C9B6"/>
@@ -64,35 +69,181 @@
       </svg>
     </div>
     <div class="overlay" id="overlay">
-      <div style="font-size:52px">&#129528;</div>
+      <div style="font-size:52px">🧸</div>
       <h2>BeebiCatch</h2>
-      <p style="font-size:14px;color:var(--inkSoft);text-align:center;max-width:240px;line-height:1.5">Puua heade beebiasjad, valti halbu! 30 sekundit.</p>
+      <p style="font-size:14px;color:var(--inkSoft);text-align:center;max-width:240px;line-height:1.5">Püüa heade beebiasjad, väldi halbu! 30 sekundit.</p>
       <input class="name-input" id="nameInput" placeholder="Sinu nimi" maxlength="20" />
-      <button class="btn btn-rose" id="startBtn">Alusta mangu</button>
+      <button class="btn btn-rose" id="startBtn">Alusta mängu 🍼</button>
     </div>
   </div>
+
   <div class="board">
-    <h2>&#127942; Edetabel</h2>
-    <div id="boardList"><div class="board-empty">Laen...</div></div>
+    <h2>🏆 Edetabel</h2>
+    <div id="boardList"><div class="board-empty">Laen…</div></div>
   </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const sb = supabase.createClient("https://thrsacygpqwbnkcppmpk.supabase.co","sb_publishable_-QaY7mGpitakhestu3w1fg_sCGquRvx");
-const GOOD=["&#127868;","&#129528;","&#129414;","&#11088;","&#127769;","&#127880;"];
-const BAD=["&#129382;","&#129388;","&#129459;","&#128169;","&#129319;"];
-const arena=document.getElementById("arena"),basket=document.getElementById("basket"),overlay=document.getElementById("overlay"),reaction=document.getElementById("reaction"),scoreEl=document.getElementById("score"),comboEl=document.getElementById("combo"),timerEl=document.getElementById("timer"),startBtn=document.getElementById("startBtn"),nameInput=document.getElementById("nameInput"),boardList=document.getElementById("boardList");
-let score=0,combo=0,timeLeft=30,running=false,items=[],animId=null,tickId=null,basketX=50,lastSpawn=0;
-const aH=()=>arena.offsetHeight;
-function setBasket(p){basketX=Math.max(5,Math.min(95,p));basket.style.left=basketX+"%";}
-arena.addEventListener("pointermove",e=>{if(!running)return;const r=arena.getBoundingClientRect();setBasket((e.clientX-r.left)/r.width*100);});
-arena.addEventListener("touchmove",e=>{if(!running)return;e.preventDefault();const r=arena.getBoundingClientRect();setBasket((e.touches[0].clientX-r.left)/r.width*100);},{passive:false});
-function spawnItem(){const bad=Math.random()<0.32;const list=bad?BAD:GOOD;const emoji=list[Math.floor(Math.random()*list.length)];const el=document.createElement("div");el.className="item";el.innerHTML=emoji;el.dataset.bad=bad?"1":"0";el.dataset.x=10+Math.random()*80;el.dataset.y=-8;el.dataset.speed=2.5+Math.random()*2.5;el.style.left=el.dataset.x+"%";el.style.top=el.dataset.y+"%";arena.appendChild(el);items.push(el);}
-function showReaction(t){reaction.innerHTML=t;reaction.classList.remove("pop-anim");void reaction.offsetWidth;reaction.classList.add("pop-anim");}
-function loop(ts){if(!running){animId=null;return;}if(ts-lastSpawn>900){spawnItem();lastSpawn=ts;}const bL=basketX-8,bR=basketX+8,bTop=aH()-60;for(let i=items.length-1;i>=0;i--){const el=items[i];let y=parseFloat(el.dataset.y)+parseFloat(el.dataset.speed)*0.55;el.dataset.y=y;el.style.top=y+"%";const x=parseFloat(el.dataset.x),yPx=y/100*aH();if(yPx>bTop-10&&yPx<bTop+30&&x>bL&&x<bR){const bad=el.dataset.bad==="1";if(bad){combo=0;score=Math.max(0,score-5);showReaction("&#128546;");comboEl.textContent="";}else{combo++;score+=combo>2?15:10;showReaction(combo>2?"&#128293; COMBO!":"&#128516;");comboEl.textContent=combo>1?"x"+combo+" kombo!":"";}scoreEl.textContent=score;el.remove();items.splice(i,1);continue;}if(y>108){el.remove();items.splice(i,1);}}animId=requestAnimationFrame(loop);}
-function startGame(){const name=nameInput.value.trim();if(!name){nameInput.focus();nameInput.style.borderColor="var(--rose)";return;}score=0;combo=0;timeLeft=30;items=[];running=true;scoreEl.textContent="0";comboEl.textContent="";timerEl.textContent="30";overlay.style.display="none";lastSpawn=0;animId=requestAnimationFrame(loop);tickId=setInterval(()=>{timeLeft--;timerEl.textContent=timeLeft;if(timeLeft<=0)endGame(name);},1000);}
-async function endGame(name){running=false;clearInterval(tickId);cancelAnimationFrame(animId);items.forEach(el=>el.remove());items=[];overlay.innerHTML='<div style="font-size:52px">&#127942;</div><h2>Mang labi!</h2><p style="font-size:22px;font-weight:800;font-family:Fraunces,serif">'+score+' punkti</p><p style="font-size:14px;color:var(--inkSoft)">'+name+'</p><button class="btn btn-sage" id="restartBtn">Uuesti</button>';overlay.style.display="flex";document.getElementById("restartBtn").onclick=()=>location.reload();try{await sb.from("scores").insert({player_name:name,score});}catch(e){}loadBoard();}
-async function loadBoard(){try{const{data}=await sb.from("scores").select("player_name,score").order("score",{ascending:false}).limit(10);if(!data||!data.length){boardList.innerHTML='<div class="board-empty">Ole esimene edetabelis!</div>';return;}boardList.innerHTML=data.map((r,i)=>'<div class="board-row"><span class="board-rank">'+(i===0?"&#129351;":i===1?"&#129352;":i===2?"&#129353;":(i+1)+".")+'</span><span class="board-name">'+r.player_name+'</span><span class="board-score">'+r.score+'</span></div>').join("");}catch(e){boardList.innerHTML='<div class="board-empty">Edetabelit ei saanud laadida.</div>';}}
+const sb = supabase.createClient(
+  "https://thrsacygpqwbnkcppmpk.supabase.co",
+  "sb_publishable_-QaY7mGpitakhestu3w1fg_sCGquRvx"
+);
+
+const GOOD_ITEMS = ["🍼","🧸","🦆","⭐","🌙","🎈"];
+const BAD_ITEMS  = ["🧦","🥬","🪳","💩","🤧"];
+
+const arena    = document.getElementById("arena");
+const basket   = document.getElementById("basket");
+const overlay  = document.getElementById("overlay");
+const babyface = document.getElementById("babyface");
+const scoreEl  = document.getElementById("score");
+const comboEl  = document.getElementById("combo");
+const timerEl  = document.getElementById("timer");
+const startBtn = document.getElementById("startBtn");
+const nameInput= document.getElementById("nameInput");
+const boardList= document.getElementById("boardList");
+
+let score=0, combo=0, timeLeft=30, running=false;
+let items=[], animId=null, tickId=null, faceTimer=null;
+let basketX=50, lastSpawn=0, currentPlayer="";
+
+const aH = () => arena.offsetHeight;
+
+function setBasket(p) { basketX=Math.max(5,Math.min(95,p)); basket.style.left=basketX+"%"; }
+
+arena.addEventListener("pointermove", ev => {
+  if (!running) return;
+  const r = arena.getBoundingClientRect();
+  setBasket((ev.clientX-r.left)/r.width*100);
+});
+arena.addEventListener("touchmove", ev => {
+  if (!running) return;
+  ev.preventDefault();
+  const r = arena.getBoundingClientRect();
+  setBasket((ev.touches[0].clientX-r.left)/r.width*100);
+},{passive:false});
+
+function setFace(face) {
+  babyface.textContent = face;
+  babyface.classList.remove("bounce");
+  void babyface.offsetWidth;
+  babyface.classList.add("bounce");
+  clearTimeout(faceTimer);
+  faceTimer = setTimeout(() => { babyface.textContent = "😶"; }, 900);
+}
+
+function speedMult() {
+  return 1 + ((30 - timeLeft) / 30) * 1.2;
+}
+
+function spawnItem() {
+  const bad = Math.random() < 0.32;
+  const list = bad ? BAD_ITEMS : GOOD_ITEMS;
+  const emoji = list[Math.floor(Math.random()*list.length)];
+  const el = document.createElement("div");
+  el.className = "item";
+  el.textContent = emoji;
+  el.dataset.bad = bad ? "1" : "0";
+  el.dataset.x = 10 + Math.random()*80;
+  el.dataset.y = -8;
+  el.dataset.base = 1.8 + Math.random()*1.8;
+  el.style.left = el.dataset.x+"%";
+  el.style.top  = el.dataset.y+"%";
+  arena.appendChild(el);
+  items.push(el);
+}
+
+function loop(ts) {
+  if (!running) { animId=null; return; }
+  const elapsed = 30 - timeLeft;
+  const spawnMs = Math.max(550, 900 - elapsed*12);
+  if (ts - lastSpawn > spawnMs) { spawnItem(); lastSpawn=ts; }
+
+  const bL=basketX-8, bR=basketX+8, bTop=aH()-60, mult=speedMult();
+
+  for (let i=items.length-1; i>=0; i--) {
+    const el=items[i];
+    let y = parseFloat(el.dataset.y) + parseFloat(el.dataset.base)*mult*0.55;
+    el.dataset.y=y; el.style.top=y+"%";
+    const x=parseFloat(el.dataset.x), yPx=y/100*aH();
+
+    if (yPx>bTop-10 && yPx<bTop+30 && x>bL && x<bR) {
+      if (el.dataset.bad==="1") {
+        combo=0; score=Math.max(0,score-5);
+        setFace("😢"); comboEl.textContent="";
+      } else {
+        combo++; score+=combo>2?15:10;
+        setFace(combo>2?"🤣":"😄");
+        comboEl.textContent=combo>1?`×${combo} kombo!`:"";
+      }
+      scoreEl.textContent=score;
+      el.remove(); items.splice(i,1); continue;
+    }
+    if (y>108) { el.remove(); items.splice(i,1); }
+  }
+  animId = requestAnimationFrame(loop);
+}
+
+function startGame() {
+  const name = nameInput.value.trim();
+  if (!name) { nameInput.focus(); nameInput.style.borderColor="var(--rose)"; return; }
+  currentPlayer=name; score=0; combo=0; timeLeft=30; items=[]; running=true; lastSpawn=0;
+  scoreEl.textContent="0"; comboEl.textContent=""; timerEl.textContent="30";
+  babyface.textContent="😶";
+  overlay.style.display="none";
+  animId=requestAnimationFrame(loop);
+  tickId=setInterval(()=>{
+    timeLeft--; timerEl.textContent=timeLeft;
+    if (timeLeft<=0) endGame();
+  },1000);
+}
+
+async function endGame() {
+  running=false; clearInterval(tickId); cancelAnimationFrame(animId);
+  items.forEach(el=>el.remove()); items=[];
+  babyface.textContent = score>30 ? "🤣" : "😄";
+
+  overlay.innerHTML=`
+    <div style="font-size:52px">🏆</div>
+    <h2>Mäng läbi!</h2>
+    <p style="font-size:22px;font-weight:800;font-family:'Fraunces',serif">${score} punkti</p>
+    <p style="font-size:14px;color:var(--inkSoft)">${currentPlayer}</p>
+    <button class="btn btn-sage" id="restartBtn">Uuesti →</button>
+  `;
+  overlay.style.display="flex";
+  document.getElementById("restartBtn").onclick=()=>location.reload();
+
+  try { await sb.from("scores").insert({player_name:currentPlayer,score}); }
+  catch(e){ console.warn("save failed",e); }
+  await loadBoard();
+}
+
+function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML;}
+
+async function loadBoard() {
+  try {
+    const {data} = await sb.from("scores")
+      .select("player_name,score")
+      .order("score",{ascending:false})
+      .limit(10);
+    if (!data||!data.length) {
+      boardList.innerHTML='<div class="board-empty">Ole esimene edetabelis!</div>'; return;
+    }
+    boardList.innerHTML=data.map((r,i)=>{
+      const me = r.player_name===currentPlayer;
+      const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`;
+      return `<div class="board-row${me?' me':''}">
+        <span class="board-rank">${medal}</span>
+        <span class="board-name">${esc(r.player_name)}${me?' ⬅ sina':''}</span>
+        <span class="board-score">${r.score}</span>
+      </div>`;
+    }).join("");
+  } catch(e) {
+    boardList.innerHTML='<div class="board-empty">Edetabelit ei saanud laadida.</div>';
+  }
+}
+
 startBtn.onclick=startGame;
 nameInput.addEventListener("keydown",e=>{if(e.key==="Enter")startGame();});
 loadBoard();
