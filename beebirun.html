@@ -13,9 +13,6 @@
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="BeebiRun — beebibet" />
-<meta name="twitter:description" content="Juhi beebi turvaliselt finišisse! Vali igal etapil õige tee — 5 etappi, 5 valikut, vaid 1 õige!" />
-<meta name="twitter:image" content="https://beebibet.ee/og-image.png" />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
 <style>
   :root { --cream:#FBF3E4; --peach:#F7C9B6; --rose:#E8889B; --sage:#A7C4A0; --sky:#9CC3D5; --butter:#F4D06F; --ink:#4A3B47; --inkSoft:#7A6A75; }
@@ -27,112 +24,145 @@
   @keyframes float0 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px) rotate(8deg)} }
   @keyframes float1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-22px) rotate(-6deg)} }
   @keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-  @keyframes pop { 0%{opacity:0;transform:scale(.92)} 100%{opacity:1;transform:scale(1)} }
-  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
-  @keyframes celebrate { 0%{transform:scale(1) rotate(0)} 25%{transform:scale(1.5) rotate(-15deg)} 50%{transform:scale(1.3) rotate(15deg)} 75%{transform:scale(1.4) rotate(-10deg)} 100%{transform:scale(1) rotate(0)} }
-  @keyframes babybounce { 0%,100%{transform:translateY(0) rotate(0)} 25%{transform:translateY(-14px) rotate(-8deg)} 75%{transform:translateY(-9px) rotate(8deg)} }
-  @keyframes slideUp { 0%{opacity:0;transform:translateY(16px)} 100%{opacity:1;transform:translateY(0)} }
+  @keyframes pop    { 0%{opacity:0;transform:scale(.92)} 100%{opacity:1;transform:scale(1)} }
+  @keyframes shake  { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px)} 40%{transform:translateX(7px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
+  @keyframes celebrate { 0%{transform:scale(1)} 30%{transform:scale(1.5) rotate(-12deg)} 60%{transform:scale(1.3) rotate(10deg)} 100%{transform:scale(1)} }
+  @keyframes babybounce { 0%,100%{transform:translateY(0) rotate(0)} 30%{transform:translateY(-13px) rotate(-8deg)} 70%{transform:translateY(-8px) rotate(7deg)} }
+  @keyframes cellPop { 0%{transform:scale(1)} 40%{transform:scale(1.18)} 100%{transform:scale(1)} }
+  @keyframes fadeIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
-  .wrap { max-width:480px; margin:0 auto; padding:0 20px 80px; position:relative; z-index:2; }
+  .wrap { max-width:480px; margin:0 auto; padding:0 16px 80px; position:relative; z-index:2; }
   .back { display:inline-block; padding:14px 0 0; font-size:13px; font-weight:700; color:var(--inkSoft); text-decoration:none; letter-spacing:1px; }
-  .hdr { text-align:center; padding:14px 0 20px; }
-  .card { background:#fff; border-radius:28px; padding:28px 24px; box-shadow:0 16px 40px rgba(74,59,71,.1); border:2px solid var(--peach); }
-  .btn { display:block; width:100%; padding:15px 32px; border-radius:999px; border:none; font-size:16px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; color:#fff; transition:transform .15s; text-align:center; text-decoration:none; }
-  .btn:active { transform:scale(.96); }
+  .hdr  { text-align:center; padding:12px 0 18px; }
+  .card { background:#fff; border-radius:28px; padding:22px 18px; box-shadow:0 16px 40px rgba(74,59,71,.1); border:2px solid var(--peach); }
+  .btn  { display:block; width:100%; padding:15px 32px; border-radius:999px; border:none; font-size:16px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; color:#fff; transition:transform .15s; text-align:center; text-decoration:none; }
+  .btn:active  { transform:scale(.96); }
   .btn:disabled { opacity:.5; cursor:default; transform:none; }
   .btn-rose   { background:var(--rose);   box-shadow:0 8px 20px rgba(232,136,155,.4); }
   .btn-sky    { background:var(--sky);    box-shadow:0 8px 20px rgba(156,195,213,.4); }
-  .btn-sage   { background:var(--sage);   box-shadow:0 8px 20px rgba(167,196,160,.4); }
   .btn-butter { background:var(--butter); color:var(--ink); box-shadow:0 8px 20px rgba(244,208,111,.4); }
   .name-input { width:100%; padding:14px 18px; border-radius:16px; border:2px solid var(--peach); font-size:17px; font-family:'Nunito',sans-serif; font-weight:700; color:var(--ink); background:var(--cream); text-align:center; margin-bottom:14px; }
   .name-input:focus { outline:none; border-color:var(--rose); }
-  .pop { animation:pop .3s ease both; }
+  .pop  { animation:pop .3s ease both; }
   .screen { display:none; }
   .screen.active { display:block; }
+  .btn-gap { display:flex; flex-direction:column; gap:10px; margin-top:16px; }
 
-  /* Start screen baby */
+  /* ── Start screen ── */
   .start-baby { font-size:72px; display:block; text-align:center; margin-bottom:10px; animation:babybounce 2.4s ease-in-out infinite; }
+  .stage-pills { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-bottom:18px; }
+  .stage-pill  { background:var(--cream); border:1.5px solid var(--peach); border-radius:999px; padding:4px 11px; font-size:11px; font-weight:800; color:var(--inkSoft); }
 
-  /* Stage pills on start */
-  .stage-pills { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:20px; }
-  .stage-pill { background:var(--cream); border:1.5px solid var(--peach); border-radius:999px; padding:5px 12px; font-size:12px; font-weight:700; color:var(--inkSoft); }
+  /* ── Game top bar ── */
+  .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .stage-badge { font-size:13px; font-weight:800; color:var(--inkSoft); }
+  .score-pill  { display:inline-flex; align-items:center; gap:5px; background:var(--butter); color:var(--ink); border-radius:999px; padding:4px 12px; font-size:13px; font-weight:800; }
 
-  /* Progress track */
-  .run-progress { margin-bottom:14px; }
-  .run-progress-label { display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:700; color:var(--inkSoft); margin-bottom:8px; }
-  .run-bar { height:8px; background:var(--peach); border-radius:99px; overflow:hidden; }
+  /* ── Progress bar ── */
+  .run-bar { height:6px; background:var(--peach); border-radius:99px; overflow:hidden; margin-bottom:14px; }
   .run-bar-fill { height:100%; background:var(--rose); border-radius:99px; transition:width .5s cubic-bezier(.34,1.56,.64,1); }
 
-  /* Baby path track */
-  .baby-track { position:relative; height:54px; margin:10px 0 14px; background:linear-gradient(90deg,#e6f5e4,#e8f4fa); border-radius:18px; border:2px solid var(--peach); overflow:hidden; }
-  .track-road { position:absolute; bottom:12px; left:12px; right:12px; height:4px; background:var(--peach); border-radius:99px; }
-  .track-dots { position:absolute; bottom:8px; left:0; right:0; display:flex; align-items:center; justify-content:space-around; padding:0 20px; }
-  .track-dot { width:12px; height:12px; border-radius:50%; background:var(--peach); border:2px solid #fff; flex-shrink:0; transition:background .4s, transform .3s; }
-  .track-dot.done    { background:var(--sage); }
-  .track-dot.current { background:var(--rose); transform:scale(1.3); }
-  .finish-flag { font-size:18px; line-height:1; }
-  .baby-char { position:absolute; bottom:6px; font-size:28px; line-height:1; transition:left .6s cubic-bezier(.34,1.56,.64,1); }
+  /* ── Baby walk track ── */
+  .baby-track { position:relative; height:46px; margin-bottom:12px; background:linear-gradient(90deg,#e6f5e4,#e8f4fa); border-radius:14px; border:2px solid var(--peach); overflow:hidden; }
+  .track-road  { position:absolute; top:50%; left:12px; right:12px; height:3px; background:var(--peach); border-radius:99px; transform:translateY(-50%); }
+  .track-steps { position:absolute; inset:0; display:flex; align-items:center; justify-content:space-around; padding:0 14px; }
+  .track-step  { width:10px; height:10px; border-radius:50%; background:var(--peach); border:2px solid #fff; transition:background .4s, transform .3s; flex-shrink:0; }
+  .track-step.done    { background:var(--sage); }
+  .track-step.current { background:var(--rose); transform:scale(1.35); }
+  .finish-flag { font-size:16px; line-height:1; }
+  .baby-char   { position:absolute; top:50%; font-size:26px; line-height:1; transform:translateY(-50%); transition:left .55s cubic-bezier(.34,1.56,.64,1); }
 
-  /* Score pill */
-  .score-pill { display:inline-flex; align-items:center; gap:6px; background:var(--butter); color:var(--ink); border-radius:999px; padding:5px 14px; font-size:14px; font-weight:800; }
+  /* ── Stage context ── */
+  .stage-ctx { display:flex; align-items:center; gap:10px; background:var(--cream); border-radius:14px; padding:10px 14px; margin-bottom:12px; animation:fadeIn .3s ease both; }
+  .stage-ctx-icon { font-size:30px; flex-shrink:0; }
+  .stage-ctx-text { flex:1; }
+  .stage-ctx-title { font-family:'Fraunces',serif; font-size:15px; font-weight:600; line-height:1.2; }
+  .stage-ctx-q     { font-size:12px; color:var(--inkSoft); font-weight:700; margin-top:2px; line-height:1.3; }
 
-  /* Stage header */
-  .stage-header { text-align:center; margin-bottom:6px; }
-  .stage-icon { font-size:44px; display:block; margin-bottom:3px; animation:slideUp .35s ease both; }
-  .stage-title { font-family:'Fraunces',serif; font-size:19px; font-weight:600; animation:slideUp .35s .05s ease both; }
-  .stage-question { text-align:center; font-size:15px; font-weight:700; color:var(--inkSoft); margin:8px 0 14px; line-height:1.5; animation:slideUp .35s .1s ease both; }
-
-  /* Timer */
-  .timer-row { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:14px; }
-  .timer-ring { width:42px; height:42px; flex-shrink:0; }
-  .timer-ring circle { fill:none; stroke-width:5; }
+  /* ── Timer ── */
+  .timer-row   { display:flex; align-items:center; justify-content:center; gap:7px; margin-bottom:12px; }
+  .timer-ring  { width:36px; height:36px; flex-shrink:0; }
+  .timer-ring circle { fill:none; stroke-width:4.5; }
   .timer-track { stroke:var(--peach); }
-  .timer-arc { stroke:var(--rose); stroke-linecap:round; transition:stroke-dashoffset .9s linear, stroke .3s; transform-origin:center; transform:rotate(-90deg); }
-  .timer-num { font-family:'Fraunces',serif; font-size:15px; font-weight:600; color:var(--ink); min-width:22px; text-align:center; }
+  .timer-arc   { stroke:var(--rose); stroke-linecap:round; transition:stroke-dashoffset .9s linear, stroke .3s; transform-origin:center; transform:rotate(-90deg); }
+  .timer-num   { font-family:'Fraunces',serif; font-size:14px; font-weight:600; color:var(--ink); min-width:18px; text-align:center; }
 
-  /* Choice column — single column, minesweeper-style rows */
-  .choice-grid { display:flex; flex-direction:column; gap:8px; margin-bottom:8px; }
-  .choice-btn { width:100%; padding:0; border-radius:16px; border:2.5px solid var(--peach); background:#fff; font-family:'Nunito',sans-serif; font-size:15px; font-weight:700; color:var(--ink); cursor:pointer; transition:transform .12s, background .15s, border-color .15s, box-shadow .15s; text-align:left; display:flex; align-items:center; gap:0; touch-action:manipulation; -webkit-tap-highlight-color:transparent; overflow:hidden; }
-  .choice-btn .ce { font-size:30px; line-height:1; display:flex; align-items:center; justify-content:center; width:60px; min-width:60px; height:58px; background:var(--cream); border-right:2px solid var(--peach); transition:background .15s; flex-shrink:0; }
-  .choice-btn .cl { flex:1; padding:0 16px; line-height:1.3; }
-  .choice-btn .arrow { font-size:16px; padding-right:14px; opacity:.35; transition:opacity .15s, transform .15s; }
-  .choice-btn:active { transform:scale(.98); background:var(--cream); }
-  .choice-btn:active .arrow { opacity:.7; transform:translateX(3px); }
-  .choice-btn.correct { border-color:var(--sage); background:#e9f7e7; color:#2a6b25; box-shadow:0 4px 14px rgba(107,195,107,.25); }
-  .choice-btn.correct .ce { background:#d0eecc; border-right-color:var(--sage); }
-  .choice-btn.wrong   { border-color:var(--rose); background:#fce8ec; color:#a0283a; animation:shake .4s ease; box-shadow:0 4px 14px rgba(232,136,155,.3); }
-  .choice-btn.wrong .ce { background:#fad4da; border-right-color:var(--rose); }
-  .choice-btn.reveal  { border-color:var(--sage); background:#e9f7e7; color:#2a6b25; }
-  .choice-btn.reveal .ce { background:#d0eecc; border-right-color:var(--sage); }
-  .choice-btn:disabled { cursor:default; transform:none !important; }
+  /* ── Road grid ── */
+  .road-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; }
 
-  .feedback-msg { text-align:center; font-size:14px; font-weight:800; min-height:20px; margin-top:8px; }
+  .road-col { display:flex; flex-direction:column; gap:5px; }
+
+  .col-header { text-align:center; padding-bottom:3px; }
+  .col-icon   { font-size:16px; display:block; line-height:1; }
+  .col-name   { font-size:8px; font-weight:800; color:var(--inkSoft); letter-spacing:.3px; text-transform:uppercase; display:block; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .road-col.is-active .col-name { color:var(--rose); }
+
+  .road-cell {
+    border-radius:10px;
+    border:2px solid var(--peach);
+    background:#fff;
+    height:62px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    cursor:default;
+    user-select:none;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+    transition:transform .12s, background .15s, border-color .2s, opacity .3s, box-shadow .2s;
+    position:relative;
+    overflow:hidden;
+  }
+
+  /* future columns */
+  .road-cell.locked {
+    background:var(--cream);
+    border-color:var(--peach);
+    font-size:14px;
+    color:var(--inkSoft);
+    opacity:.55;
+  }
+
+  /* current active column */
+  .road-cell.active {
+    cursor:pointer;
+    border-color:var(--rose);
+    box-shadow:0 2px 10px rgba(232,136,155,.3);
+  }
+  .road-cell.active:active { transform:scale(.88); background:var(--cream); }
+
+  /* results */
+  .road-cell.correct { border-color:var(--sage); background:#e6f5e4; animation:cellPop .4s ease; }
+  .road-cell.wrong   { border-color:var(--rose); background:#fce8ec; animation:shake .4s ease; }
+  .road-cell.reveal  { border-color:var(--sage); background:#e6f5e4; }
+  /* cells in completed columns that weren't picked */
+  .road-cell.past    { background:var(--cream); border-color:var(--peach); opacity:.35; font-size:16px; }
+
+  .feedback-msg { text-align:center; font-size:13px; font-weight:800; min-height:18px; margin-top:10px; }
   .feedback-msg.ok  { color:#2a8c22; }
   .feedback-msg.bad { color:var(--rose); }
 
-  /* Result screens */
-  .big-emoji { font-size:68px; text-align:center; display:block; margin-bottom:10px; }
+  /* ── Result screens ── */
+  .big-emoji    { font-size:68px; text-align:center; display:block; margin-bottom:10px; }
   .result-score { font-family:'Fraunces',serif; font-size:56px; font-weight:600; text-align:center; line-height:1; }
-  .result-label { text-align:center; color:var(--inkSoft); font-size:14px; margin-top:4px; margin-bottom:18px; }
-  .btn-gap { display:flex; flex-direction:column; gap:10px; margin-top:18px; }
+  .result-label { text-align:center; color:var(--inkSoft); font-size:14px; margin-top:4px; margin-bottom:16px; }
 
-  /* Score breakdown */
-  .score-breakdown { border:2px solid var(--peach); border-radius:16px; padding:14px 16px; margin-bottom:18px; text-align:left; }
-  .score-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--peach); font-size:13px; font-weight:700; }
+  .score-breakdown { border:2px solid var(--peach); border-radius:16px; padding:12px 14px; margin-bottom:16px; text-align:left; }
+  .score-row       { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--peach); font-size:13px; font-weight:700; }
   .score-row:last-child { border-bottom:none; }
-  .score-row .val { font-weight:800; color:var(--rose); }
+  .score-row .val  { font-weight:800; color:var(--rose); }
   .score-row.bonus .val { color:var(--sage); }
-  .score-row.total { font-size:15px; }
-  .score-row.total .val { color:var(--butter); font-size:19px; }
+  .score-row.total .val { color:var(--butter); font-size:18px; }
 
-  /* Leaderboard */
-  .board-row { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; margin-bottom:6px; background:var(--cream); }
+  /* ── Leaderboard ── */
+  .board-row   { display:flex; align-items:center; gap:10px; padding:9px 11px; border-radius:13px; margin-bottom:5px; background:var(--cream); }
   .board-row.me { background:#F7C9B655; border:2px solid var(--rose); }
-  .board-rank { font-size:18px; min-width:28px; }
-  .board-name { flex:1; font-weight:700; font-size:15px; }
-  .board-score { font-weight:800; font-size:17px; color:var(--butter); }
-  .board-empty { color:var(--inkSoft); font-size:14px; text-align:center; padding:12px 0; }
-  .db-error { background:#fee; border:1px solid #fcc; border-radius:12px; padding:10px 14px; font-size:12px; color:#c00; margin-top:8px; }
+  .board-rank  { font-size:18px; min-width:26px; }
+  .board-name  { flex:1; font-weight:700; font-size:14px; }
+  .board-score { font-weight:800; font-size:16px; color:var(--butter); }
+  .board-empty { color:var(--inkSoft); font-size:14px; text-align:center; padding:10px 0; }
+  .db-error    { background:#fee; border:1px solid #fcc; border-radius:11px; padding:9px 13px; font-size:12px; color:#c00; margin-top:7px; }
 </style>
 </head>
 <body>
@@ -149,10 +179,10 @@
     <div class="card pop" style="text-align:center">
       <span class="start-baby">👶</span>
       <h2 style="font-size:26px;margin-bottom:8px">BeebiRun</h2>
-      <p style="color:var(--inkSoft);font-size:14px;line-height:1.65;margin-bottom:16px">
+      <p style="color:var(--inkSoft);font-size:14px;line-height:1.65;margin-bottom:14px">
         Juhi beebi turvaliselt finišisse!<br>
-        Igal etapil on <strong>5 ust</strong> — vaid <strong>1 on õige</strong>.<br>
-        Vale uks = mäng läbi. Kiirus = boonuspunktid! ⭐
+        Igal etapil vali <strong>õige lahter</strong> 5-st.<br>
+        Vale valik = mäng läbi. Kiirus = boonuspunktid! ⭐
       </p>
       <div class="stage-pills">
         <span class="stage-pill">🌙 Uneaeg</span>
@@ -174,38 +204,39 @@
   <div class="screen" id="screenGame">
     <div class="card pop" id="gameCard">
 
-      <div class="run-progress">
-        <div class="run-progress-label">
-          <span id="stageLabel">Etapp 1 / 5</span>
-          <div class="score-pill">⭐ <span id="liveScore">0</span></div>
-        </div>
-        <div class="run-bar"><div class="run-bar-fill" id="runBarFill" style="width:0%"></div></div>
+      <div class="top-bar">
+        <span class="stage-badge" id="stageBadge">Etapp 1 / 5</span>
+        <div class="score-pill">⭐ <span id="liveScore">0</span></div>
       </div>
+      <div class="run-bar"><div class="run-bar-fill" id="runBarFill" style="width:0%"></div></div>
 
       <div class="baby-track">
         <div class="track-road"></div>
-        <div class="track-dots" id="trackDots"></div>
+        <div class="track-steps" id="trackSteps"></div>
         <div class="baby-char" id="babyChar">👶</div>
       </div>
 
-      <div class="stage-header">
-        <span class="stage-icon" id="stageIcon"></span>
-        <div class="stage-title" id="stageTitle"></div>
+      <div class="stage-ctx" id="stageCtx">
+        <span class="stage-ctx-icon" id="ctxIcon"></span>
+        <div class="stage-ctx-text">
+          <div class="stage-ctx-title" id="ctxTitle"></div>
+          <div class="stage-ctx-q" id="ctxQ"></div>
+        </div>
       </div>
-      <div class="stage-question" id="stageQuestion"></div>
 
       <div class="timer-row">
-        <svg class="timer-ring" viewBox="0 0 44 44">
-          <circle class="timer-track" cx="22" cy="22" r="18"/>
-          <circle class="timer-arc" id="timerArc" cx="22" cy="22" r="18"
-            stroke-dasharray="113.1" stroke-dashoffset="0"/>
+        <svg class="timer-ring" viewBox="0 0 36 36">
+          <circle class="timer-track" cx="18" cy="18" r="14"/>
+          <circle class="timer-arc" id="timerArc" cx="18" cy="18" r="14"
+            stroke-dasharray="87.96" stroke-dashoffset="0"/>
         </svg>
         <span class="timer-num" id="timerNum">20</span>
-        <span style="font-size:12px;color:var(--inkSoft);font-weight:700">sek</span>
+        <span style="font-size:11px;color:var(--inkSoft);font-weight:700">sek</span>
       </div>
 
-      <div class="choice-grid" id="choiceGrid"></div>
+      <div class="road-grid" id="roadGrid"></div>
       <div class="feedback-msg" id="feedbackMsg"></div>
+
     </div>
   </div>
 
@@ -213,7 +244,7 @@
   <div class="screen" id="screenOver">
     <div class="card pop" style="text-align:center">
       <span class="big-emoji" id="overEmoji">😢</span>
-      <h2 style="font-size:22px;margin-bottom:8px">Oops! Vale uks!</h2>
+      <h2 style="font-size:22px;margin-bottom:8px">Oops! Vale lahter!</h2>
       <p style="color:var(--inkSoft);font-size:14px;line-height:1.6;margin-bottom:10px" id="overMsg"></p>
       <div class="result-score" id="overScore">0</div>
       <div class="result-label" id="overLabel">punkti</div>
@@ -229,27 +260,23 @@
     <div class="card pop" style="text-align:center">
       <span class="big-emoji">🏆</span>
       <h2 style="font-size:24px;margin-bottom:6px">Beebi jõudis finišisse!</h2>
-      <p style="color:var(--inkSoft);font-size:14px;line-height:1.6;margin-bottom:16px">
-        Tubli! Sa viisid beebi turvaliselt läbi kõigi 5 etapi! 🎉
+      <p style="color:var(--inkSoft);font-size:14px;line-height:1.6;margin-bottom:14px">
+        Suurepärane! Kõik 5 etappi läbitud! 🎉
       </p>
-
       <div class="result-score" id="victoryScore">0</div>
       <div class="result-label">lõplik tulemus</div>
-
       <div class="score-breakdown">
         <div class="score-row"><span>Etapiboonused (5 × 100)</span><span class="val" id="vBase">500</span></div>
         <div class="score-row bonus"><span>Kiirusboonus</span><span class="val" id="vSpeed">+0</span></div>
         <div class="score-row bonus"><span>Läbimise boonus</span><span class="val" id="vCompletion">+100</span></div>
         <div class="score-row total"><span>Kokku</span><span class="val" id="vTotal">0</span></div>
       </div>
-
       <div id="submitArea">
         <button class="btn btn-butter" id="submitBtn">Lisa edetabelisse 🏅</button>
       </div>
       <div id="submitDone" style="display:none;color:var(--sage);font-weight:800;font-size:15px;margin-bottom:4px">
         ✅ Tulemus salvestatud!
       </div>
-
       <div class="btn-gap">
         <button class="btn btn-rose" onclick="location.reload()">Mängi uuesti 🍼</button>
         <a class="btn btn-sky" href="/">← Avaleht</a>
@@ -261,7 +288,7 @@
     </div>
   </div>
 
-</div><!-- /wrap -->
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -270,269 +297,297 @@ const sb = supabase.createClient(
   "sb_publishable_-QaY7mGpitakhestu3w1fg_sCGquRvx"
 );
 
-/* ── Stage data ─────────────────────────────────────────────────────────── */
+/* ── Stage definitions ─────────────────────────────────────────────────── */
 const STAGES = [
   {
     icon:"🌙", title:"Uneaeg",
     question:"Kuhu peaks beebi magama panema?",
-    choices:[
-      { e:"🛏️", l:"Hubane võrevoodi" },   // correct
-      { e:"🎸", l:"Rokk-kontsert" },
-      { e:"☀️", l:"Ere päikeseplats" },
-      { e:"🎡", l:"Lõbustuspark" },
-      { e:"🌊", l:"Lainemasin" },
-    ],
-    correct: 0
+    choices:[ {e:"🛏️",l:"Võrevoodi"}, {e:"🎸",l:"Rokk-kontsert"}, {e:"☀️",l:"Päikeseplats"}, {e:"🎡",l:"Lõbustuspark"}, {e:"🌊",l:"Lainemasin"} ],
+    correct:0
   },
   {
     icon:"🍌", title:"Söömisaeg",
     question:"Mis sobib beebile suupisteks?",
-    choices:[
-      { e:"🌶️", l:"Kibe punane pipar" },
-      { e:"🍌", l:"Küps pehme banaan" },   // correct
-      { e:"☕", l:"Kuum must kohv" },
-      { e:"🧅", l:"Toores sibul" },
-      { e:"🍺", l:"Vahune õlu" },
-    ],
-    correct: 1
+    choices:[ {e:"🌶️",l:"Kibe pipar"}, {e:"🍌",l:"Küps banaan"}, {e:"☕",l:"Must kohv"}, {e:"🧅",l:"Toores sibul"}, {e:"🍺",l:"Vahune õlu"} ],
+    correct:1
   },
   {
     icon:"🧸", title:"Mänguaeg",
     question:"Milline mänguasi sobib beebile?",
-    choices:[
-      { e:"🔨", l:"Raske haamer" },
-      { e:"🪚", l:"Terav saag" },
-      { e:"🧸", l:"Pehme kaisukaru" },     // correct
-      { e:"🪴", l:"Okkaline kaktus" },
-      { e:"🧪", l:"Keemia komplekt" },
-    ],
-    correct: 2
+    choices:[ {e:"🔨",l:"Haamer"}, {e:"🪚",l:"Terav saag"}, {e:"🧸",l:"Kaisukaru"}, {e:"🪴",l:"Kaktus"}, {e:"🧪",l:"Keemia"} ],
+    correct:2
   },
   {
     icon:"🛁", title:"Suplusaeg",
-    question:"Kus on beebi kõige mugavam supelda?",
-    choices:[
-      { e:"🌊", l:"Tormine meri" },
-      { e:"🦈", l:"Haide bassein" },
-      { e:"❄️", l:"Jäine bassein" },
-      { e:"🛁", l:"Soe mulli vann" },      // correct
-      { e:"🌋", l:"Vulkaani jalamil" },
-    ],
-    correct: 3
+    question:"Kus on beebi kõige parem supelda?",
+    choices:[ {e:"🌊",l:"Tormine meri"}, {e:"🦈",l:"Haide bassein"}, {e:"❄️",l:"Jäine bassein"}, {e:"🛁",l:"Mulli vann"}, {e:"🌋",l:"Vulkaan"} ],
+    correct:3
   },
   {
     icon:"🌿", title:"Esimesed sammud",
     question:"Kuhu viivad beebi esimesed sammud?",
-    choices:[
-      { e:"🗻", l:"Kõrge mäetipp" },
-      { e:"🌋", l:"Vulkaani kaldal" },
-      { e:"🌊", l:"Mere põhi" },
-      { e:"🏜️", l:"Kuum kõrb" },
-      { e:"🌿", l:"Pehme roheline niit" }, // correct
-    ],
-    correct: 4
+    choices:[ {e:"🗻",l:"Mäetipp"}, {e:"🌋",l:"Vulkaan"}, {e:"🌊",l:"Mere põhi"}, {e:"🏜️",l:"Kõrb"}, {e:"🌿",l:"Roheline niit"} ],
+    correct:4
   }
 ];
 
 const TIMER_MAX   = 20;
 const BASE_PTS    = 100;
 const COMPL_BONUS = 100;
-const CIRC        = 2 * Math.PI * 18; // ≈113.1
+const CIRC        = 2 * Math.PI * 14; // ≈87.96
 
-/* ── State ─────────────────────────────────────────────────────────────── */
-let playerName    = "";
-let currentStage  = 0;
-let totalScore    = 0;
-let speedBonus    = 0;
-let timeLeft      = TIMER_MAX;
-let timerInterval = null;
-let answered      = false;
-let shuffled      = null; // { choices, correctIdx }
+/* ── State ──────────────────────────────────────────────────────────────── */
+let playerName   = "";
+let currentStage = 0;
+let totalScore   = 0;
+let speedBonus   = 0;
+let timeLeft     = TIMER_MAX;
+let timerInt     = null;
+let answered     = false;
+// per-stage: shuffled choices and which index is correct
+let stageData    = []; // [{choices, correctIdx}] for all 5 stages, built at game start
 
-/* ── Helpers ────────────────────────────────────────────────────────────── */
+/* ── Helpers ──────────────────────────────────────────────────────────────*/
 function show(id) {
   ["screenStart","screenGame","screenOver","screenVictory"]
     .forEach(s => document.getElementById(s).classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
-
-function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
-
+function esc(s) { const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
 function setArc(frac) {
   const arc = document.getElementById("timerArc");
   arc.style.strokeDashoffset = CIRC * (1 - frac);
   arc.style.stroke = frac > 0.4 ? "var(--rose)" : frac > 0.2 ? "var(--butter)" : "#e05555";
 }
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
 
-/* ── Baby track ─────────────────────────────────────────────────────────── */
+/* ── Build all stage data upfront (so grid can be rendered immediately) ── */
+function buildStageData() {
+  stageData = STAGES.map(s => {
+    const choices  = shuffle(s.choices);
+    const correct  = s.choices[s.correct];
+    const correctIdx = choices.indexOf(correct);
+    return { choices, correctIdx };
+  });
+}
+
+/* ── Baby track ──────────────────────────────────────────────────────────── */
+const BABY_POS = [3, 18, 35, 52, 68, 86]; // % left for stages 0-5
+
 function buildTrack() {
-  const dots = document.getElementById("trackDots");
-  dots.innerHTML = "";
+  const steps = document.getElementById("trackSteps");
+  steps.innerHTML = "";
   for (let i = 0; i < 5; i++) {
     const d = document.createElement("div");
-    d.className = "track-dot" + (i === 0 ? " current" : "");
-    d.id = "dot" + i;
-    dots.appendChild(d);
+    d.className = "track-step" + (i === 0 ? " current" : "");
+    d.id = "step" + i;
+    steps.appendChild(d);
   }
   const flag = document.createElement("span");
   flag.className = "finish-flag";
   flag.textContent = "🏁";
-  dots.appendChild(flag);
+  steps.appendChild(flag);
   placeBaby(0);
 }
 
-// Positions as % from left for baby emoji at each stage (0=start … 5=finish)
-const BABY_POS = [3, 18, 35, 52, 68, 85];
-
-function placeBaby(stageIdx) {
-  const baby  = document.getElementById("babyChar");
-  const track = document.getElementById("babyTrack");
-  const pct   = BABY_POS[Math.min(stageIdx, 5)];
-  baby.style.left = `calc(${pct}% - 14px)`;
+function placeBaby(idx) {
+  document.getElementById("babyChar").style.left =
+    `calc(${BABY_POS[Math.min(idx,5)]}% - 13px)`;
 }
 
-function updateDots(completed) {
+function updateSteps(completed) {
   for (let i = 0; i < 5; i++) {
-    const dot = document.getElementById("dot" + i);
-    if (!dot) continue;
-    dot.className = "track-dot" +
+    const el = document.getElementById("step"+i);
+    if (!el) continue;
+    el.className = "track-step" +
       (i < completed ? " done" : i === completed ? " current" : "");
   }
 }
 
-/* ── Shuffle choices while keeping the correct one identifiable ────────── */
-function shuffleStage(stage) {
-  const choices   = [...stage.choices];
-  const correct   = choices[stage.correct];
-  for (let i = choices.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [choices[i], choices[j]] = [choices[j], choices[i]];
-  }
-  return { choices, correctIdx: choices.indexOf(correct) };
+/* ── Render the 5×5 road grid ────────────────────────────────────────────── */
+function renderGrid(activeStage) {
+  const grid = document.getElementById("roadGrid");
+  grid.innerHTML = "";
+
+  STAGES.forEach((stage, colIdx) => {
+    const col = document.createElement("div");
+    col.className = "road-col" + (colIdx === activeStage ? " is-active" : "");
+    col.id = "col" + colIdx;
+
+    // Column header
+    const hdr = document.createElement("div");
+    hdr.className = "col-header";
+    hdr.innerHTML = `<span class="col-icon">${stage.icon}</span><span class="col-name">${stage.title}</span>`;
+    col.appendChild(hdr);
+
+    const sd = stageData[colIdx];
+    sd.choices.forEach((ch, rowIdx) => {
+      const cell = document.createElement("div");
+      cell.id = `c${colIdx}-${rowIdx}`;
+
+      if (colIdx < activeStage) {
+        // completed column: show correct cell green, others past
+        const wasCorrect = rowIdx === sd.correctIdx;
+        cell.className = "road-cell " + (wasCorrect ? "correct" : "past");
+        cell.textContent = wasCorrect ? ch.e : "·";
+      } else if (colIdx === activeStage) {
+        // active column: show emojis, tappable
+        cell.className = "road-cell active";
+        cell.textContent = ch.e;
+        cell.addEventListener("click", () => pick(rowIdx));
+      } else {
+        // future column: locked
+        cell.className = "road-cell locked";
+        cell.textContent = "?";
+      }
+      col.appendChild(cell);
+    });
+
+    grid.appendChild(col);
+  });
 }
 
-/* ── Render one stage ───────────────────────────────────────────────────── */
-function renderStage() {
-  const stage = STAGES[currentStage];
-  shuffled    = shuffleStage(stage);
-  answered    = false;
-  timeLeft    = TIMER_MAX;
+/* ── Update context box for current stage ────────────────────────────────── */
+function updateCtx(stageIdx) {
+  const s = STAGES[stageIdx];
+  // re-trigger fadeIn
+  const ctx = document.getElementById("stageCtx");
+  ctx.style.animation = "none"; ctx.offsetHeight; ctx.style.animation = "";
+  document.getElementById("ctxIcon").textContent  = s.icon;
+  document.getElementById("ctxTitle").textContent = s.title;
+  document.getElementById("ctxQ").textContent     = s.question;
+}
 
-  document.getElementById("stageLabel").textContent   = `Etapp ${currentStage + 1} / 5`;
-  document.getElementById("runBarFill").style.width   = `${(currentStage / 5) * 100}%`;
-  document.getElementById("liveScore").textContent    = totalScore;
-  document.getElementById("stageIcon").textContent    = stage.icon;
-  document.getElementById("stageTitle").textContent   = stage.title;
-  document.getElementById("stageQuestion").textContent = stage.question;
-  document.getElementById("feedbackMsg").textContent  = "";
-  document.getElementById("feedbackMsg").className    = "feedback-msg";
-  document.getElementById("timerNum").textContent     = TIMER_MAX;
+/* ── Start a stage ──────────────────────────────────────────────────────── */
+function startStage() {
+  answered = false;
+  timeLeft = TIMER_MAX;
+
+  document.getElementById("stageBadge").textContent = `Etapp ${currentStage+1} / 5`;
+  document.getElementById("runBarFill").style.width = `${(currentStage/5)*100}%`;
+  document.getElementById("liveScore").textContent  = totalScore;
+  document.getElementById("feedbackMsg").textContent = "";
+  document.getElementById("feedbackMsg").className  = "feedback-msg";
+  document.getElementById("timerNum").textContent   = TIMER_MAX;
   setArc(1);
 
-  updateDots(currentStage);
+  updateSteps(currentStage);
   placeBaby(currentStage);
+  updateCtx(currentStage);
+  renderGrid(currentStage);
 
-  // Re-trigger animations by cloning stage header children
-  ["stageIcon","stageTitle"].forEach(id => {
-    const el = document.getElementById(id);
-    el.style.animation = "none";
-    el.offsetHeight; // reflow
-    el.style.animation = "";
-  });
-
-  const grid = document.getElementById("choiceGrid");
-  grid.innerHTML = "";
-  shuffled.choices.forEach((ch, i) => {
-    const btn = document.createElement("button");
-    btn.className = "choice-btn";
-    btn.innerHTML = `<span class="ce">${ch.e}</span><span class="cl">${ch.l}</span><span class="arrow">›</span>`;
-    btn.addEventListener("click", () => pick(i));
-    grid.appendChild(btn);
-  });
-
-  clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
+  clearInterval(timerInt);
+  timerInt = setInterval(() => {
     timeLeft--;
     document.getElementById("timerNum").textContent = timeLeft;
     setArc(timeLeft / TIMER_MAX);
-    if (timeLeft <= 0) { clearInterval(timerInterval); onTimeout(); }
+    if (timeLeft <= 0) { clearInterval(timerInt); onTimeout(); }
   }, 1000);
 }
 
-/* ── Player picks a choice ──────────────────────────────────────────────── */
-function pick(idx) {
+/* ── Player picks a cell ────────────────────────────────────────────────── */
+function pick(rowIdx) {
   if (answered) return;
   answered = true;
-  clearInterval(timerInterval);
+  clearInterval(timerInt);
 
-  const btns = [...document.getElementById("choiceGrid").querySelectorAll(".choice-btn")];
-  btns.forEach(b => b.disabled = true);
+  const sd = stageData[currentStage];
+  const isCorrect = rowIdx === sd.correctIdx;
+  const baby = document.getElementById("babyChar");
+  const fb   = document.getElementById("feedbackMsg");
 
-  const isCorrect = idx === shuffled.correctIdx;
-  const baby      = document.getElementById("babyChar");
-  const fb        = document.getElementById("feedbackMsg");
+  // disable all active cells
+  document.querySelectorAll(".road-cell.active").forEach(c => {
+    c.classList.remove("active");
+    c.style.cursor = "default";
+  });
+
+  const pickedCell  = document.getElementById(`c${currentStage}-${rowIdx}`);
+  const correctCell = document.getElementById(`c${currentStage}-${sd.correctIdx}`);
 
   if (isCorrect) {
-    btns[idx].classList.add("correct");
-    const bonus  = Math.round((timeLeft / TIMER_MAX) * 50);
-    totalScore  += BASE_PTS + bonus;
-    speedBonus  += bonus;
+    pickedCell.classList.add("correct");
+
+    const bonus = Math.round((timeLeft / TIMER_MAX) * 50);
+    totalScore += BASE_PTS + bonus;
+    speedBonus += bonus;
     document.getElementById("liveScore").textContent = totalScore;
 
-    const msgs = ["🌟 Suurepärane!", "✨ Tubli beebi!", "🎉 Täpselt õige!", "💛 Väga hästi!", "🍀 Ideaalne valik!"];
-    fb.textContent  = `${msgs[currentStage]} +${BASE_PTS + bonus} punkti`;
-    fb.className    = "feedback-msg ok";
+    const msgs = ["🌟 Suurepärane!", "✨ Tubli beebi!", "🎉 Täpselt õige!", "💛 Väga hästi!", "🍀 Ideaalne!"];
+    fb.textContent = `${msgs[currentStage]} +${BASE_PTS+bonus} punkti`;
+    fb.className   = "feedback-msg ok";
 
     baby.textContent = "😄";
-    baby.style.animation = "celebrate .65s ease";
-    setTimeout(() => { baby.style.animation = ""; baby.textContent = "👶"; }, 650);
+    baby.style.animation = "celebrate .6s ease";
+    setTimeout(() => { baby.style.animation = ""; baby.textContent = "👶"; }, 600);
 
     setTimeout(() => {
       currentStage++;
-      if (currentStage < STAGES.length) renderStage();
+      if (currentStage < STAGES.length) startStage();
       else showVictory();
-    }, 1450);
+    }, 1400);
 
   } else {
-    btns[idx].classList.add("wrong");
-    btns[shuffled.correctIdx].classList.add("reveal");
+    pickedCell.classList.add("wrong");
+    correctCell.classList.add("reveal");
 
-    fb.textContent = `❌ Vale uks! Õige oli: ${shuffled.choices[shuffled.correctIdx].l}`;
+    // grey out all other cells in the column
+    stageData[currentStage].choices.forEach((_, r) => {
+      if (r !== rowIdx && r !== sd.correctIdx) {
+        const c = document.getElementById(`c${currentStage}-${r}`);
+        if (c) c.classList.add("past");
+      }
+    });
+
+    fb.textContent = `❌ Vale! Õige oli: ${sd.choices[sd.correctIdx].l}`;
     fb.className   = "feedback-msg bad";
 
     baby.textContent = "😢";
-    baby.style.animation = "shake .4s ease";
-    setTimeout(() => { baby.style.animation = ""; }, 400);
+    baby.style.animation = "shake .45s ease";
+    setTimeout(() => { baby.style.animation = ""; }, 450);
 
-    setTimeout(showGameOver, 1800);
+    setTimeout(showGameOver, 1900);
   }
 }
 
 function onTimeout() {
   if (answered) return;
   answered = true;
-  const btns = [...document.getElementById("choiceGrid").querySelectorAll(".choice-btn")];
-  btns.forEach(b => b.disabled = true);
-  btns[shuffled.correctIdx].classList.add("reveal");
+  document.querySelectorAll(".road-cell.active").forEach(c => {
+    c.classList.remove("active"); c.style.cursor = "default";
+  });
+  const sd = stageData[currentStage];
+  document.getElementById(`c${currentStage}-${sd.correctIdx}`).classList.add("reveal");
+  stageData[currentStage].choices.forEach((_, r) => {
+    if (r !== sd.correctIdx) {
+      const c = document.getElementById(`c${currentStage}-${r}`);
+      if (c && c.classList.contains("road-cell")) c.classList.add("past");
+    }
+  });
   const fb = document.getElementById("feedbackMsg");
   fb.textContent = "⏱ Aeg sai läbi! Beebi jäi magama…";
   fb.className   = "feedback-msg bad";
   document.getElementById("babyChar").textContent = "😴";
-  setTimeout(showGameOver, 1800);
+  setTimeout(showGameOver, 1900);
 }
 
-/* ── Game over ─────────────────────────────────────────────────────────── */
+/* ── Game over ──────────────────────────────────────────────────────────── */
 function showGameOver() {
   show("screenOver");
   document.getElementById("overScore").textContent = totalScore;
-  document.getElementById("overLabel").textContent =
-    `punkti — jõudsid etappi ${currentStage} / 5`;
-
+  document.getElementById("overLabel").textContent = `punkti — jõudsid etappi ${currentStage} / 5`;
   const msgs = [
-    "Mäng alles algas — järgmine kord läheb kindlasti paremini! 💪",
+    "Mäng alles algas — järgmine kord läheb paremini! 💪",
     "Beebi komistas esimesel etapil — proovi uuesti! 🌟",
     "Poolele teele jõudnud — peaaegu! 🎈",
-    "Kolm etappi läbitud, sa oled peaaegu ekspert! 🦉",
+    "Kolm etappi läbitud — sa oled peaaegu ekspert! 🦉",
     "Nii lähedal! Viimane etapp jäi puudu! 🏁",
   ];
   const emojis = ["😢","🤔","😅","😮","😬"];
@@ -544,17 +599,14 @@ function showGameOver() {
 async function showVictory() {
   totalScore += COMPL_BONUS;
   placeBaby(5);
-  updateDots(5);
+  updateSteps(5);
   document.getElementById("runBarFill").style.width = "100%";
-
   show("screenVictory");
-
-  document.getElementById("vBase").textContent       = BASE_PTS * 5;
-  document.getElementById("vSpeed").textContent      = `+${speedBonus}`;
-  document.getElementById("vCompletion").textContent = `+${COMPL_BONUS}`;
-  document.getElementById("vTotal").textContent      = totalScore;
+  document.getElementById("vBase").textContent        = BASE_PTS * 5;
+  document.getElementById("vSpeed").textContent       = `+${speedBonus}`;
+  document.getElementById("vCompletion").textContent  = `+${COMPL_BONUS}`;
+  document.getElementById("vTotal").textContent       = totalScore;
   document.getElementById("victoryScore").textContent = totalScore;
-
   await loadBoard(document.getElementById("victoryBoard"));
 }
 
@@ -566,70 +618,55 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
       `<div class="db-error">Salvestamine ebaõnnestus: ${esc(error.message)}</div>`;
     return;
   }
-  document.getElementById("submitArea").style.display  = "none";
-  document.getElementById("submitDone").style.display  = "block";
+  document.getElementById("submitArea").style.display = "none";
+  document.getElementById("submitDone").style.display = "block";
   await loadBoard(document.getElementById("victoryBoard"));
 });
 
-/* ── Leaderboard ────────────────────────────────────────────────────────── */
+/* ── Leaderboard ─────────────────────────────────────────────────────────── */
 async function loadBoard(el) {
   const { data, error } = await sb.from("beebirun_scores")
-    .select("name,score")
-    .order("score", { ascending: false })
-    .limit(10);
-
-  if (error) {
-    el.innerHTML = `<div class="db-error">Laadimine ebaõnnestus: ${esc(error.message)}</div>`;
-    return;
-  }
-  if (!data || !data.length) {
-    el.innerHTML = '<div class="board-empty">Ole esimene edetabelis!</div>';
-    return;
-  }
-  el.innerHTML = data.map((r, i) => {
+    .select("name,score").order("score", { ascending:false }).limit(10);
+  if (error) { el.innerHTML = `<div class="db-error">Laadimine ebaõnnestus: ${esc(error.message)}</div>`; return; }
+  if (!data || !data.length) { el.innerHTML = '<div class="board-empty">Ole esimene edetabelis!</div>'; return; }
+  el.innerHTML = data.map((r,i) => {
     const me    = r.name === playerName;
-    const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`;
-    return `<div class="board-row${me ? " me" : ""}">
+    const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`;
+    return `<div class="board-row${me?" me":""}">
       <span class="board-rank">${medal}</span>
-      <span class="board-name">${esc(r.name)}${me ? " ⬅ sina" : ""}</span>
+      <span class="board-name">${esc(r.name)}${me?" ⬅ sina":""}</span>
       <span class="board-score">${r.score}</span>
     </div>`;
   }).join("");
 }
 
-/* ── Start ──────────────────────────────────────────────────────────────── */
+/* ── Start button ────────────────────────────────────────────────────────── */
 document.getElementById("startBtn").addEventListener("click", () => {
   const name = document.getElementById("nameInput").value.trim();
-  if (!name) {
-    const inp = document.getElementById("nameInput");
-    inp.focus();
-    inp.style.borderColor = "var(--rose)";
-    return;
-  }
+  if (!name) { const inp=document.getElementById("nameInput"); inp.focus(); inp.style.borderColor="var(--rose)"; return; }
   playerName   = name;
   currentStage = 0;
   totalScore   = 0;
   speedBonus   = 0;
+  buildStageData();
   show("screenGame");
   buildTrack();
-  renderStage();
+  startStage();
 });
-
 document.getElementById("nameInput").addEventListener("keydown", e => {
   if (e.key === "Enter") document.getElementById("startBtn").click();
 });
 
-/* ── Load start leaderboard ─────────────────────────────────────────────── */
 loadBoard(document.getElementById("startBoard"));
 
-/* ── Decorative background emojis ──────────────────────────────────────── */
+/* ── Decorative background ───────────────────────────────────────────────── */
 const deco = document.getElementById("deco");
-["🍼","👶","⭐","🎈","🌙","☁️"].forEach((e, i) => {
+["🍼","👶","⭐","🎈","🌙","☁️"].forEach((e,i) => {
   const s = document.createElement("span");
   s.textContent = e;
-  s.style.left      = [8,82,15,88,45,70][i] + "%";
-  s.style.top       = [12,8,70,60,90,35][i] + "%";
-  s.style.animation = `float${i % 3} ${6 + i}s ease-in-out infinite`;
+  s.style.left      = [8,82,15,88,45,70][i]+"%";
+  s.style.top       = [12,8,70,60,90,35][i]+"%";
+  s.style.animation = `float${i%3} ${6+i}s ease-in-out infinite`;
   deco.appendChild(s);
 });
 </script>
