@@ -41,6 +41,7 @@
   .board-name { flex:1; font-weight:700; font-size:15px; }
   .board-score { font-weight:800; font-size:17px; color:var(--sage); }
   .board-empty { color:var(--inkSoft); font-size:14px; text-align:center; padding:12px 0; }
+  .db-error { background:#fee; border:1px solid #fcc; border-radius:12px; padding:10px 14px; font-size:12px; color:#c00; margin-top:8px; word-break:break-all; }
 </style>
 </head>
 <body>
@@ -214,34 +215,39 @@ async function endGame() {
   overlay.style.display="flex";
   document.getElementById("restartBtn").onclick=()=>location.reload();
 
-  try { await sb.from("scores").insert({player_name:currentPlayer,score}); }
-  catch(e){ console.warn("save failed",e); }
+  // Save with visible error
+  const { error: saveErr } = await sb.from("scores").insert({player_name:currentPlayer, score});
+  if (saveErr) {
+    boardList.innerHTML = `<div class="db-error">Salvestamine ebaõnnestus: ${saveErr.message} (${saveErr.code})</div>`;
+    return;
+  }
   await loadBoard();
 }
 
 function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML;}
 
 async function loadBoard() {
-  try {
-    const {data} = await sb.from("scores")
-      .select("player_name,score")
-      .order("score",{ascending:false})
-      .limit(10);
-    if (!data||!data.length) {
-      boardList.innerHTML='<div class="board-empty">Ole esimene edetabelis!</div>'; return;
-    }
-    boardList.innerHTML=data.map((r,i)=>{
-      const me = r.player_name===currentPlayer;
-      const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`;
-      return `<div class="board-row${me?' me':''}">
-        <span class="board-rank">${medal}</span>
-        <span class="board-name">${esc(r.player_name)}${me?' ⬅ sina':''}</span>
-        <span class="board-score">${r.score}</span>
-      </div>`;
-    }).join("");
-  } catch(e) {
-    boardList.innerHTML='<div class="board-empty">Edetabelit ei saanud laadida.</div>';
+  const { data, error } = await sb.from("scores")
+    .select("player_name,score")
+    .order("score",{ascending:false})
+    .limit(10);
+
+  if (error) {
+    boardList.innerHTML = `<div class="db-error">Laadimine ebaõnnestus: ${error.message} (${error.code})</div>`;
+    return;
   }
+  if (!data||!data.length) {
+    boardList.innerHTML='<div class="board-empty">Ole esimene edetabelis!</div>'; return;
+  }
+  boardList.innerHTML=data.map((r,i)=>{
+    const me = r.player_name===currentPlayer;
+    const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`;
+    return `<div class="board-row${me?' me':''}">
+      <span class="board-rank">${medal}</span>
+      <span class="board-name">${esc(r.player_name)}${me?' ⬅ sina':''}</span>
+      <span class="board-score">${r.score}</span>
+    </div>`;
+  }).join("");
 }
 
 startBtn.onclick=startGame;
