@@ -215,8 +215,7 @@ async function endGame() {
   overlay.style.display="flex";
   document.getElementById("restartBtn").onclick=()=>location.reload();
 
-  // Save with visible error
-  const { error: saveErr } = await sb.from("scores").insert({player_name:currentPlayer, score});
+  const { error: saveErr } = await sb.from("scores").insert({name:currentPlayer, score});
   if (saveErr) {
     boardList.innerHTML = `<div class="db-error">Salvestamine ebaõnnestus: ${saveErr.message} (${saveErr.code})</div>`;
     return;
@@ -228,7 +227,7 @@ function esc(s){const d=document.createElement("div");d.textContent=s;return d.i
 
 async function loadBoard() {
   const { data, error } = await sb.from("scores")
-    .select("player_name,score")
+    .select("name,score")
     .order("score",{ascending:false})
     .limit(10);
 
@@ -240,11 +239,11 @@ async function loadBoard() {
     boardList.innerHTML='<div class="board-empty">Ole esimene edetabelis!</div>'; return;
   }
   boardList.innerHTML=data.map((r,i)=>{
-    const me = r.player_name===currentPlayer;
+    const me = r.name===currentPlayer;
     const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`;
     return `<div class="board-row${me?' me':''}">
       <span class="board-rank">${medal}</span>
-      <span class="board-name">${esc(r.player_name)}${me?' ⬅ sina':''}</span>
+      <span class="board-name">${esc(r.name)}${me?' ⬅ sina':''}</span>
       <span class="board-score">${r.score}</span>
     </div>`;
   }).join("");
