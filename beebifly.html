@@ -525,6 +525,7 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 600; }
       <h2>BeebiFly!</h2>
       <p>Beebi lendab raketivankriga üha kõrgemale.<br>Vajuta <strong>STOPP!</strong> enne kui beebi läbipõlemise saab!</p>
       <div class="skins-row" id="skins-row-start"></div>
+      <input class="name-input" id="player-name-input" type="text" maxlength="20" placeholder="Sinu nimi edetabelis" autocomplete="off" />
       <button class="btn btn-rose" id="btn-start" onclick="startCountdown()">Alusta! 🚀</button>
       <div id="daily-badge">⭐ Päevane väljakutse: jõua <span id="challenge-target">5x</span> kordajani</div>
     </div>
@@ -680,6 +681,9 @@ function init() {
   updateDailyChallenge();
   document.getElementById('baby').textContent = SKINS[currentSkin].emoji;
   document.getElementById('skin-preview').textContent = SKINS[currentSkin].emoji;
+  // Pre-fill saved name
+  const saved = localStorage.getItem('bf_name');
+  if (saved) document.getElementById('player-name-input').value = saved;
   spawnStars();
 }
 
@@ -695,6 +699,13 @@ function spawnStars() {
 
 // ─── COUNTDOWN ──────────────────────────────────────────────────────────────
 function startCountdown() {
+  // Save name from input before starting
+  const nameInput = document.getElementById('player-name-input');
+  if (nameInput) {
+    const n = nameInput.value.trim();
+    if (n) localStorage.setItem('bf_name', n);
+  }
+
   gameState = 'countdown';
   showOverlay('overlay-countdown');
   hideBtnStop();
@@ -1137,20 +1148,13 @@ function playCrash() {
 
 // playCrash is called inside the meltdown handler defined above
 
-// ─── PLAYER NAME ────────────────────────────────────────────────────────────
-// Prompt once for name if not set
-function ensurePlayerName() {
-  if (!localStorage.getItem('bf_name')) {
-    const name = prompt('Sinu nimi edetabelis?', 'Mängija') || 'Mängija';
-    localStorage.setItem('bf_name', name.slice(0, 20));
-  }
-}
-
 // ─── KEYBOARD SUPPORT ───────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   if (e.code === 'Space' || e.code === 'Enter') {
+    // Don't hijack when user is typing their name
+    if (document.activeElement && document.activeElement.id === 'player-name-input') return;
     e.preventDefault();
-    if (gameState === 'start') { ensurePlayerName(); startCountdown(); }
+    if (gameState === 'start') startCountdown();
     else if (gameState === 'flying') stopGame();
     else if (gameState === 'result') startCountdown();
   }
