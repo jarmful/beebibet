@@ -206,7 +206,6 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 600; }
 #overlay-countdown p { font-size: 16px; color: var(--inkSoft); font-weight: 700; }
 
 /* Start overlay */
-#overlay-start .big-emoji { font-size: 72px; }
 #overlay-start h2 { font-size: 30px; margin-bottom: 4px; }
 #overlay-start p { font-size: 14px; color: var(--inkSoft); text-align: center; line-height: 1.6; max-width: 280px; }
 
@@ -521,10 +520,8 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 600; }
 
     <!-- START overlay -->
     <div class="overlay" id="overlay-start">
-      <div class="big-emoji" id="skin-preview">🍼</div>
-      <h2>BeebiFly!</h2>
+      <h2>BeebiFly! 🚀</h2>
       <p>Beebi lendab raketivankriga üha kõrgemale.<br>Vajuta <strong>STOPP!</strong> enne kui beebi läbipõlemise saab!</p>
-      <div class="skins-row" id="skins-row-start"></div>
       <input class="name-input" id="player-name-input" type="text" maxlength="20" placeholder="Sinu nimi edetabelis" autocomplete="off" />
       <button class="btn btn-rose" id="btn-start" onclick="startCountdown()">Alusta! 🚀</button>
       <div id="daily-badge">⭐ Päevane väljakutse: jõua <span id="challenge-target">5x</span> kordajani</div>
@@ -680,7 +677,6 @@ function init() {
   updateHud();
   updateDailyChallenge();
   document.getElementById('baby').textContent = SKINS[currentSkin].emoji;
-  document.getElementById('skin-preview').textContent = SKINS[currentSkin].emoji;
   // Pre-fill saved name
   const saved = localStorage.getItem('bf_name');
   if (saved) document.getElementById('player-name-input').value = saved;
@@ -982,7 +978,6 @@ function selectSkin(i) {
   savedSkin = i;
   localStorage.setItem('bf_skin', i);
   document.getElementById('baby').textContent = SKINS[i].emoji;
-  document.getElementById('skin-preview').textContent = SKINS[i].emoji;
   renderSkins();
 }
 
