@@ -181,9 +181,9 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 600; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
   border-radius: 26px;
-  padding: 24px 20px;
+  padding: 16px 20px;
   z-index: 30;
   background: rgba(251, 243, 228, 0.96);
   backdrop-filter: blur(4px);
@@ -210,21 +210,22 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 600; }
 #overlay-start p { font-size: 14px; color: var(--inkSoft); text-align: center; line-height: 1.6; max-width: 280px; }
 
 /* Result overlay */
-#overlay-result .result-emoji { font-size: 64px; }
-#overlay-result h2 { font-size: 28px; }
+#overlay-result .result-emoji { font-size: 48px; }
+#overlay-result h2 { font-size: 22px; margin-bottom: 0; }
 #result-mult {
   font-family: 'Fraunces', serif;
-  font-size: 56px;
+  font-size: 52px;
   font-weight: 600;
   color: var(--rose);
+  line-height: 1.1;
 }
 #result-crash-msg {
-  font-size: 15px;
+  font-size: 13px;
   font-style: italic;
   color: var(--inkSoft);
   text-align: center;
-  max-width: 260px;
-  line-height: 1.5;
+  max-width: 240px;
+  line-height: 1.4;
 }
 
 /* Stats bar */
@@ -539,22 +540,7 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 600; }
       <h2 id="result-title">Suurepärane!</h2>
       <div id="result-mult">2.34x</div>
       <p id="result-crash-msg"></p>
-      <div class="stats-row">
-        <div class="stat-box">
-          <div class="s-label">Rekord</div>
-          <div class="s-val" id="res-best">0x</div>
-        </div>
-        <div class="stat-box">
-          <div class="s-label">Seeria</div>
-          <div class="s-val" id="res-combo">0</div>
-        </div>
-        <div class="stat-box">
-          <div class="s-label">Mängud</div>
-          <div class="s-val" id="res-games">0</div>
-        </div>
-      </div>
-      <div id="daily-result-badge" style="display:none" class="daily-badge done">✅ Päevane väljakutse täidetud!</div>
-      <div style="display:flex;gap:10px;margin-top:4px">
+      <div style="display:flex;gap:10px;margin-top:8px">
         <button class="btn btn-rose" onclick="startCountdown()">Uuesti! 🚀</button>
         <button class="btn btn-sage" onclick="goToStart()">Peamenüü</button>
       </div>
@@ -632,9 +618,17 @@ const SKINS = [
 
 const DAILY_CHALLENGE_TARGET = 5; // reach 5x today
 
-// Meltdown timing: crash happens at a random point between these multiples
-const CRASH_MIN = 1.3;
-const CRASH_MAX = 12.0;
+// Weighted crash distribution — heavily favours early crashes, rare highs
+function randomCrashPoint() {
+  const r = Math.random();
+  if (r < 0.28) return 1.1  + Math.random() * 0.4;  // 1.1–1.5   (28%)
+  if (r < 0.50) return 1.5  + Math.random() * 0.5;  // 1.5–2.0   (22%)
+  if (r < 0.68) return 2.0  + Math.random() * 1.0;  // 2.0–3.0   (18%)
+  if (r < 0.82) return 3.0  + Math.random() * 2.0;  // 3.0–5.0   (14%)
+  if (r < 0.92) return 5.0  + Math.random() * 5.0;  // 5.0–10.0  (10%)
+  if (r < 0.98) return 10.0 + Math.random() * 10.0; // 10.0–20.0  (6%)
+  return 20.0 + Math.random() * 10.0;                // 20.0–30.0  (2%)
+}
 
 // Speed curve: multiplier increases faster as it gets higher
 function getMultiplierSpeed(mult) {
@@ -752,8 +746,8 @@ function resetArena() {
 // ─── FLIGHT LOOP ────────────────────────────────────────────────────────────
 function beginFlight() {
   gameState = 'flying';
-  // Choose crash point
-  crashAt = CRASH_MIN + Math.random() * (CRASH_MAX - CRASH_MIN);
+  // Choose crash point using weighted distribution
+  crashAt = randomCrashPoint();
 
   showBtnStop();
   document.getElementById('baby').classList.add('flying');
@@ -934,13 +928,6 @@ function showResult(score, crashed) {
   document.getElementById('result-mult').textContent = crashed ? '💥 0.00x' : score.toFixed(2) + 'x';
   document.getElementById('result-mult').style.color = crashed ? '#D9534F' : (score >= 5 ? '#5CB85C' : score >= 3 ? '#F0AD4E' : 'var(--rose)');
   document.getElementById('result-crash-msg').textContent = crashed ? scenario.msg : (comboCount > 1 ? `🔥 ${comboCount}x seeria!` : '');
-  document.getElementById('res-best').textContent = bestScore.toFixed(2) + 'x';
-  document.getElementById('res-combo').textContent = comboRecord;
-  document.getElementById('res-games').textContent = totalGames;
-
-  const dailyDone = dailyBest >= DAILY_CHALLENGE_TARGET;
-  const badge = document.getElementById('daily-result-badge');
-  badge.style.display = dailyDone ? 'block' : 'none';
 
   showOverlay('overlay-result');
 }
