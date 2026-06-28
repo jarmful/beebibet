@@ -525,7 +525,7 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 600; }
       <p>Beebi lendab raketivankriga üha kõrgemale.<br>Vajuta <strong>STOPP!</strong> enne kui beebi läbipõlemise saab!</p>
       <input class="name-input" id="player-name-input" type="text" maxlength="20" placeholder="Sinu nimi edetabelis" autocomplete="off" />
       <button class="btn btn-rose" id="btn-start" onclick="startCountdown()">Alusta! 🚀</button>
-      <div id="daily-badge">⭐ Päevane väljakutse: jõua <span id="challenge-target">5x</span> kordajani</div>
+      <div id="daily-badge">⭐ Päevane väljakutse: jõua <span id="challenge-target">2x</span> kordajani</div>
     </div>
 
     <!-- COUNTDOWN overlay -->
@@ -616,7 +616,21 @@ const SKINS = [
   { id: 'unicorn', emoji: '🦄',   label: 'Ükssarvik',   unlock: 10   },
 ];
 
-const DAILY_CHALLENGE_TARGET = 5; // reach 5x today
+// Daily challenge steps — advance each time the current target is beaten
+const CHALLENGE_STEPS = [2, 3, 5, 7, 10, 15, 20, 25];
+
+function getDailyStep() {
+  return parseInt(localStorage.getItem('bf_cstep_' + todayKey()) || '0');
+}
+function getDailyTarget() {
+  return CHALLENGE_STEPS[Math.min(getDailyStep(), CHALLENGE_STEPS.length - 1)];
+}
+function advanceDailyChallenge() {
+  const step = getDailyStep();
+  if (step < CHALLENGE_STEPS.length - 1) {
+    localStorage.setItem('bf_cstep_' + todayKey(), step + 1);
+  }
+}
 
 // Weighted crash distribution — heavily favours early crashes, rare highs
 function randomCrashPoint() {
@@ -897,9 +911,20 @@ function endRound(score, crashed) {
   }
 
   // Daily challenge
-  if (!crashed && score > dailyBest) {
-    dailyBest = score;
-    localStorage.setItem('bf_daily_' + todayKey(), dailyBest);
+  if (!crashed) {
+    const prevTarget = getDailyTarget();
+    if (score > dailyBest) {
+      dailyBest = score;
+      localStorage.setItem('bf_daily_' + todayKey(), dailyBest);
+    }
+    if (score >= prevTarget) {
+      advanceDailyChallenge();
+      const next = getDailyTarget();
+      const msg = next > prevTarget
+        ? `⭐ Väljakutse täidetud! Uus: ${next}x`
+        : '⭐ Kõik väljakutsed täidetud! Meister!';
+      showToast(msg);
+    }
     updateDailyChallenge();
   }
 
@@ -1027,12 +1052,26 @@ function updateHud() {
 
 // ─── DAILY CHALLENGE ────────────────────────────────────────────────────────
 function updateDailyChallenge() {
-  const target = DAILY_CHALLENGE_TARGET;
+  const target = getDailyTarget();
+  const done   = dailyBest >= target;
   const progress = Math.min(dailyBest / target, 1);
+  const card   = document.querySelector('.challenge-card');
+
   document.getElementById('challenge-fill').style.width = (progress * 100) + '%';
-  document.getElementById('challenge-label').textContent = dailyBest.toFixed(2) + 'x / ' + target + 'x';
   document.getElementById('challenge-val').textContent = target + 'x';
   document.getElementById('challenge-target').textContent = target + 'x';
+
+  if (done) {
+    document.getElementById('challenge-label').textContent = '✅ Täidetud! Jõua ' + target + 'x+';
+    card.style.background = 'linear-gradient(135deg, #e8f5e9, #c8e6c9)';
+    card.style.borderColor = 'var(--sage)';
+    document.querySelector('.challenge-card h3').textContent = '✅ Päevane väljakutse';
+  } else {
+    document.getElementById('challenge-label').textContent = dailyBest.toFixed(2) + 'x / ' + target + 'x';
+    card.style.background = '';
+    card.style.borderColor = '';
+    document.querySelector('.challenge-card h3').textContent = '⭐ Päevane väljakutse';
+  }
 }
 
 // ─── SCORE POPUP ────────────────────────────────────────────────────────────
