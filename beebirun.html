@@ -270,12 +270,7 @@
         <div class="score-row bonus"><span>Finišiboonus</span><span class="val" id="vCompletion">+100</span></div>
         <div class="score-row total"><span>Kokku</span><span class="val" id="vTotal">0</span></div>
       </div>
-      <div id="submitArea">
-        <button class="btn btn-butter" id="submitBtn">Lisa edetabelisse 🏅</button>
-      </div>
-      <div id="submitDone" style="display:none;color:var(--sage);font-weight:800;font-size:15px;margin-bottom:4px">
-        ✅ Tulemus salvestatud!
-      </div>
+      <div id="saveStatus" style="font-size:14px;font-weight:800;color:var(--inkSoft);margin-bottom:4px">Salvestan…</div>
       <div class="btn-gap">
         <button class="btn btn-rose" onclick="location.reload()">Mängi uuesti 🍼</button>
         <a class="btn btn-sky" href="/">← Avaleht</a>
@@ -606,21 +601,20 @@ async function showVictory() {
   document.getElementById("vCompletion").textContent  = `+${COMPL_BONUS}`;
   document.getElementById("vTotal").textContent       = totalScore;
   document.getElementById("victoryScore").textContent = totalScore;
-  await loadBoard(document.getElementById("victoryBoard"));
-}
 
-document.getElementById("submitBtn").addEventListener("click", async () => {
-  document.getElementById("submitBtn").disabled = true;
+  // Auto-save score (same pattern as quiz.html)
+  const saveEl = document.getElementById("saveStatus");
   const { error } = await sb.from("beebirun_scores").insert({ name: playerName, score: totalScore });
   if (error) {
-    document.getElementById("submitArea").innerHTML =
-      `<div class="db-error">Salvestamine ebaõnnestus: ${esc(error.message)}</div>`;
-    return;
+    saveEl.style.color = "#c00";
+    saveEl.textContent = "Salvestamine ebaõnnestus.";
+  } else {
+    saveEl.style.color = "var(--sage)";
+    saveEl.textContent = "✅ Tulemus salvestatud!";
   }
-  document.getElementById("submitArea").style.display = "none";
-  document.getElementById("submitDone").style.display = "block";
+
   await loadBoard(document.getElementById("victoryBoard"));
-});
+}
 
 /* ── Leaderboard ─────────────────────────────────────────────────────────── */
 async function loadBoard(el) {
