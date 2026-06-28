@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>BeebiFly — beebibet</title>
+<meta name="description" content="Lenda beebiraketivankriga kõrgemale ja kogu punktid! Stopp õigel hetkel enne suurt krahhikriisi!" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --cream: #FBF3E4;
+  --peach: #F7C9B6;
+  --rose: #E8889B;
+  --sage: #A7C4A0;
+  --sky: #9CC3D5;
+  --butter: #F4D06F;
+  --ink: #4A3B47;
+  --inkSoft: #7A6A75;
+  --green: #5CB85C;
+  --yellow: #F0AD4E;
+  --red: #D9534F;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--cream);
+  font-family: 'Nunito', sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 600; }
+
+.wrap { max-width: 480px; margin: 0 auto; padding: 0 16px 80px; }
+.back { display: inline-block; padding: 14px 0 0; font-size: 13px; font-weight: 700; color: var(--inkSoft); text-decoration: none; letter-spacing: 1px; }
+
+.hdr { text-align: center; padding: 10px 0 16px; }
+.hdr h1 { font-size: 40px; letter-spacing: -1px; }
+
+/* ── GAME ARENA ── */
+#arena {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  border-radius: 28px;
+  overflow: hidden;
+  border: 2px solid var(--peach);
+  box-shadow: 0 16px 40px rgba(74,59,71,.12);
+  transition: background 0.4s ease;
+  background: linear-gradient(180deg, #d0eaff 0%, #e8f4ff 60%, #fff5f8 100%);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Sky layers that shift with multiplier */
+#sky-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #89c4f4 0%, #c5e3f7 50%, #fce4ec 100%);
+  opacity: 0;
+  transition: opacity 0.6s;
+}
+
+/* Stars layer */
+#stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s;
+}
+
+/* Clouds */
+.cloud {
+  position: absolute;
+  font-size: 36px;
+  opacity: 0.7;
+  pointer-events: none;
+  animation: cloudDrift linear infinite;
+}
+@keyframes cloudDrift {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-120px); }
+}
+
+/* Ground */
+#ground {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 60px;
+  background: linear-gradient(180deg, #c8e6c9 0%, #a5d6a7 100%);
+  border-top: 3px solid #81c784;
+  display: flex; align-items: flex-start; justify-content: space-around;
+  padding-top: 4px;
+  font-size: 20px;
+  transition: transform 0.5s ease;
+}
+
+/* Baby rocket character */
+#baby {
+  position: absolute;
+  bottom: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 56px;
+  line-height: 1;
+  transition: bottom 0.1s linear;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.15));
+  z-index: 10;
+}
+#baby.flying    { animation: flyWiggle 0.6s ease-in-out infinite; }
+#baby.chaotic   { animation: flyWiggle 0.2s ease-in-out infinite, shake 0.15s infinite; }
+#baby.meltdown  { animation: crash 0.5s ease-in forwards; }
+
+@keyframes flyWiggle {
+  0%,100% { transform: translateX(-50%) rotate(-3deg) scale(1); }
+  50%      { transform: translateX(-50%) rotate(3deg) scale(1.05); }
+}
+@keyframes shake {
+  0%,100% { margin-left: 0; }
+  25%     { margin-left: -6px; }
+  75%     { margin-left: 6px; }
+}
+@keyframes crash {
+  0%   { transform: translateX(-50%) rotate(0deg) scale(1); }
+  30%  { transform: translateX(-60%) rotate(-30deg) scale(1.2); }
+  60%  { transform: translateX(-40%) rotate(45deg) scale(0.9); }
+  100% { transform: translateX(-50%) rotate(720deg) scale(0.2); opacity: 0; }
+}
+
+/* Rocket exhaust particles */
+#exhaust {
+  position: absolute;
+  bottom: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 9;
+}
+.particle {
+  position: absolute;
+  font-size: 16px;
+  animation: exhaust 0.4s ease-out forwards;
+}
+@keyframes exhaust {
+  from { transform: translateY(0) scale(1); opacity: 1; }
+  to   { transform: translateY(40px) scale(0.3); opacity: 0; }
+}
+
+/* Multiplier display */
+#multiplier-display {
+  position: absolute;
+  top: 16px; left: 0; right: 0;
+  text-align: center;
+  z-index: 20;
+  pointer-events: none;
+}
+#mult-value {
+  font-family: 'Fraunces', serif;
+  font-size: 64px;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(0,0,0,.25), 0 0 40px rgba(255,255,255,.3);
+  transition: color 0.3s;
+}
+#mult-label {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.8);
+  margin-top: 2px;
+}
+
+/* Overlay screens */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 26px;
+  padding: 24px 20px;
+  z-index: 30;
+  background: rgba(251, 243, 228, 0.96);
+  backdrop-filter: blur(4px);
+}
+.overlay.hidden { display: none; }
+
+/* Countdown overlay */
+#overlay-countdown #countdown-num {
+  font-family: 'Fraunces', serif;
+  font-size: 100px;
+  font-weight: 600;
+  color: var(--rose);
+  animation: countPop 0.8s ease;
+}
+@keyframes countPop {
+  0%   { transform: scale(0.3); opacity: 0; }
+  60%  { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+#overlay-countdown p { font-size: 16px; color: var(--inkSoft); font-weight: 700; }
+
+/* Start overlay */
+#overlay-start .big-emoji { font-size: 72px; }
+#overlay-start h2 { font-size: 30px; margin-bottom: 4px; }
+#overlay-start p { font-size: 14px; color: var(--inkSoft); text-align: center; line-height: 1.6; max-width: 280px; }
+
+/* Result overlay */
+#overlay-result .result-emoji { font-size: 64px; }
+#overlay-result h2 { font-size: 28px; }
+#result-mult {
+  font-family: 'Fraunces', serif;
+  font-size: 56px;
+  font-weight: 600;
+  color: var(--rose);
+}
+#result-crash-msg {
+  font-size: 15px;
+  font-style: italic;
+  color: var(--inkSoft);
+  text-align: center;
+  max-width: 260px;
+  line-height: 1.5;
+}
+
+/* Stats bar */
+.stats-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  width: 100%;
+  max-width: 300px;
+}
+.stat-box {
+  flex: 1;
+  background: var(--cream);
+  border-radius: 14px;
+  padding: 10px 8px;
+  text-align: center;
+  border: 2px solid var(--peach);
+}
+.stat-box .s-label { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--inkSoft); }
+.stat-box .s-val { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 600; color: var(--ink); }
+
+/* Daily challenge badge */
+#daily-badge {
+  background: linear-gradient(135deg, var(--butter), #f9a825);
+  border-radius: 14px;
+  padding: 8px 14px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink);
+  width: 100%;
+  max-width: 300px;
+}
+#daily-badge.done { background: linear-gradient(135deg, var(--sage), #66bb6a); color: #fff; }
+
+/* Buttons */
+.btn {
+  padding: 16px 36px;
+  border-radius: 999px;
+  border: none;
+  font-size: 17px;
+  font-weight: 800;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  color: #fff;
+  transition: transform .12s, box-shadow .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active { transform: scale(.95); }
+.btn-rose  { background: var(--rose); box-shadow: 0 8px 24px rgba(232,136,155,.5); }
+.btn-sage  { background: var(--sage); box-shadow: 0 8px 24px rgba(167,196,160,.5); }
+.btn-sky   { background: var(--sky);  box-shadow: 0 8px 24px rgba(156,195,213,.5); }
+
+/* STOP button */
+#btn-stop {
+  display: none;
+  width: 100%;
+  padding: 22px;
+  font-size: 22px;
+  border-radius: 24px;
+  margin-top: 14px;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #e8889b, #c0392b);
+  box-shadow: 0 12px 32px rgba(232,136,155,.5);
+  border: none;
+  color: #fff;
+  font-weight: 800;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .08s;
+  position: relative;
+  overflow: hidden;
+}
+#btn-stop:active { transform: scale(.96); }
+#btn-stop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,.15);
+  animation: stopPulse 1s ease-in-out infinite;
+}
+@keyframes stopPulse {
+  0%,100% { opacity: 0; }
+  50%      { opacity: 1; }
+}
+
+/* Bottom HUD */
+#hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: #fff;
+  border-radius: 20px;
+  border: 2px solid var(--peach);
+  box-shadow: 0 4px 16px rgba(74,59,71,.08);
+}
+.hud-item { text-align: center; }
+.hud-label { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--inkSoft); }
+.hud-val { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; color: var(--ink); }
+.hud-val.combo-active { color: var(--rose); animation: comboPop 0.3s ease; }
+@keyframes comboPop {
+  0%   { transform: scale(0.8); }
+  60%  { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+/* Leaderboard */
+.board {
+  background: #fff;
+  border-radius: 28px;
+  padding: 20px;
+  box-shadow: 0 16px 40px rgba(74,59,71,.1);
+  border: 2px solid var(--peach);
+  margin-top: 16px;
+}
+.board h2 { font-size: 20px; margin-bottom: 12px; }
+.board-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  margin-bottom: 6px;
+  background: var(--cream);
+}
+.board-row.me { background: #F7C9B655; border: 2px solid var(--rose); }
+.board-rank { font-size: 18px; min-width: 28px; }
+.board-name { flex: 1; font-weight: 700; font-size: 14px; }
+.board-score { font-weight: 800; font-size: 16px; color: var(--sage); font-family: 'Fraunces', serif; }
+.board-combo { font-size: 11px; color: var(--rose); font-weight: 800; }
+.board-empty { color: var(--inkSoft); font-size: 14px; text-align: center; padding: 12px 0; }
+
+/* Skin selector */
+.skins-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.skin-btn {
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  border: 3px solid var(--peach);
+  background: #fff;
+  font-size: 28px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .15s, transform .1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.skin-btn.active { border-color: var(--rose); transform: scale(1.1); }
+.skin-btn.locked { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
+.skin-btn .lock-icon { font-size: 14px; position: absolute; }
+
+/* Challenge section */
+.challenge-card {
+  background: linear-gradient(135deg, #fffde7, #fff9c4);
+  border-radius: 20px;
+  padding: 16px;
+  border: 2px solid var(--butter);
+  margin-top: 14px;
+}
+.challenge-card h3 { font-size: 16px; margin-bottom: 8px; }
+.challenge-progress {
+  background: #fff;
+  border-radius: 999px;
+  height: 12px;
+  overflow: hidden;
+  border: 1px solid var(--butter);
+}
+.challenge-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--butter), #f9a825);
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+.challenge-label { font-size: 12px; color: var(--inkSoft); margin-top: 6px; font-weight: 700; }
+
+/* Toast notification */
+#toast {
+  position: fixed;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  z-index: 100;
+  transition: transform 0.3s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Floating score popup */
+.score-popup {
+  position: absolute;
+  font-family: 'Fraunces', serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--rose);
+  text-shadow: 0 2px 8px rgba(0,0,0,.2);
+  pointer-events: none;
+  z-index: 25;
+  animation: floatUp 1.2s ease-out forwards;
+}
+@keyframes floatUp {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(-80px) scale(0.7); }
+}
+
+/* Combo flame */
+#combo-flame {
+  position: absolute;
+  top: 80px; right: 16px;
+  font-size: 32px;
+  z-index: 20;
+  display: none;
+  animation: flamePulse 0.5s ease-in-out infinite;
+}
+@keyframes flamePulse {
+  0%,100% { transform: scale(1) rotate(-5deg); }
+  50%      { transform: scale(1.2) rotate(5deg); }
+}
+
+/* Name input */
+.name-input {
+  width: 200px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 2px solid var(--peach);
+  font-size: 16px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--cream);
+  text-align: center;
+}
+.name-input:focus { outline: none; border-color: var(--rose); }
+
+/* Responsive tweaks */
+@media (max-width: 380px) {
+  #mult-value { font-size: 52px; }
+  #arena { height: 380px; }
+  .btn { padding: 14px 28px; font-size: 15px; }
+}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div class="wrap">
+  <a class="back" href="/">← Avaleht</a>
+
+  <div class="hdr">
+    <h1>beebi<span style="color:var(--rose)">bet</span></h1>
+    <p style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--inkSoft);font-weight:700;margin-top:3px">BeebiFly 🚀</p>
+  </div>
+
+  <!-- ARENA -->
+  <div id="arena">
+    <div id="sky-bg"></div>
+    <div id="stars"></div>
+
+    <!-- Clouds -->
+    <div class="cloud" style="top:20%;left:10%;animation-duration:8s">☁️</div>
+    <div class="cloud" style="top:40%;left:70%;animation-duration:12s">☁️</div>
+    <div class="cloud" style="top:10%;left:50%;animation-duration:10s;font-size:24px">☁️</div>
+
+    <div id="ground">
+      <span>🌳</span><span>🏠</span><span>🌻</span><span>🌳</span><span>🐄</span>
+    </div>
+
+    <!-- Multiplier -->
+    <div id="multiplier-display">
+      <div id="mult-value">1.00x</div>
+      <div id="mult-label">Kordaja</div>
+    </div>
+
+    <!-- Combo flame -->
+    <div id="combo-flame">🔥</div>
+
+    <!-- Baby character -->
+    <div id="baby">🍼</div>
+    <div id="exhaust"></div>
+
+    <!-- START overlay -->
+    <div class="overlay" id="overlay-start">
+      <div class="big-emoji" id="skin-preview">🍼</div>
+      <h2>BeebiFly!</h2>
+      <p>Beebi lendab raketivankriga üha kõrgemale.<br>Vajuta <strong>STOPP!</strong> enne kui beebi läbipõlemise saab!</p>
+      <div class="skins-row" id="skins-row-start"></div>
+      <button class="btn btn-rose" id="btn-start" onclick="startCountdown()">Alusta! 🚀</button>
+      <div id="daily-badge">⭐ Päevane väljakutse: jõua <span id="challenge-target">5x</span> kordajani</div>
+    </div>
+
+    <!-- COUNTDOWN overlay -->
+    <div class="overlay hidden" id="overlay-countdown">
+      <div id="countdown-num">3</div>
+      <p>Valmis... Lennata! 🚀</p>
+    </div>
+
+    <!-- RESULT overlay -->
+    <div class="overlay hidden" id="overlay-result">
+      <div class="result-emoji" id="result-emoji">🎉</div>
+      <h2 id="result-title">Suurepärane!</h2>
+      <div id="result-mult">2.34x</div>
+      <p id="result-crash-msg"></p>
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="s-label">Rekord</div>
+          <div class="s-val" id="res-best">0x</div>
+        </div>
+        <div class="stat-box">
+          <div class="s-label">Seeria</div>
+          <div class="s-val" id="res-combo">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="s-label">Mängud</div>
+          <div class="s-val" id="res-games">0</div>
+        </div>
+      </div>
+      <div id="daily-result-badge" style="display:none" class="daily-badge done">✅ Päevane väljakutse täidetud!</div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn btn-rose" onclick="startCountdown()">Uuesti! 🚀</button>
+        <button class="btn btn-sage" onclick="goToStart()">Peamenüü</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOP button -->
+  <button id="btn-stop" onclick="stopGame()">✋ STOPP!</button>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-item">
+      <div class="hud-label">Rekord</div>
+      <div class="hud-val" id="hud-best">0.00x</div>
+    </div>
+    <div class="hud-item">
+      <div class="hud-label">Seeria 🔥</div>
+      <div class="hud-val" id="hud-combo">0</div>
+    </div>
+    <div class="hud-item">
+      <div class="hud-label">Mängud</div>
+      <div class="hud-val" id="hud-games">0</div>
+    </div>
+  </div>
+
+  <!-- Daily Challenge -->
+  <div class="challenge-card">
+    <h3>⭐ Päevane väljakutse</h3>
+    <p style="font-size:13px;color:var(--inkSoft);margin-bottom:10px">Jõua täna <strong id="challenge-val">5x</strong> kordajani</p>
+    <div class="challenge-progress">
+      <div class="challenge-fill" id="challenge-fill" style="width:0%"></div>
+    </div>
+    <div class="challenge-label" id="challenge-label">0 / 5x</div>
+  </div>
+
+  <!-- Skins -->
+  <div class="board" style="margin-top:16px">
+    <h2>🎨 Nahad</h2>
+    <p style="font-size:13px;color:var(--inkSoft);margin-bottom:12px">Ava uued nahad kõrgete kordajatega!</p>
+    <div class="skins-row" id="skins-row-main"></div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div class="board">
+    <h2>🏆 Edetabel</h2>
+    <div id="leaderboard"></div>
+  </div>
+
+</div>
+
+<script>
+// ─── CONSTANTS ─────────────────────────────────────────────────────────────
+
+const MELTDOWN_SCENARIOS = [
+  { msg: "Beebi kuulas liiga kaua Eesti Laulu ja kaotas kontrolli!", emoji: "🎵" },
+  { msg: "Suitsupiirist läbi lendades tekkis eksistentsiaalne kriis!", emoji: "🤔" },
+  { msg: "Beebi nägi pilvest kõrgemal ema nägu ja tuli alla joosta!", emoji: "👶" },
+  { msg: "Raketi kütus (piimapulber) otsa saanud!", emoji: "🍼" },
+  { msg: "Kosmoses pole WiFi — beebi keeldus edasi lendamast!", emoji: "📵" },
+  { msg: "Lend peatati – naaber kaebas müra üle!", emoji: "😤" },
+  { msg: "Beebi mähe vajab kiiret vahetust — maanduma!", emoji: "💨" },
+  { msg: "Äkki tuli uinakuaeg. Beebi jäi lihtsalt magama.", emoji: "😴" },
+  { msg: "Vankri ratas tuli küljest! Konstruktsiooniviga!", emoji: "🛞" },
+  { msg: "Beebi nägi maalt jäätisemüüjat ja enam edasi ei lennanud.", emoji: "🍦" },
+];
+
+const SKINS = [
+  { id: 'baby',    emoji: '🍼',   label: 'Piimapudel',  unlock: 0    },
+  { id: 'rocket',  emoji: '🚀',   label: 'Rakett',      unlock: 2    },
+  { id: 'star',    emoji: '⭐',   label: 'Täht',        unlock: 3    },
+  { id: 'alien',   emoji: '👾',   label: 'Tulnukas',    unlock: 5    },
+  { id: 'dragon',  emoji: '🐉',   label: 'Draakon',     unlock: 7    },
+  { id: 'unicorn', emoji: '🦄',   label: 'Ükssarvik',   unlock: 10   },
+];
+
+const DAILY_CHALLENGE_TARGET = 5; // reach 5x today
+
+// Meltdown timing: crash happens at a random point between these multiples
+const CRASH_MIN = 1.3;
+const CRASH_MAX = 12.0;
+
+// Speed curve: multiplier increases faster as it gets higher
+function getMultiplierSpeed(mult) {
+  if (mult < 2)   return 0.008;
+  if (mult < 4)   return 0.014;
+  if (mult < 7)   return 0.020;
+  return 0.028;
+}
+
+// ─── STATE ─────────────────────────────────────────────────────────────────
+let gameState   = 'start'; // start | countdown | flying | result
+let multiplier  = 1.00;
+let crashAt     = 2.0;
+let animFrame   = null;
+let lastTime    = null;
+let babyY       = 64; // bottom offset px
+let exhaustTimer = 0;
+let comboCount  = 0;
+let currentSkin = 0;
+
+// Persisted data
+let bestScore   = parseFloat(localStorage.getItem('bf_best') || '0');
+let totalGames  = parseInt(localStorage.getItem('bf_games') || '0');
+let comboRecord = parseInt(localStorage.getItem('bf_combo') || '0');
+let dailyBest   = parseFloat(localStorage.getItem('bf_daily_' + todayKey()) || '0');
+let leaderboard = JSON.parse(localStorage.getItem('bf_board') || '[]');
+let unlockedSkins = JSON.parse(localStorage.getItem('bf_skins') || '[0]');
+let savedSkin   = parseInt(localStorage.getItem('bf_skin') || '0');
+currentSkin     = savedSkin;
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+// ─── INIT ───────────────────────────────────────────────────────────────────
+function init() {
+  renderSkins();
+  renderLeaderboard();
+  updateHud();
+  updateDailyChallenge();
+  document.getElementById('baby').textContent = SKINS[currentSkin].emoji;
+  document.getElementById('skin-preview').textContent = SKINS[currentSkin].emoji;
+  spawnStars();
+}
+
+function spawnStars() {
+  const container = document.getElementById('stars');
+  for (let i = 0; i < 30; i++) {
+    const star = document.createElement('div');
+    star.textContent = '✨';
+    star.style.cssText = `position:absolute;font-size:${8+Math.random()*10}px;left:${Math.random()*100}%;top:${Math.random()*100}%;opacity:${0.3+Math.random()*0.5};`;
+    container.appendChild(star);
+  }
+}
+
+// ─── COUNTDOWN ──────────────────────────────────────────────────────────────
+function startCountdown() {
+  gameState = 'countdown';
+  showOverlay('overlay-countdown');
+  hideBtnStop();
+  resetArena();
+
+  let count = 3;
+  const el = document.getElementById('countdown-num');
+  el.textContent = count;
+  el.style.animation = 'none';
+  void el.offsetWidth;
+  el.style.animation = 'countPop 0.8s ease';
+
+  const interval = setInterval(() => {
+    count--;
+    if (count <= 0) {
+      clearInterval(interval);
+      hideOverlay('overlay-countdown');
+      beginFlight();
+      return;
+    }
+    el.textContent = count;
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = 'countPop 0.8s ease';
+    playBeep(count);
+  }, 900);
+}
+
+function resetArena() {
+  multiplier = 1.00;
+  babyY = 64;
+  lastTime = null;
+  const baby = document.getElementById('baby');
+  baby.style.bottom = babyY + 'px';
+  baby.className = '';
+  baby.textContent = SKINS[currentSkin].emoji;
+  document.getElementById('mult-value').textContent = '1.00x';
+  document.getElementById('mult-value').style.color = '#fff';
+  document.getElementById('arena').style.background =
+    'linear-gradient(180deg, #d0eaff 0%, #e8f4ff 60%, #fff5f8 100%)';
+  document.getElementById('sky-bg').style.opacity = '0';
+  document.getElementById('stars').style.opacity = '0';
+  document.getElementById('ground').style.transform = '';
+  document.getElementById('combo-flame').style.display = 'none';
+  document.getElementById('exhaust').innerHTML = '';
+}
+
+// ─── FLIGHT LOOP ────────────────────────────────────────────────────────────
+function beginFlight() {
+  gameState = 'flying';
+  // Choose crash point
+  crashAt = CRASH_MIN + Math.random() * (CRASH_MAX - CRASH_MIN);
+
+  showBtnStop();
+  document.getElementById('baby').classList.add('flying');
+  lastTime = performance.now();
+  animFrame = requestAnimationFrame(gameLoop);
+}
+
+function gameLoop(ts) {
+  if (gameState !== 'flying') return;
+
+  const dt = lastTime ? (ts - lastTime) / 16.67 : 1; // normalize to ~60fps
+  lastTime = ts;
+
+  const speed = getMultiplierSpeed(multiplier);
+  multiplier += speed * dt;
+  multiplier = Math.round(multiplier * 100) / 100;
+
+  // Fly baby upward
+  babyY = Math.min(babyY + 0.6 * dt, 320);
+  document.getElementById('baby').style.bottom = babyY + 'px';
+
+  // Scroll ground down
+  const groundShift = Math.min((babyY - 64) * 0.4, 60);
+  document.getElementById('ground').style.transform = `translateY(${groundShift}px)`;
+
+  // Update display
+  updateMultiplierDisplay();
+
+  // Exhaust particles
+  exhaustTimer += dt;
+  if (exhaustTimer > 4) {
+    spawnExhaust();
+    exhaustTimer = 0;
+  }
+
+  // Background shift
+  updateBackground();
+
+  // Chaotic animation when approaching crash
+  if (multiplier > crashAt * 0.75) {
+    document.getElementById('baby').className = 'chaotic';
+    document.getElementById('combo-flame').style.display = comboCount >= 3 ? 'block' : 'none';
+  }
+
+  // Stars appear at high altitudes
+  if (multiplier > 5) {
+    document.getElementById('stars').style.opacity = Math.min((multiplier - 5) / 5, 0.8).toString();
+  }
+
+  // Check crash
+  if (multiplier >= crashAt) {
+    triggerMeltdown();
+    return;
+  }
+
+  animFrame = requestAnimationFrame(gameLoop);
+}
+
+function updateMultiplierDisplay() {
+  const el = document.getElementById('mult-value');
+  el.textContent = multiplier.toFixed(2) + 'x';
+
+  // Color: green → yellow → red
+  const progress = Math.min((multiplier - 1) / (crashAt - 1), 1);
+  if (progress < 0.4) {
+    el.style.color = '#fff';
+  } else if (progress < 0.7) {
+    el.style.color = '#ffe082';
+  } else {
+    el.style.color = '#ff8a80';
+  }
+}
+
+function updateBackground() {
+  const progress = Math.min((multiplier - 1) / (crashAt - 1), 1);
+  const arena = document.getElementById('arena');
+
+  if (progress < 0.4) {
+    arena.style.background = `linear-gradient(180deg, #d0eaff 0%, #e8f4ff 60%, #fff5f8 100%)`;
+  } else if (progress < 0.7) {
+    arena.style.background = `linear-gradient(180deg, #ffe082 0%, #ffcc02 30%, #ff9800 100%)`;
+    document.getElementById('sky-bg').style.opacity = '0.3';
+  } else {
+    const r = Math.round(220 + progress * 35);
+    arena.style.background = `linear-gradient(180deg, #b71c1c 0%, #e53935 40%, #ff5722 100%)`;
+    document.getElementById('sky-bg').style.opacity = '0.6';
+  }
+}
+
+function spawnExhaust() {
+  const container = document.getElementById('exhaust');
+  const parts = ['🔥','💨','⚡','✨'];
+  const el = document.createElement('div');
+  el.className = 'particle';
+  el.textContent = parts[Math.floor(Math.random() * parts.length)];
+  el.style.left = (Math.random() * 30 - 15) + 'px';
+  el.style.bottom = (babyY - 50) + 'px';
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 450);
+}
+
+// ─── STOP ───────────────────────────────────────────────────────────────────
+function stopGame() {
+  if (gameState !== 'flying') return;
+  cancelAnimationFrame(animFrame);
+  gameState = 'result';
+  hideBtnStop();
+  playSuccess();
+
+  const score = multiplier;
+  comboCount++;
+  endRound(score, false);
+}
+
+// ─── MELTDOWN ───────────────────────────────────────────────────────────────
+function triggerMeltdown() {
+  playCrash();
+  cancelAnimationFrame(animFrame);
+  gameState = 'result';
+  hideBtnStop();
+
+  const baby = document.getElementById('baby');
+  baby.classList.remove('flying', 'chaotic');
+  baby.classList.add('meltdown');
+  comboCount = 0;
+
+  // Shake arena
+  document.getElementById('arena').style.animation = 'none';
+
+  setTimeout(() => endRound(0, true), 700);
+}
+
+// ─── END ROUND ──────────────────────────────────────────────────────────────
+function endRound(score, crashed) {
+  totalGames++;
+  localStorage.setItem('bf_games', totalGames);
+
+  if (!crashed && score > bestScore) {
+    bestScore = score;
+    localStorage.setItem('bf_best', bestScore);
+    showToast('🏆 Uus rekord! ' + score.toFixed(2) + 'x');
+  }
+
+  if (comboCount > comboRecord) {
+    comboRecord = comboCount;
+    localStorage.setItem('bf_combo', comboRecord);
+  }
+
+  // Daily challenge
+  if (!crashed && score > dailyBest) {
+    dailyBest = score;
+    localStorage.setItem('bf_daily_' + todayKey(), dailyBest);
+    updateDailyChallenge();
+  }
+
+  // Show result
+  showResult(score, crashed);
+  updateHud();
+
+  // Floating score popup
+  if (!crashed) {
+    spawnScorePopup(score);
+  }
+
+  // Check skin unlocks
+  checkSkinUnlocks(score);
+
+  // Save to leaderboard
+  if (!crashed) saveToLeaderboard(score);
+  renderLeaderboard();
+}
+
+function showResult(score, crashed) {
+  const scenario = MELTDOWN_SCENARIOS[Math.floor(Math.random() * MELTDOWN_SCENARIOS.length)];
+
+  document.getElementById('result-emoji').textContent = crashed ? scenario.emoji : (score >= 5 ? '🏆' : score >= 3 ? '🎉' : '👍');
+  document.getElementById('result-title').textContent = crashed ? 'Läbipõlemine!' : (score >= 5 ? 'Fantastiline!' : score >= 3 ? 'Suurepärane!' : 'Tubli!');
+  document.getElementById('result-mult').textContent = crashed ? '💥 0.00x' : score.toFixed(2) + 'x';
+  document.getElementById('result-mult').style.color = crashed ? '#D9534F' : (score >= 5 ? '#5CB85C' : score >= 3 ? '#F0AD4E' : 'var(--rose)');
+  document.getElementById('result-crash-msg').textContent = crashed ? scenario.msg : (comboCount > 1 ? `🔥 ${comboCount}x seeria!` : '');
+  document.getElementById('res-best').textContent = bestScore.toFixed(2) + 'x';
+  document.getElementById('res-combo').textContent = comboRecord;
+  document.getElementById('res-games').textContent = totalGames;
+
+  const dailyDone = dailyBest >= DAILY_CHALLENGE_TARGET;
+  const badge = document.getElementById('daily-result-badge');
+  badge.style.display = dailyDone ? 'block' : 'none';
+
+  showOverlay('overlay-result');
+}
+
+function goToStart() {
+  showOverlay('overlay-start');
+  hideBtnStop();
+  resetArena();
+  gameState = 'start';
+  document.getElementById('baby').className = '';
+}
+
+// ─── SKIN SYSTEM ────────────────────────────────────────────────────────────
+function checkSkinUnlocks(score) {
+  let newUnlock = false;
+  SKINS.forEach((skin, i) => {
+    if (score >= skin.unlock && !unlockedSkins.includes(i)) {
+      unlockedSkins.push(i);
+      newUnlock = true;
+      showToast('🎨 Avatud: ' + skin.label + ' ' + skin.emoji);
+    }
+  });
+  if (newUnlock) {
+    localStorage.setItem('bf_skins', JSON.stringify(unlockedSkins));
+    renderSkins();
+  }
+}
+
+function selectSkin(i) {
+  if (!unlockedSkins.includes(i)) {
+    showToast('🔒 Jõua ' + SKINS[i].unlock + 'x, et avada!');
+    return;
+  }
+  currentSkin = i;
+  savedSkin = i;
+  localStorage.setItem('bf_skin', i);
+  document.getElementById('baby').textContent = SKINS[i].emoji;
+  document.getElementById('skin-preview').textContent = SKINS[i].emoji;
+  renderSkins();
+}
+
+function renderSkins() {
+  ['skins-row-start', 'skins-row-main'].forEach(id => {
+    const container = document.getElementById(id);
+    if (!container) return;
+    container.innerHTML = '';
+    SKINS.forEach((skin, i) => {
+      const unlocked = unlockedSkins.includes(i);
+      const btn = document.createElement('button');
+      btn.className = 'skin-btn' + (i === currentSkin ? ' active' : '') + (!unlocked ? ' locked' : '');
+      btn.title = unlocked ? skin.label : `Lukus — jõua ${skin.unlock}x`;
+      btn.innerHTML = skin.emoji + (!unlocked ? '<span class="lock-icon">🔒</span>' : '');
+      btn.onclick = () => selectSkin(i);
+      container.appendChild(btn);
+    });
+  });
+}
+
+// ─── LEADERBOARD ────────────────────────────────────────────────────────────
+function saveToLeaderboard(score) {
+  const existing = leaderboard.findIndex(e => e.name === getPlayerName());
+  const entry = { name: getPlayerName(), score: score, date: new Date().toLocaleDateString('et-EE') };
+  if (existing >= 0) {
+    if (score > leaderboard[existing].score) leaderboard[existing] = entry;
+  } else {
+    leaderboard.push(entry);
+  }
+  leaderboard.sort((a, b) => b.score - a.score);
+  leaderboard = leaderboard.slice(0, 10);
+  localStorage.setItem('bf_board', JSON.stringify(leaderboard));
+}
+
+function getPlayerName() {
+  return localStorage.getItem('bf_name') || 'Mängija';
+}
+
+function renderLeaderboard() {
+  const container = document.getElementById('leaderboard');
+  if (!leaderboard.length) {
+    container.innerHTML = '<div class="board-empty">Edetabel on tühi – ole esimene! 🏆</div>';
+    return;
+  }
+  const medals = ['🥇','🥈','🥉'];
+  container.innerHTML = leaderboard.map((e, i) => `
+    <div class="board-row ${e.name === getPlayerName() ? 'me' : ''}">
+      <span class="board-rank">${medals[i] || (i+1) + '.'}</span>
+      <span class="board-name">${escapeHtml(e.name)}</span>
+      <span class="board-score">${e.score.toFixed(2)}x</span>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ─── HUD ────────────────────────────────────────────────────────────────────
+function updateHud() {
+  document.getElementById('hud-best').textContent = bestScore.toFixed(2) + 'x';
+  document.getElementById('hud-combo').textContent = comboRecord;
+  document.getElementById('hud-games').textContent = totalGames;
+}
+
+// ─── DAILY CHALLENGE ────────────────────────────────────────────────────────
+function updateDailyChallenge() {
+  const target = DAILY_CHALLENGE_TARGET;
+  const progress = Math.min(dailyBest / target, 1);
+  document.getElementById('challenge-fill').style.width = (progress * 100) + '%';
+  document.getElementById('challenge-label').textContent = dailyBest.toFixed(2) + 'x / ' + target + 'x';
+  document.getElementById('challenge-val').textContent = target + 'x';
+  document.getElementById('challenge-target').textContent = target + 'x';
+}
+
+// ─── SCORE POPUP ────────────────────────────────────────────────────────────
+function spawnScorePopup(score) {
+  const arena = document.getElementById('arena');
+  const el = document.createElement('div');
+  el.className = 'score-popup';
+  el.textContent = '+' + score.toFixed(2) + 'x';
+  el.style.left = '50%';
+  el.style.top = '40%';
+  el.style.transform = 'translateX(-50%)';
+  arena.appendChild(el);
+  setTimeout(() => el.remove(), 1300);
+}
+
+// ─── OVERLAY HELPERS ────────────────────────────────────────────────────────
+function showOverlay(id) {
+  document.querySelectorAll('.overlay').forEach(o => o.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+function hideOverlay(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+function showBtnStop() {
+  document.getElementById('btn-stop').style.display = 'block';
+}
+function hideBtnStop() {
+  document.getElementById('btn-stop').style.display = 'none';
+}
+
+// ─── TOAST ──────────────────────────────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ─── SOUND (Web Audio API, minimal) ─────────────────────────────────────────
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playBeep(n) {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 300 + n * 80;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+    osc.start(); osc.stop(ctx.currentTime + 0.18);
+  } catch(e) {}
+}
+function playSuccess() {
+  try {
+    const ctx = getAudioCtx();
+    [523, 659, 784, 1047].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      const t = ctx.currentTime + i * 0.1;
+      gain.gain.setValueAtTime(0.12, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+      osc.start(t); osc.stop(t + 0.25);
+    });
+  } catch(e) {}
+}
+function playCrash() {
+  try {
+    const ctx = getAudioCtx();
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const gain = ctx.createGain();
+    src.connect(gain); gain.connect(ctx.destination);
+    gain.gain.value = 0.18;
+    src.start();
+  } catch(e) {}
+}
+
+// playCrash is called inside the meltdown handler defined above
+
+// ─── PLAYER NAME ────────────────────────────────────────────────────────────
+// Prompt once for name if not set
+function ensurePlayerName() {
+  if (!localStorage.getItem('bf_name')) {
+    const name = prompt('Sinu nimi edetabelis?', 'Mängija') || 'Mängija';
+    localStorage.setItem('bf_name', name.slice(0, 20));
+  }
+}
+
+// ─── KEYBOARD SUPPORT ───────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' || e.code === 'Enter') {
+    e.preventDefault();
+    if (gameState === 'start') { ensurePlayerName(); startCountdown(); }
+    else if (gameState === 'flying') stopGame();
+    else if (gameState === 'result') startCountdown();
+  }
+});
+
+// ─── BOOT ───────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
