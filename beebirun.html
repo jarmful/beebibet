@@ -260,7 +260,7 @@
       <span class="big-emoji">🏆</span>
       <h2 style="font-size:24px;margin-bottom:6px">Beebi jõudis finišisse!</h2>
       <p style="color:var(--inkSoft);font-size:14px;line-height:1.6;margin-bottom:14px">
-        Uskumatu! 5/5 õigesti — tõenäosus oli vaid <strong>0.03%</strong>! 🎉
+        Uskumatu! 5/5 õigesti — tõenäosus oli vaid <strong>~1.5%</strong>! 🎉
       </p>
       <div class="result-score" id="victoryScore">0</div>
       <div class="result-label">lõplik tulemus</div>
@@ -305,8 +305,9 @@ const STAGES = [
   { icon:"🌿", label:"Sammud",    pts:100 },
 ];
 
-// Cumulative odds of reaching each stage AND surviving it (1/5 per pick)
-const ODDS = ["20%","4%","0.8%","0.16%","0.03%"];
+// Per-stage success odds (correct cells out of 5)
+const ODDS          = ["80%","60%","40%","40%","20%"];
+const CORRECT_COUNT = [4, 3, 2, 2, 1]; // correct cells per column
 
 const ROWS        = 5;   // cells per column
 const TIMER_MAX   = 20;
@@ -322,8 +323,8 @@ let speedBonus   = 0;
 let timeLeft     = TIMER_MAX;
 let timerInt     = null;
 let answered     = false;
-// correctRow[colIdx] = which row (0-4) is the winning cell for that column
-let correctRow   = [];
+// correctRows[colIdx] = Set of row indices that are correct for that column
+let correctRows  = [];
 
 /* ── Helpers ──────────────────────────────────────────────────────────────*/
 function show(id) {
@@ -398,8 +399,15 @@ function updateOddsStrip(activeIdx) {
 
 /* ── Build grid ──────────────────────────────────────────────────────────── */
 function buildGrid() {
-  // Assign a random correct row for every column upfront
-  correctRow = STAGES.map(() => Math.floor(Math.random() * ROWS));
+  // For each column, pick CORRECT_COUNT[col] random rows as correct
+  correctRows = STAGES.map((_, col) => {
+    const rows = Array.from({length: ROWS}, (_, i) => i);
+    for (let i = rows.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [rows[i], rows[j]] = [rows[j], rows[i]];
+    }
+    return new Set(rows.slice(0, CORRECT_COUNT[col]));
+  });
 
   const grid = document.getElementById("roadGrid");
   grid.innerHTML = "";
@@ -486,14 +494,13 @@ function pick(colIdx, rowIdx) {
     if (c) c.onclick = null;
   }
 
-  const isCorrect = rowIdx === correctRow[colIdx];
-  const pickedCell  = document.getElementById(`c${colIdx}-${rowIdx}`);
-  const correctCell = document.getElementById(`c${colIdx}-${correctRow[colIdx]}`);
-  const baby  = document.getElementById("babyChar");
-  const fb    = document.getElementById("feedbackMsg");
+  const isCorrect = correctRows[colIdx].has(rowIdx);
+  const pickedCell = document.getElementById(`c${colIdx}-${rowIdx}`);
+  const baby = document.getElementById("babyChar");
+  const fb   = document.getElementById("feedbackMsg");
 
   if (isCorrect) {
-    pickedCell.className  = "road-cell hit-correct";
+    pickedCell.className   = "road-cell hit-correct";
     pickedCell.textContent = "✅";
 
     const bonus = Math.round((timeLeft / TIMER_MAX) * SPEED_MAX);
@@ -509,7 +516,6 @@ function pick(colIdx, rowIdx) {
     baby.style.animation = "celebrate .6s ease";
     setTimeout(() => { baby.style.animation = ""; baby.textContent = "👶"; }, 600);
 
-    // After short pause: lock current col display, advance
     setTimeout(() => {
       markColumnDone(colIdx, rowIdx);
       currentStage++;
@@ -521,19 +527,21 @@ function pick(colIdx, rowIdx) {
     pickedCell.className   = "road-cell hit-wrong";
     pickedCell.textContent = "❌";
 
-    // reveal correct cell after short delay
+    // reveal all correct cells after short delay
     setTimeout(() => {
-      correctCell.className   = "road-cell show-correct";
-      correctCell.textContent = "✅";
-    }, 300);
-
-    // grey out remaining cells
-    for (let r = 0; r < ROWS; r++) {
-      if (r !== rowIdx && r !== correctRow[colIdx]) {
+      for (let r = 0; r < ROWS; r++) {
         const c = document.getElementById(`c${colIdx}-${r}`);
-        if (c) { c.className = "road-cell past-other"; c.textContent = "·"; }
+        if (!c) continue;
+        if (r === rowIdx) continue; // already marked ❌
+        if (correctRows[colIdx].has(r)) {
+          c.className   = "road-cell show-correct";
+          c.textContent = "✅";
+        } else {
+          c.className   = "road-cell past-other";
+          c.textContent = "·";
+        }
       }
-    }
+    }, 300);
 
     fb.textContent = "❌ Vale lahter! Beebi komistas…";
     fb.className   = "feedback-msg bad";
@@ -553,12 +561,13 @@ function onTimeout() {
     const c = document.getElementById(`c${currentStage}-${r}`);
     if (c) c.onclick = null;
   }
-  const correct = document.getElementById(`c${currentStage}-${correctRow[currentStage]}`);
-  if (correct) { correct.className = "road-cell show-correct"; correct.textContent = "✅"; }
   for (let r = 0; r < ROWS; r++) {
-    if (r !== correctRow[currentStage]) {
-      const c = document.getElementById(`c${currentStage}-${r}`);
-      if (c) { c.className = "road-cell past-other"; c.textContent = "·"; }
+    const c = document.getElementById(`c${currentStage}-${r}`);
+    if (!c) continue;
+    if (correctRows[currentStage].has(r)) {
+      c.className = "road-cell show-correct"; c.textContent = "✅";
+    } else {
+      c.className = "road-cell past-other"; c.textContent = "·";
     }
   }
   const fb = document.getElementById("feedbackMsg");
