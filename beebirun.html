@@ -573,7 +573,7 @@ function onTimeout() {
 }
 
 /* ── Game over ──────────────────────────────────────────────────────────── */
-function showGameOver() {
+async function showGameOver() {
   show("screenOver");
   document.getElementById("overScore").textContent = totalScore;
   document.getElementById("overLabel").textContent = `punkti — jõudsid etappi ${currentStage} / 5`;
@@ -587,6 +587,11 @@ function showGameOver() {
   const emojis = ["😢","🤔","😅","😮","😬"];
   document.getElementById("overMsg").textContent   = msgs[currentStage] || msgs[0];
   document.getElementById("overEmoji").textContent = emojis[Math.min(currentStage, 4)];
+
+  // Save partial score too — same as other beebibet games
+  if (totalScore > 0) {
+    await sb.from("beebirun_scores").insert({ name: playerName, score: totalScore });
+  }
 }
 
 /* ── Victory ─────────────────────────────────────────────────────────────── */
