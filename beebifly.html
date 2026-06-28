@@ -987,13 +987,8 @@ function renderSkins() {
 
 // ─── LEADERBOARD ────────────────────────────────────────────────────────────
 function saveToLeaderboard(score) {
-  const existing = leaderboard.findIndex(e => e.name === getPlayerName());
-  const entry = { name: getPlayerName(), score: score, date: new Date().toLocaleDateString('et-EE') };
-  if (existing >= 0) {
-    if (score > leaderboard[existing].score) leaderboard[existing] = entry;
-  } else {
-    leaderboard.push(entry);
-  }
+  // Every successful stop is a new entry; top 10 by score are kept
+  leaderboard.push({ name: getPlayerName(), score });
   leaderboard.sort((a, b) => b.score - a.score);
   leaderboard = leaderboard.slice(0, 10);
   localStorage.setItem('bf_board', JSON.stringify(leaderboard));
