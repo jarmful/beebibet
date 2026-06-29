@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>SõnaMäng — beebibet</title>
+<meta name="description" content="Eesti Wordle! Arva 5-tähteline eesti sõna 6 katsega. Iga katse järel näed, millised tähed on õiges kohas." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://beebibet.ee/wordle" />
+<meta property="og:title" content="SõnaMäng — beebibet" />
+<meta property="og:description" content="Eesti Wordle! Arva 5-tähteline eesti sõna 6 katsega." />
+<meta property="og:image" content="https://beebibet.ee/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="SõnaMäng — beebibet" />
+<meta name="twitter:description" content="Eesti Wordle! Arva 5-tähteline eesti sõna 6 katsega." />
+<meta name="twitter:image" content="https://beebibet.ee/og-image.png" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root { --cream:#FBF3E4; --peach:#F7C9B6; --rose:#E8889B; --sage:#A7C4A0; --sky:#9CC3D5; --butter:#F4D06F; --ink:#4A3B47; --inkSoft:#7A6A75; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--cream); font-family:'Nunito',sans-serif; color:var(--ink); min-height:100vh; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3 { font-family:'Fraunces',serif; font-weight:600; }
+  .deco { position:fixed; inset:0; pointer-events:none; overflow:hidden; }
+  .deco span { position:absolute; font-size:28px; opacity:.12; }
+  @keyframes float0 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px) rotate(8deg)} }
+  @keyframes float1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-22px) rotate(-6deg)} }
+  @keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .wrap { max-width:480px; margin:0 auto; padding:0 20px 60px; position:relative; z-index:2; }
+  .back { display:inline-block; padding:14px 0 0; font-size:13px; font-weight:700; color:var(--inkSoft); text-decoration:none; letter-spacing:1px; }
+  .hdr { text-align:center; padding:14px 0 20px; }
+  .card { background:#fff; border-radius:28px; padding:28px 24px; box-shadow:0 16px 40px rgba(74,59,71,.1); border:2px solid var(--peach); }
+  .btn { display:block; width:100%; padding:15px 32px; border-radius:999px; border:none; font-size:16px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; color:#fff; transition:transform .15s; text-align:center; }
+  .btn:active { transform:scale(.96); }
+  .btn-rose { background:var(--rose); box-shadow:0 8px 20px rgba(232,136,155,.4); }
+  .btn-sage { background:var(--sage); box-shadow:0 8px 20px rgba(167,196,160,.4); }
+  .name-input { width:100%; padding:14px 18px; border-radius:16px; border:2px solid var(--peach); font-size:17px; font-family:'Nunito',sans-serif; font-weight:700; color:var(--ink); background:var(--cream); text-align:center; margin-bottom:14px; }
+  .name-input:focus { outline:none; border-color:var(--rose); }
+
+  /* Word grid */
+  .wgrid { display:flex; flex-direction:column; gap:5px; align-items:center; margin-bottom:18px; }
+  .wrow { display:flex; gap:5px; }
+  .tile {
+    width:54px; height:54px;
+    border:2px solid var(--peach);
+    border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces',serif; font-size:26px; font-weight:600;
+    text-transform:uppercase; background:#fff; user-select:none;
+    transition:border-color .1s;
+  }
+  .tile.filled { border-color:var(--inkSoft); }
+  .tile.correct { background:var(--sage); border-color:var(--sage); color:#fff; }
+  .tile.present { background:var(--butter); border-color:var(--butter); color:var(--ink); }
+  .tile.absent  { background:var(--inkSoft); border-color:var(--inkSoft); color:#fff; }
+
+  @keyframes tpop  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px)} 40%,80%{transform:translateX(5px)} }
+  @keyframes reveal { 0%{transform:scaleY(1)} 45%{transform:scaleY(0)} 55%{transform:scaleY(0)} 100%{transform:scaleY(1)} }
+  .tile.pop  { animation:tpop .12s ease; }
+  .wrow.shake { animation:shake .35s ease; }
+  .tile.reveal { animation:reveal .45s ease forwards; }
+
+  /* Keyboard */
+  .keyboard { display:flex; flex-direction:column; gap:5px; }
+  .kb-row { display:flex; justify-content:center; gap:3px; }
+  .key {
+    height:44px; flex:1; min-width:22px; max-width:38px;
+    border-radius:7px; border:none;
+    background:var(--peach); color:var(--ink);
+    font-family:'Nunito',sans-serif; font-size:13px; font-weight:800;
+    cursor:pointer; transition:transform .1s, background .2s;
+    text-transform:uppercase;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .key:active { transform:scale(.88); }
+  .key.wide { max-width:54px; flex:1.7; font-size:11px; }
+  .key.correct { background:var(--sage); color:#fff; }
+  .key.present { background:var(--butter); color:var(--ink); }
+  .key.absent  { background:var(--inkSoft); color:#fff; }
+
+  /* Toast */
+  .toast {
+    position:fixed; top:56px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:#fff; padding:9px 20px;
+    border-radius:999px; font-size:14px; font-weight:700;
+    opacity:0; transition:opacity .2s; pointer-events:none; z-index:100;
+    white-space:nowrap;
+  }
+  .toast.show { opacity:1; }
+
+  /* Result */
+  .result-score { font-family:'Fraunces',serif; font-size:56px; font-weight:600; text-align:center; line-height:1; }
+  .result-label { text-align:center; color:var(--inkSoft); font-size:14px; margin-top:6px; margin-bottom:8px; }
+  .result-word  { text-align:center; font-size:15px; color:var(--inkSoft); margin-bottom:22px; }
+  .result-word strong { color:var(--rose); font-size:22px; display:block; text-transform:uppercase; margin-top:4px; }
+
+  /* Leaderboard */
+  .lb-row { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; margin-bottom:6px; background:var(--cream); }
+  .lb-row.me { background:#F7C9B655; border:2px solid var(--rose); }
+  .lb-rank  { font-size:18px; min-width:28px; }
+  .lb-name  { flex:1; font-weight:700; font-size:15px; }
+  .lb-score { font-weight:800; font-size:17px; color:var(--sky); }
+  .lb-empty { color:var(--inkSoft); font-size:14px; text-align:center; padding:12px 0; }
+  .db-error { background:#fee; border:1px solid #fcc; border-radius:12px; padding:10px 14px; font-size:12px; color:#c00; margin-top:8px; }
+
+  @keyframes popIn { 0%{opacity:0;transform:scale(.92)} 100%{opacity:1;transform:scale(1)} }
+  .pop { animation:popIn .3s ease both; }
+
+  .screen { display:none; }
+  .screen.active { display:block; }
+</style>
+</head>
+<body>
+<div class="deco" id="deco"></div>
+<div class="toast" id="toast"></div>
+<div class="wrap">
+  <a class="back" href="/">← Avaleht</a>
+  <div class="hdr">
+    <h1 style="font-size:40px;letter-spacing:-1px">beebi<span style="color:var(--rose)">bet</span></h1>
+    <p style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--inkSoft);font-weight:700;margin-top:3px">SõnaMäng</p>
+  </div>
+
+  <!-- Start screen -->
+  <div class="screen active" id="screenStart">
+    <div class="card pop" style="text-align:center">
+      <div style="font-size:56px;margin-bottom:12px">🔤</div>
+      <h2 style="font-size:26px;margin-bottom:10px">SõnaMäng</h2>
+      <p style="color:var(--inkSoft);font-size:14px;line-height:1.7;margin-bottom:22px">
+        Arva 5-tähteline eesti sõna <strong>6 katsega</strong>.<br>
+        <span style="display:inline-flex;gap:10px;margin-top:6px;font-size:13px">
+          <span>🟩 õige koht</span>
+          <span>🟨 vale koht</span>
+          <span>⬛ pole sõnas</span>
+        </span>
+      </p>
+      <input class="name-input" id="nameInput" placeholder="Sinu nimi" maxlength="24" autocomplete="off" />
+      <button class="btn btn-rose" id="startBtn">Alusta mängu 🔤</button>
+    </div>
+    <div class="card pop" style="margin-top:14px">
+      <h2 style="font-size:18px;margin-bottom:12px">🏆 Edetabel</h2>
+      <div id="startBoard"><div class="lb-empty">Laen…</div></div>
+    </div>
+  </div>
+
+  <!-- Game screen -->
+  <div class="screen" id="screenGame">
+    <div class="card pop" style="padding:22px 16px">
+      <div class="wgrid" id="wgrid"></div>
+      <div class="keyboard" id="keyboard"></div>
+    </div>
+  </div>
+
+  <!-- Result screen -->
+  <div class="screen" id="screenResult">
+    <div class="card pop">
+      <div style="font-size:52px;text-align:center;margin-bottom:10px" id="resultEmoji">🎉</div>
+      <div class="result-score" id="resultScore">0</div>
+      <div class="result-label" id="resultLabel">punkti</div>
+      <div class="result-word" id="resultWord"></div>
+      <button class="btn btn-sage" onclick="location.reload()">Mängi uuesti →</button>
+    </div>
+    <div class="card pop" style="margin-top:14px">
+      <h2 style="font-size:18px;margin-bottom:14px">🏆 Edetabel</h2>
+      <div id="resultsBoard"><div class="lb-empty">Laen…</div></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const sb = supabase.createClient(
+  "https://thrsacygpqwbnkcppmpk.supabase.co",
+  "sb_publishable_-QaY7mGpitakhestu3w1fg_sCGquRvx"
+);
+
+const WORDS = [
+  "lapse","poiss","tütar","naine","vanem","isale","emale","sõber",
+  "parem","armas","kiire","rumal","helge","valge","rohke","laisk","karge","pehme","rõõms",
+  "noore","ilusa","tarka","tubli","raske","kerge","terav","terve","haige","tugev","kange",
+  "sügav","madal","kitsa","laiad","räpas","puhas","kurva","kalli","odava","halli","lilla","pruun",
+  "elama","tuleb","saama","arvab","ütleb","annab","võtab","paneb","läheb","magab","tahad",
+  "alati","homme","aasta","päeva",
+  "kodus","linna","kooli","meres","sauna","järve","metsa","põllu","taeva","pilve","tuule","vihma","lumes","tiigi",
+  "voodi","mängu","veski","kella","riiul","tuppa","trepp","klaas","lambi","kapil","vaiba","padja",
+  "sõnad","kirja","tähed",
+  "laste","lilli","marju","puude","leiba","piima","heina","põhku","villa","nahka","parti","haned","kured",
+  "silma","kõrva","ninad","sõrme","küüsi","kõhtu","selga","rinna","kaela",
+  "keset","vahel","peale","tõttu","kaudu","käsil","tooli","majas","laual","aknal",
+  "uksel","aknad","seina","merre","jõkke","mõnus","jõudu","turva","rõõmu","unest","pildi","nõrka"
+];
+
+const ROWS = 6, COLS = 5;
+const SCORE_MAP = [600, 500, 400, 300, 200, 100];
+const KB_LAYOUT = [
+  ["Q","W","E","R","T","Y","U","I","O","P","Ü"],
+  ["A","S","D","F","G","H","J","K","L","Ö","Ä"],
+  ["←","Z","X","C","V","B","N","M","Õ","ENTER"]
+];
+
+let targetWord = "", playerName = "";
+let currentRow = 0, currentCol = 0;
+let gameOver = false, revealBusy = false;
+let keyStates = {};
+
+const $ = id => document.getElementById(id);
+const screenStart  = $("screenStart");
+const screenGame   = $("screenGame");
+const screenResult = $("screenResult");
+
+function showScreen(s) {
+  [screenStart, screenGame, screenResult].forEach(x => x.classList.remove("active"));
+  s.classList.add("active");
+}
+
+function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+let toastTimer = null;
+function toast(msg, dur = 1800) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), dur);
+}
+
+function buildGrid() {
+  const g = $("wgrid");
+  g.innerHTML = "";
+  for (let r = 0; r < ROWS; r++) {
+    const row = document.createElement("div");
+    row.className = "wrow";
+    row.id = `r${r}`;
+    for (let c = 0; c < COLS; c++) {
+      const tile = document.createElement("div");
+      tile.className = "tile";
+      tile.id = `t${r}${c}`;
+      row.appendChild(tile);
+    }
+    g.appendChild(row);
+  }
+}
+
+function buildKeyboard() {
+  const kb = $("keyboard");
+  kb.innerHTML = "";
+  KB_LAYOUT.forEach(row => {
+    const rowEl = document.createElement("div");
+    rowEl.className = "kb-row";
+    row.forEach(k => {
+      const btn = document.createElement("button");
+      const isWide = k === "ENTER" || k === "←";
+      btn.className = "key" + (isWide ? " wide" : "");
+      btn.textContent = k;
+      if (!isWide) btn.id = "k" + k.toLowerCase();
+      btn.addEventListener("click", () => handleKey(k));
+      rowEl.appendChild(btn);
+    });
+    kb.appendChild(rowEl);
+  });
+}
+
+function tile(r, c) { return $(`t${r}${c}`); }
+
+function addLetter(letter) {
+  if (gameOver || revealBusy || currentCol >= COLS) return;
+  const t = tile(currentRow, currentCol);
+  t.textContent = letter.toUpperCase();
+  t.className = "tile filled pop";
+  setTimeout(() => t.classList.remove("pop"), 130);
+  currentCol++;
+}
+
+function deleteLetter() {
+  if (gameOver || revealBusy || currentCol <= 0) return;
+  currentCol--;
+  const t = tile(currentRow, currentCol);
+  t.textContent = "";
+  t.className = "tile";
+}
+
+function evaluateGuess(guess, target) {
+  const result = Array(COLS).fill("absent");
+  const tArr = [...target], gArr = [...guess];
+  for (let i = 0; i < COLS; i++) {
+    if (gArr[i] === tArr[i]) {
+      result[i] = "correct";
+      tArr[i] = null; gArr[i] = null;
+    }
+  }
+  for (let i = 0; i < COLS; i++) {
+    if (gArr[i] === null) continue;
+    const idx = tArr.indexOf(gArr[i]);
+    if (idx !== -1) { result[i] = "present"; tArr[idx] = null; }
+  }
+  return result;
+}
+
+function submitGuess() {
+  if (gameOver || revealBusy) return;
+  if (currentCol < COLS) {
+    $(`r${currentRow}`).classList.add("shake");
+    setTimeout(() => $(`r${currentRow}`).classList.remove("shake"), 400);
+    toast("Sõna peab olema 5-tähteline!");
+    return;
+  }
+
+  const letters = Array.from({length: COLS}, (_, c) => tile(currentRow, c).textContent.toLowerCase());
+  const guess = letters.join("");
+  const result = evaluateGuess(guess, targetWord);
+
+  revealBusy = true;
+  const DELAY = 180;
+
+  result.forEach((state, c) => {
+    const t = tile(currentRow, c);
+    setTimeout(() => {
+      t.classList.add("reveal");
+      setTimeout(() => {
+        t.className = `tile ${state}`;
+        t.textContent = letters[c].toUpperCase();
+      }, 225);
+    }, c * DELAY);
+  });
+
+  setTimeout(() => {
+    result.forEach((state, c) => {
+      const letter = letters[c];
+      const cur = keyStates[letter];
+      if (cur === "correct") return;
+      if (state === "correct" || (state === "present" && cur !== "correct") || !cur) {
+        keyStates[letter] = state;
+      }
+    });
+    updateKeys();
+    revealBusy = false;
+
+    const won = result.every(s => s === "correct");
+    if (won) {
+      gameOver = true;
+      setTimeout(() => endGame(true, SCORE_MAP[currentRow], currentRow + 1), 400);
+    } else if (currentRow === ROWS - 1) {
+      gameOver = true;
+      setTimeout(() => endGame(false, 0, 7), 400);
+    } else {
+      currentRow++;
+      currentCol = 0;
+    }
+  }, COLS * DELAY + 280);
+}
+
+function updateKeys() {
+  Object.entries(keyStates).forEach(([letter, state]) => {
+    const k = $("k" + letter);
+    if (k) k.className = "key " + state;
+  });
+}
+
+function handleKey(k) {
+  if (k === "ENTER") submitGuess();
+  else if (k === "←") deleteLetter();
+  else addLetter(k);
+}
+
+document.addEventListener("keydown", e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === "Enter")     { handleKey("ENTER"); return; }
+  if (e.key === "Backspace") { handleKey("←"); return; }
+  const l = e.key.toUpperCase();
+  if (/^[A-ZÄÖÜÕŠŽ]$/.test(l)) handleKey(l);
+});
+
+async function endGame(won, score, guesses) {
+  showScreen(screenResult);
+  $("resultEmoji").textContent = won ? (guesses <= 2 ? "🏆" : guesses <= 4 ? "🎉" : "😅") : "💪";
+  $("resultScore").textContent = score;
+  $("resultLabel").textContent = won ? `punkti — arvasid ${guesses}. katsega!` : "Järgmine kord läheb paremini!";
+  $("resultWord").innerHTML = won ? "" : `Sõna oli:<strong>${esc(targetWord.toUpperCase())}</strong>`;
+
+  const boardEl = $("resultsBoard");
+  const { error } = await sb.from("wordle_scores").insert({ name: playerName, score, guesses });
+  if (error) {
+    boardEl.innerHTML = `<div class="db-error">Salvestamine ebaõnnestus: ${esc(error.message)}</div>`;
+    return;
+  }
+  await loadLeaderboard(boardEl);
+}
+
+async function loadLeaderboard(el) {
+  const { data, error } = await sb.from("wordle_scores")
+    .select("name,score")
+    .order("score", { ascending: false })
+    .limit(10);
+  if (error) { el.innerHTML = `<div class="db-error">${esc(error.message)}</div>`; return; }
+  if (!data || !data.length) { el.innerHTML = '<div class="lb-empty">Ole esimene edetabelis!</div>'; return; }
+  el.innerHTML = data.map((r, i) => {
+    const me = r.name === playerName;
+    const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`;
+    return `<div class="lb-row${me ? " me" : ""}">
+      <span class="lb-rank">${medal}</span>
+      <span class="lb-name">${esc(r.name)}${me ? " ⬅ sina" : ""}</span>
+      <span class="lb-score">${r.score}</span>
+    </div>`;
+  }).join("");
+}
+
+$("startBtn").onclick = () => {
+  const name = $("nameInput").value.trim();
+  if (!name) { $("nameInput").focus(); $("nameInput").style.borderColor = "var(--rose)"; return; }
+  playerName = name;
+  targetWord = WORDS[Math.floor(Math.random() * WORDS.length)];
+  keyStates = {};
+  currentRow = 0; currentCol = 0; gameOver = false; revealBusy = false;
+  buildGrid();
+  buildKeyboard();
+  showScreen(screenGame);
+};
+$("nameInput").addEventListener("keydown", e => { if (e.key === "Enter") $("startBtn").click(); });
+
+(async () => { await loadLeaderboard($("startBoard")); })();
+
+const d = $("deco");
+["🔤","📝","⭐","🎈","🌙","☁️"].forEach((e, i) => {
+  const s = document.createElement("span");
+  s.textContent = e;
+  s.style.left = [8, 82, 15, 88, 45, 70][i] + "%";
+  s.style.top  = [12, 8, 70, 60, 90, 35][i] + "%";
+  s.style.animation = `float${i % 3} ${6 + i}s ease-in-out infinite`;
+  d.appendChild(s);
+});
+</script>
+</body>
+</html>
