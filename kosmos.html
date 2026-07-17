@@ -94,11 +94,23 @@
     font-size:clamp(20px,7.2vw,36px); user-select:none; pointer-events:none;
     transition-property:top; transition-timing-function:cubic-bezier(.45,.02,.6,1.2);
   }
-  .tile.win { animation:winPulse .55s ease-in-out infinite; z-index:5; }
+  /* Võidutabamus: esmalt jõuline "pop" suuremaks, siis rahulikum pulss */
+  .tile.win { animation:winHit .5s cubic-bezier(.25,2.1,.45,1) forwards, winPulse .7s ease-in-out .5s infinite; z-index:5; }
   .tile.die { animation:dieAnim .32s ease-in forwards; z-index:5; }
   .tile.scat { filter:drop-shadow(0 0 10px var(--cyan)); animation:scatFloat 2.4s ease-in-out infinite; }
-  @keyframes winPulse { 0%,100%{transform:scale(1);filter:brightness(1.15) drop-shadow(0 0 6px rgba(255,255,255,.6))} 50%{transform:scale(1.22);filter:brightness(1.6) drop-shadow(0 0 14px rgba(255,255,255,.9))} }
-  @keyframes dieAnim { 0%{transform:scale(1.15);opacity:1} 100%{transform:scale(0);opacity:0} }
+  @keyframes winHit {
+    0%   { transform:scale(1); filter:brightness(1); }
+    45%  { transform:scale(1.55); filter:brightness(1.9) drop-shadow(0 0 20px rgba(255,255,255,1)); }
+    100% { transform:scale(1.28); filter:brightness(1.45) drop-shadow(0 0 12px rgba(255,255,255,.85)); }
+  }
+  @keyframes winPulse {
+    0%,100% { transform:scale(1.28); filter:brightness(1.45) drop-shadow(0 0 12px rgba(255,255,255,.85)); }
+    50%     { transform:scale(1.42); filter:brightness(1.75) drop-shadow(0 0 18px rgba(255,255,255,1)); }
+  }
+  @keyframes dieAnim { 0%{transform:scale(1.32);opacity:1} 100%{transform:scale(0);opacity:0} }
+  /* Turbo: samad animatsioonid, aga kiired */
+  .board.turbo .tile.win { animation-duration:.18s,.3s; animation-delay:0s,.18s; }
+  .board.turbo .tile.die { animation-duration:.14s; }
   @keyframes scatFloat { 0%,100%{transform:scale(1) rotate(-4deg)} 50%{transform:scale(1.1) rotate(4deg)} }
 
   .particle {
@@ -551,21 +563,21 @@ function App() {
         newMarks.push(...cl.newMarks);
       }
 
-      // 1) võiduklastrite pulseerimine
+      // 1) võiduklastrite "pop" + pulseerimine — hoia pilku tabamusel
       setTiles(ts => ts.map(t => winCells.has(t.row * 7 + t.col) && t.phase === "idle" ? { ...t, phase: "win" } : t));
       AudioEngine.playSfx("win", maxLvl);
-      countUpWin(acc, acc + step.stepWin, T(550));
+      countUpWin(acc, acc + step.stepWin, T(850));
       acc += step.stepWin;
 
       // 2) kordajate uuendused + uued märgid
-      if (upgrades.length) setTimeout(() => AudioEngine.playSfx("mult"), T(220));
+      if (upgrades.length) setTimeout(() => AudioEngine.playSfx("mult"), T(300));
       setRingMults(rm => {
         const next = { ...rm };
         for (const u of upgrades) next[u.cell] = u.to;
         for (const c of newMarks) if (next[c] == null) next[c] = 0;
         return next;
       });
-      await sleep(T(620));
+      await sleep(T(1000));
 
       // 3) lahustumine osakesteks
       const colors = step.clusters.map(cl => M.SYMBOLS[cl.sym].color);
@@ -859,7 +871,7 @@ function App() {
         e("span", null, "Võit: ", e("b", null, fmt(fs.win || 0)))) : null,
 
       e("div", { className: "board-outer" },
-        e("div", { className: "board" }, cellBgs, rings, tileEls, particleEls)),
+        e("div", { className: "board" + (turbo ? " turbo" : "") }, cellBgs, rings, tileEls, particleEls)),
 
       e("div", { className: "statrow" },
         e("div", { className: "stat" },
