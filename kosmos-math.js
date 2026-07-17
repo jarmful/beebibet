@@ -45,12 +45,12 @@
   ];
 
   // Scatteri tõenäosus lahtri kohta (ainult keerutuse algseisus, mitte tumble'is)
-  var SCATTER_P = 0.0074;
+  var SCATTER_P = 0.00755;
 
   var FS_AWARD = { 3: 10, 4: 12, 5: 15, 6: 20, 7: 30 };
 
-  // Boonusostu scatterite arvu jaotus (ostu-EV ~96x, hind 100x)
-  var BUY_SCATTER_DIST = [[3, 0.76], [4, 0.17], [5, 0.05], [6, 0.016], [7, 0.004]];
+  // Boonusostu scatterite arvu jaotus (ostu-EV ~99x, hind 100x)
+  var BUY_SCATTER_DIST = [[3, 0.74], [4, 0.19], [5, 0.05], [6, 0.015], [7, 0.005]];
 
   /* ---------- Juhuslikkus ---------- */
 
