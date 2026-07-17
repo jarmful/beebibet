@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>KosmosBet — beebibet</title>
+<meta name="description" content="KosmosBet — kosmoseteemaline klastrislott. Mängu­raha, tumble'id ja kordajad!" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg0:#03040c; --bg1:#0a0e24; --panel:rgba(16,22,52,.55);
+    --cyan:#4de8ff; --magenta:#ff4dd8; --gold:#ffd54f;
+    --ink:#eaf2ff; --inkSoft:#8f9bc4;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body {
+    background:linear-gradient(180deg,var(--bg0) 0%,var(--bg1) 55%,#070a1c 100%);
+    font-family:'Nunito',sans-serif; color:var(--ink); min-height:100vh;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  h1,h2 { font-family:'Fraunces',serif; font-weight:600; }
+  #stars { position:fixed; inset:0; z-index:0; pointer-events:none; }
+  .nebula { position:fixed; border-radius:50%; filter:blur(70px); opacity:.22; pointer-events:none; z-index:0; }
+  .neb1 { width:340px; height:340px; background:#6a2fb8; top:-80px; right:-120px; }
+  .neb2 { width:300px; height:300px; background:#0e5fa8; bottom:10%; left:-140px; }
+  .neb3 { width:220px; height:220px; background:#a8206e; top:42%; right:-90px; }
+
+  .wrap { max-width:480px; margin:0 auto; padding:0 12px 40px; position:relative; z-index:2; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; padding:12px 2px 4px; }
+  .back { font-size:12px; font-weight:800; color:var(--inkSoft); text-decoration:none; letter-spacing:1px; }
+  .iconbtns { display:flex; gap:6px; }
+  .icobtn {
+    width:36px; height:36px; border-radius:12px; border:1px solid rgba(120,150,255,.25);
+    background:rgba(20,28,64,.6); color:var(--ink); font-size:16px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:transform .12s;
+  }
+  .icobtn:active { transform:scale(.92); }
+  .icobtn.off { opacity:.35; }
+  .icobtn.turbo-on { border-color:var(--gold); box-shadow:0 0 12px rgba(255,213,79,.45); }
+
+  .hdr { text-align:center; padding:2px 0 10px; }
+  .hdr h1 {
+    font-size:34px; letter-spacing:-1px;
+    background:linear-gradient(90deg,var(--cyan),var(--magenta) 60%,var(--gold));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(0 0 14px rgba(77,232,255,.35));
+  }
+  .hdr p { font-size:10px; letter-spacing:4px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; margin-top:2px; }
+
+  .fsbanner {
+    display:flex; align-items:center; justify-content:center; gap:12px;
+    background:linear-gradient(90deg,rgba(255,77,216,.16),rgba(77,232,255,.16));
+    border:1px solid rgba(255,77,216,.45); border-radius:14px;
+    padding:8px 12px; margin-bottom:8px; font-size:13px; font-weight:800;
+    box-shadow:0 0 18px rgba(255,77,216,.2);
+  }
+  .fsbanner b { color:var(--gold); font-size:15px; }
+
+  .board-outer {
+    position:relative; border-radius:22px; padding:8px;
+    background:var(--panel); border:1px solid rgba(120,160,255,.28);
+    box-shadow:0 18px 50px rgba(0,0,0,.55), inset 0 0 40px rgba(60,90,220,.12);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  }
+  .board { position:relative; width:100%; aspect-ratio:1; overflow:hidden; border-radius:14px; }
+
+  .cellbg { position:absolute; width:14.2857%; height:14.2857%; }
+  .cellbg::after { content:""; position:absolute; inset:2px; border-radius:8px; background:rgba(10,16,40,.5); border:1px solid rgba(110,140,255,.08); }
+
+  .ring {
+    position:absolute; width:14.2857%; height:14.2857%; z-index:2; pointer-events:none;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .ring::before {
+    content:""; position:absolute; inset:6%; border-radius:50%;
+    border:2px solid rgba(77,232,255,.8);
+    box-shadow:0 0 10px rgba(77,232,255,.7), inset 0 0 8px rgba(77,232,255,.4);
+    animation:ringPulse 2.2s ease-in-out infinite;
+  }
+  .ring.hasMult::before { border-color:var(--gold); box-shadow:0 0 12px rgba(255,213,79,.8), inset 0 0 10px rgba(255,213,79,.45); }
+  .ring .mval {
+    position:relative; z-index:3; font-size:11px; font-weight:900; color:var(--gold);
+    text-shadow:0 0 8px rgba(255,213,79,.9); background:rgba(8,10,28,.75);
+    border-radius:999px; padding:1px 5px; transform:translateY(-2px);
+  }
+  .ring.pop .mval { animation:multPop .5s cubic-bezier(.2,2,.4,1); }
+  @keyframes ringPulse { 0%,100%{transform:scale(1);opacity:.85} 50%{transform:scale(1.08);opacity:1} }
+  @keyframes multPop { 0%{transform:scale(.3) translateY(-2px)} 60%{transform:scale(1.5) translateY(-2px)} 100%{transform:scale(1) translateY(-2px)} }
+
+  .tile {
+    position:absolute; width:14.2857%; height:14.2857%; z-index:4;
+    display:flex; align-items:center; justify-content:center;
+    font-size:clamp(20px,7.2vw,36px); user-select:none; pointer-events:none;
+    transition-property:top; transition-timing-function:cubic-bezier(.45,.02,.6,1.2);
+  }
+  .tile.win { animation:winPulse .55s ease-in-out infinite; z-index:5; }
+  .tile.die { animation:dieAnim .32s ease-in forwards; z-index:5; }
+  .tile.scat { filter:drop-shadow(0 0 10px var(--cyan)); animation:scatFloat 2.4s ease-in-out infinite; }
+  @keyframes winPulse { 0%,100%{transform:scale(1);filter:brightness(1.15) drop-shadow(0 0 6px rgba(255,255,255,.6))} 50%{transform:scale(1.22);filter:brightness(1.6) drop-shadow(0 0 14px rgba(255,255,255,.9))} }
+  @keyframes dieAnim { 0%{transform:scale(1.15);opacity:1} 100%{transform:scale(0);opacity:0} }
+  @keyframes scatFloat { 0%,100%{transform:scale(1) rotate(-4deg)} 50%{transform:scale(1.1) rotate(4deg)} }
+
+  .particle {
+    position:absolute; width:7px; height:7px; border-radius:50%; z-index:6; pointer-events:none;
+    animation:partFly .55s ease-out forwards;
+  }
+  @keyframes partFly {
+    0% { transform:translate(0,0) scale(1); opacity:1; }
+    100% { transform:translate(var(--dx),var(--dy)) scale(.2); opacity:0; }
+  }
+
+  .statrow { display:flex; gap:8px; margin-top:10px; }
+  .stat {
+    flex:1; background:var(--panel); border:1px solid rgba(120,160,255,.22); border-radius:14px;
+    padding:8px 6px; text-align:center; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  }
+  .stat .lbl { font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; }
+  .stat .val { font-size:16px; font-weight:900; margin-top:1px; }
+  .stat .val.winval { color:var(--gold); text-shadow:0 0 10px rgba(255,213,79,.5); }
+
+  .controls { display:flex; align-items:center; gap:10px; margin-top:12px; }
+  .betbox { display:flex; align-items:center; gap:4px; }
+  .stepbtn {
+    width:42px; height:42px; border-radius:14px; border:1px solid rgba(120,160,255,.3);
+    background:rgba(24,32,72,.75); color:var(--ink); font-size:20px; font-weight:900; cursor:pointer;
+  }
+  .stepbtn:disabled { opacity:.3; }
+  .betval { min-width:56px; text-align:center; font-size:15px; font-weight:900; color:var(--cyan); }
+  .spinbtn {
+    flex:1; height:60px; border-radius:20px; border:none; cursor:pointer;
+    font-family:'Nunito',sans-serif; font-size:19px; font-weight:900; letter-spacing:1px; color:#081020;
+    background:linear-gradient(135deg,var(--cyan),#37b6ff);
+    box-shadow:0 8px 26px rgba(77,232,255,.4), inset 0 -3px 0 rgba(0,0,0,.2);
+    transition:transform .12s, filter .2s;
+  }
+  .spinbtn:active { transform:scale(.96); }
+  .spinbtn:disabled { filter:grayscale(.7) brightness(.6); }
+  .buybtn {
+    width:100%; margin-top:8px; padding:12px; border-radius:16px; cursor:pointer;
+    border:1px solid rgba(255,77,216,.5); background:rgba(60,16,58,.55); color:var(--magenta);
+    font-family:'Nunito',sans-serif; font-size:14px; font-weight:900;
+    box-shadow:0 0 16px rgba(255,77,216,.15);
+  }
+  .buybtn:disabled { opacity:.35; box-shadow:none; cursor:default; }
+
+  .ovl {
+    position:fixed; inset:0; z-index:60; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:14px; padding:24px; text-align:center;
+    background:rgba(3,5,16,.93); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    animation:ovlIn .25s ease-out;
+  }
+  @keyframes ovlIn { from{opacity:0} to{opacity:1} }
+  .ovl h2 { font-size:30px; }
+  .ovl .bigico { font-size:64px; animation:scatFloat 2.4s ease-in-out infinite; }
+  .neonbtn {
+    padding:15px 36px; border-radius:999px; border:none; cursor:pointer;
+    font-family:'Nunito',sans-serif; font-size:17px; font-weight:900; color:#081020;
+    background:linear-gradient(135deg,var(--cyan),#37b6ff);
+    box-shadow:0 8px 26px rgba(77,232,255,.4); transition:transform .12s;
+  }
+  .neonbtn:active { transform:scale(.95); }
+  .neonbtn.gold { background:linear-gradient(135deg,var(--gold),#ffab40); box-shadow:0 8px 26px rgba(255,213,79,.4); }
+  .neonbtn.ghost { background:transparent; color:var(--inkSoft); box-shadow:none; border:1px solid rgba(120,160,255,.3); }
+
+  .winTitle {
+    font-family:'Fraunces',serif; font-size:44px; font-weight:600; line-height:1.1;
+    background:linear-gradient(90deg,var(--gold),#fff6d8,var(--gold));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(0 0 20px rgba(255,213,79,.6));
+    animation:winTitleIn .5s cubic-bezier(.2,2,.4,1);
+  }
+  .winTitle.cosmic { background:linear-gradient(90deg,var(--cyan),var(--magenta),var(--gold)); -webkit-background-clip:text; background-clip:text; }
+  @keyframes winTitleIn { 0%{transform:scale(.2)} 70%{transform:scale(1.15)} 100%{transform:scale(1)} }
+  .winAmt { font-size:36px; font-weight:900; color:var(--gold); text-shadow:0 0 18px rgba(255,213,79,.7); }
+
+  .toast {
+    position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:80;
+    background:rgba(20,28,64,.95); border:1px solid var(--magenta); color:var(--ink);
+    padding:10px 22px; border-radius:999px; font-weight:900; font-size:14px;
+    box-shadow:0 0 22px rgba(255,77,216,.4); animation:ovlIn .2s ease-out;
+  }
+
+  .panel {
+    width:100%; max-width:400px; background:rgba(14,20,48,.97);
+    border:1px solid rgba(120,160,255,.3); border-radius:22px; padding:22px;
+    max-height:80vh; overflow-y:auto;
+  }
+  .board-row { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:12px; margin-bottom:6px; background:rgba(30,40,86,.5); }
+  .board-rank { font-size:16px; min-width:26px; }
+  .board-name { flex:1; font-weight:700; font-size:14px; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .board-mult { font-weight:900; font-size:14px; color:var(--cyan); }
+  .board-amt { font-size:11px; color:var(--inkSoft); min-width:52px; text-align:right; }
+  .board-empty { color:var(--inkSoft); font-size:13px; padding:14px 0; }
+  .db-error { background:rgba(120,20,40,.4); border:1px solid rgba(255,90,110,.5); border-radius:12px; padding:10px; font-size:11px; color:#ff9aa8; margin-top:8px; word-break:break-all; }
+
+  .name-input {
+    width:220px; padding:13px 16px; border-radius:14px; border:1px solid rgba(120,160,255,.4);
+    font-size:16px; font-family:'Nunito',sans-serif; font-weight:800; color:var(--ink);
+    background:rgba(10,16,40,.8); text-align:center;
+  }
+  .name-input:focus { outline:none; border-color:var(--cyan); box-shadow:0 0 12px rgba(77,232,255,.3); }
+
+  .capnote { font-size:11px; color:var(--inkSoft); text-align:center; margin-top:10px; line-height:1.5; }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<div class="nebula neb1"></div>
+<div class="nebula neb2"></div>
+<div class="nebula neb3"></div>
+<div id="app"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/kosmos-math.js"></script>
+
+<script>
+"use strict";
+/* ============================================================
+   Supabase
+   ============================================================ */
+const SUPABASE_URL = "https://thrsacygpqwbnkcppmpk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_-QaY7mGpitakhestu3w1fg_sCGquRvx";
+let sb = null;
+try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (err) { console.error("Supabase init:", err); }
+
+/* ============================================================
+   Tähetaevas (canvas)
+   ============================================================ */
+(function starfield() {
+  const cv = document.getElementById("stars");
+  const cx = cv.getContext("2d");
+  let stars = [];
+  function resize() {
+    cv.width = innerWidth; cv.height = innerHeight;
+    stars = Array.from({ length: 130 }, () => ({
+      x: Math.random() * cv.width, y: Math.random() * cv.height,
+      r: Math.random() * 1.4 + .3, s: Math.random() * .25 + .05,
+      p: Math.random() * Math.PI * 2, tw: Math.random() * 1.5 + .5
+    }));
+  }
+  resize(); addEventListener("resize", resize);
+  (function loop(t) {
+    cx.clearRect(0, 0, cv.width, cv.height);
+    for (const st of stars) {
+      st.y += st.s; if (st.y > cv.height) { st.y = -2; st.x = Math.random() * cv.width; }
+      const a = .35 + .55 * Math.abs(Math.sin(t / 1000 * st.tw + st.p));
+      cx.globalAlpha = a; cx.fillStyle = "#cfe4ff";
+      cx.beginPath(); cx.arc(st.x, st.y, st.r, 0, 7); cx.fill();
+    }
+    requestAnimationFrame(loop);
+  })(0);
+})();
+
+/* ============================================================
+   Helimootor (Web Audio, failideta)
+   ============================================================ */
+const AudioEngine = (() => {
+  let ctx = null, master = null, musicBus = null, sfxBus = null;
+  let musicOn = localStorage.getItem("kosmos_music") !== "0";
+  let sfxOn = localStorage.getItem("kosmos_sfx") !== "0";
+  let musicStarted = false, bassTimer = null;
+
+  function ensure() {
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      ctx = new AC();
+      master = ctx.createGain(); master.gain.value = .9; master.connect(ctx.destination);
+      musicBus = ctx.createGain(); musicBus.gain.value = musicOn ? .3 : 0; musicBus.connect(master);
+      sfxBus = ctx.createGain(); sfxBus.gain.value = sfxOn ? .75 : 0; sfxBus.connect(master);
+    }
+    if (ctx.state === "suspended") ctx.resume();
+    return true;
+  }
+
+  // Ambientne kosmosepadi: 3 kergelt häälest väljas ostsillaatorit
+  // läbi madalpääsfiltri, mille lõikesagedust liigutab aeglane LFO.
+  function startMusic() {
+    if (musicStarted || !ensure()) return;
+    musicStarted = true;
+    const filter = ctx.createBiquadFilter();
+    filter.type = "lowpass"; filter.frequency.value = 420; filter.Q.value = 1.2;
+    const padGain = ctx.createGain(); padGain.gain.value = 0;
+    padGain.gain.linearRampToValueAtTime(.16, ctx.currentTime + 4);
+    filter.connect(padGain); padGain.connect(musicBus);
+
+    [[110, -7, "sawtooth"], [110, 7, "sawtooth"], [165, 3, "triangle"]].forEach(([f, det, type]) => {
+      const o = ctx.createOscillator();
+      o.type = type; o.frequency.value = f; o.detune.value = det;
+      o.connect(filter); o.start();
+    });
+    const lfo = ctx.createOscillator(), lfoG = ctx.createGain();
+    lfo.frequency.value = .045; lfoG.gain.value = 260;
+    lfo.connect(lfoG); lfoG.connect(filter.frequency); lfo.start();
+    const lfo2 = ctx.createOscillator(), lfo2G = ctx.createGain();
+    lfo2.frequency.value = .11; lfo2G.gain.value = .05;
+    lfo2.connect(lfo2G); lfo2G.connect(padGain.gain); lfo2.start();
+
+    // Hõre sügav bassipulss
+    bassTimer = setInterval(() => {
+      if (!musicOn) return;
+      const t = ctx.currentTime;
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine"; o.frequency.setValueAtTime(55, t);
+      o.frequency.exponentialRampToValueAtTime(41, t + 1.4);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(.5, t + .05);
+      g.gain.exponentialRampToValueAtTime(.001, t + 1.6);
+      o.connect(g); g.connect(musicBus); o.start(t); o.stop(t + 1.7);
+    }, 3400);
+  }
+
+  function tone(freq, dur, opts) {
+    if (!ctx) return;
+    opts = opts || {};
+    const t = ctx.currentTime + (opts.delay || 0);
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = opts.type || "sine";
+    o.frequency.setValueAtTime(freq, t);
+    if (opts.slide) o.frequency.exponentialRampToValueAtTime(opts.slide, t + dur);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(opts.vol != null ? opts.vol : .25, t + .012);
+    g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g); g.connect(sfxBus); o.start(t); o.stop(t + dur + .05);
+  }
+
+  function playSfx(name, param) {
+    if (!sfxOn || !ensure()) return;
+    switch (name) {
+      case "spin":
+        tone(140, .4, { type: "sawtooth", slide: 880, vol: .14 });
+        tone(70, .4, { type: "sine", slide: 440, vol: .12 });
+        break;
+      case "tick":
+        tone(820 + Math.random() * 380, .05, { type: "square", vol: .05 });
+        break;
+      case "win": {
+        const lvl = Math.min(param || 0, 6);
+        const base = 300 * Math.pow(1.16, lvl);
+        const scale = [0, 3, 5, 7, 10, 12, 15];
+        for (let i = 0; i < 4 + lvl; i++)
+          tone(base * Math.pow(2, scale[i % 7] / 12 + Math.floor(i / 7)), .16, { type: "triangle", vol: .2, delay: i * .07 });
+        break;
+      }
+      case "mult":
+        tone(1320, .3, { type: "sine", vol: .22 });
+        tone(1980, .34, { type: "sine", vol: .14, delay: .04 });
+        tone(2640, .3, { type: "sine", vol: .08, delay: .08 });
+        break;
+      case "scatter":
+        tone(150, .7, { type: "sine", slide: 38, vol: .5 });
+        tone(90, .5, { type: "triangle", slide: 30, vol: .3, delay: .05 });
+        break;
+      case "bonus":
+        [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) =>
+          tone(f, .22, { type: "triangle", vol: .26, delay: i * .13 }));
+        tone(262, 1.2, { type: "sawtooth", vol: .1, delay: .9 });
+        break;
+      case "bigwin":
+        [392, 523, 659, 784, 659, 784, 1047, 1319, 1568].forEach((f, i) => {
+          tone(f, .3, { type: "triangle", vol: .24, delay: i * .12 });
+          tone(f / 2, .3, { type: "sine", vol: .12, delay: i * .12 });
+        });
+        break;
+      case "click":
+        tone(520, .06, { type: "sine", vol: .12 });
+        break;
+    }
+  }
+
+  function setMusic(on) {
+    musicOn = on; localStorage.setItem("kosmos_music", on ? "1" : "0");
+    if (ensure()) {
+      if (on && !musicStarted) startMusic();
+      if (musicBus) musicBus.gain.linearRampToValueAtTime(on ? .3 : 0, ctx.currentTime + .3);
+    }
+  }
+  function setSfx(on) {
+    sfxOn = on; localStorage.setItem("kosmos_sfx", on ? "1" : "0");
+    if (ctx && sfxBus) sfxBus.gain.value = on ? .75 : 0;
+  }
+  function userStart() { if (ensure() && musicOn) startMusic(); }
+
+  return { playSfx, setMusic, setSfx, userStart, get musicOn() { return musicOn; }, get sfxOn() { return sfxOn; } };
+})();
+addEventListener("pointerdown", () => AudioEngine.userStart(), { passive: true });
+
+/* ============================================================
+   React UI
+   ============================================================ */
+const e = React.createElement;
+const { useState, useEffect, useRef, useCallback } = React;
+const M = window.KosmosMath;
+
+const BETS = [0.2, 0.4, 1, 2, 5, 10, 20, 50, 100];
+const MAX_BUY_BET_IDX = 2;           // boonusost lubatud kuni panuseni 1.0
+const CELL = 100 / 7;
+const fmt = n => n.toFixed(2);
+const fmtX = n => (n >= 100 ? Math.round(n) : +n.toFixed(1)) + "x";
+
+function lsNum(key, def) { const v = parseFloat(localStorage.getItem(key)); return isNaN(v) ? def : v; }
+
+let tileSeq = 1;
+
+function App() {
+  const [balance, setBalance] = useState(() => lsNum("kosmos_balance", 100));
+  const [betIdx, setBetIdx] = useState(() => Math.min(8, Math.max(0, lsNum("kosmos_betidx", 0) | 0)));
+  const [lastWin, setLastWin] = useState(0);
+  const [winDisplay, setWinDisplay] = useState(0);
+  const [sessionBest, setSessionBest] = useState(0);
+  const [spinning, setSpinning] = useState(false);
+  const [turbo, setTurbo] = useState(() => localStorage.getItem("kosmos_turbo") === "1");
+  const [musicOn, setMusicOnState] = useState(AudioEngine.musicOn);
+  const [sfxOn, setSfxOnState] = useState(AudioEngine.sfxOn);
+  const [tiles, setTiles] = useState([]);          // {id, sym, col, y, phase}
+  const [ringMults, setRingMults] = useState({});  // cell -> 0 (märk) | 2..128
+  const [particles, setParticles] = useState([]);
+  const [fs, setFs] = useState(null);              // {remaining, total, win}
+  const [overlay, setOverlay] = useState(null);    // {kind, ...}
+  const [toast, setToast] = useState(null);
+  const [boardOpen, setBoardOpen] = useState(false);
+  const [boardRows, setBoardRows] = useState(null);
+  const [boardErr, setBoardErr] = useState(null);
+  const [nameVal, setNameVal] = useState(() => localStorage.getItem("kosmos_name") || "");
+
+  const rngRef = useRef(M.makeRng(M.randomSeed()));
+  const turboRef = useRef(turbo); turboRef.current = turbo;
+  const balanceRef = useRef(balance); balanceRef.current = balance;
+  const spinningRef = useRef(false);
+  const overlayResolve = useRef(null);
+  const winCounterRef = useRef(null);
+
+  // Rahulik avavaade: juhuslik ruudustik enne esimest keerutust
+  useEffect(() => {
+    setTiles(buildTiles(M.generateGrid(rngRef.current, false, 0), true));
+    const t = setTimeout(() => setTiles(ts => ts.map(x => ({ ...x, y: x.row }))), 40);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => { localStorage.setItem("kosmos_balance", String(balance)); }, [balance]);
+  useEffect(() => { localStorage.setItem("kosmos_betidx", String(betIdx)); }, [betIdx]);
+  useEffect(() => { localStorage.setItem("kosmos_turbo", turbo ? "1" : "0"); }, [turbo]);
+
+  const T = ms => Math.round(ms / (turboRef.current ? 3 : 1));
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  /* ---------- abifunktsioonid ---------- */
+
+  function showToast(msg, dur) {
+    setToast(msg);
+    setTimeout(() => setToast(t => (t === msg ? null : t)), dur || 1800);
+  }
+
+  // Ootab kuni kasutaja sulgeb ülekatte (nupp kutsub resolveOverlay)
+  function waitOverlay(o) {
+    return new Promise(res => { overlayResolve.current = res; setOverlay(o); });
+  }
+  function resolveOverlay() {
+    setOverlay(null);
+    if (overlayResolve.current) { const r = overlayResolve.current; overlayResolve.current = null; r(); }
+  }
+  // Ajapiiranguga ülekate (suured võidud) — sulgub ise, puudutus kiirendab
+  async function timedOverlay(o, ms) {
+    let done = false;
+    await Promise.race([
+      waitOverlay(o),
+      sleep(ms).then(() => { if (!done) resolveOverlay(); })
+    ]);
+    done = true;
+  }
+
+  function countUpWin(from, to, dur) {
+    clearInterval(winCounterRef.current);
+    const steps = Math.max(1, Math.round(dur / 40));
+    let i = 0;
+    winCounterRef.current = setInterval(() => {
+      i++;
+      const v = from + (to - from) * (i / steps);
+      setWinDisplay(v);
+      if (i >= steps) clearInterval(winCounterRef.current);
+    }, 40);
+  }
+
+  /* ---------- ruudustiku animatsioonid ---------- */
+
+  function buildTiles(grid, dropIn) {
+    const arr = [];
+    for (let c = 0; c < M.CELLS; c++) {
+      const row = (c / 7) | 0, col = c % 7;
+      arr.push({
+        id: tileSeq++, sym: grid[c], col, row,
+        y: dropIn ? row - 9 : row, phase: "idle",
+        delay: dropIn ? col * 45 : 0
+      });
+    }
+    return arr;
+  }
+
+  async function animateDrop(grid) {
+    setTiles(buildTiles(grid, true));
+    await sleep(30);
+    setTiles(ts => ts.map(t => ({ ...t, y: t.row })));
+    for (let i = 0; i < 4; i++) { setTimeout(() => AudioEngine.playSfx("tick"), T(120) * (i + 1)); }
+    await sleep(T(420) + 7 * 45 / (turboRef.current ? 3 : 1));
+  }
+
+  function spawnParticles(cells, color) {
+    const ps = [];
+    for (const c of cells) {
+      const row = (c / 7) | 0, col = c % 7;
+      for (let i = 0; i < 5; i++) {
+        const ang = Math.random() * Math.PI * 2, dist = 26 + Math.random() * 46;
+        ps.push({
+          id: tileSeq++, x: (col + .5) * CELL, y: (row + .5) * CELL,
+          dx: Math.cos(ang) * dist, dy: Math.sin(ang) * dist, color
+        });
+      }
+    }
+    setParticles(p => [...p, ...ps]);
+    setTimeout(() => setParticles(p => p.filter(x => !ps.includes(x))), 650);
+  }
+
+  // Mängib ühe keerutuse tulemuse sammhaaval maha
+  async function animateSpin(result, bet, ringsPersist, winSoFar) {
+    if (!ringsPersist) setRingMults({});
+    await animateDrop(result.initialGrid);
+    if (result.scatterCount > 0) AudioEngine.playSfx("scatter");
+
+    let acc = winSoFar || 0;
+    // tileGrid: lahter -> tile (jälgime positsioone tumble'ide vahel)
+    let tileGrid = null;
+    setTiles(ts => { tileGrid = ts.slice().sort((a, b) => (a.row * 7 + a.col) - (b.row * 7 + b.col)); return ts; });
+    await sleep(20);
+
+    for (const step of result.steps) {
+      const winCells = new Set();
+      let maxLvl = 0;
+      const upgrades = [];
+      const newMarks = [];
+      for (const cl of step.clusters) {
+        cl.cells.forEach(c => winCells.add(c));
+        maxLvl = Math.max(maxLvl, Math.floor(Math.log2(cl.pay / bet + 1)));
+        upgrades.push(...cl.upgrades);
+        newMarks.push(...cl.newMarks);
+      }
+
+      // 1) võiduklastrite pulseerimine
+      setTiles(ts => ts.map(t => winCells.has(t.row * 7 + t.col) && t.phase === "idle" ? { ...t, phase: "win" } : t));
+      AudioEngine.playSfx("win", maxLvl);
+      countUpWin(acc, acc + step.stepWin, T(550));
+      acc += step.stepWin;
+
+      // 2) kordajate uuendused + uued märgid
+      if (upgrades.length) setTimeout(() => AudioEngine.playSfx("mult"), T(220));
+      setRingMults(rm => {
+        const next = { ...rm };
+        for (const u of upgrades) next[u.cell] = u.to;
+        for (const c of newMarks) if (next[c] == null) next[c] = 0;
+        return next;
+      });
+      await sleep(T(620));
+
+      // 3) lahustumine osakesteks
+      const colors = step.clusters.map(cl => M.SYMBOLS[cl.sym].color);
+      step.clusters.forEach((cl, i) => spawnParticles(cl.cells, colors[i]));
+      setTiles(ts => ts.map(t => winCells.has(t.row * 7 + t.col) ? { ...t, phase: "die" } : t));
+      await sleep(T(330));
+
+      // 4) tumble: ellujäänud kukuvad, uued tulevad ülevalt
+      const survivors = [];
+      const newTiles = [];
+      for (let col = 0; col < 7; col++) {
+        let write = 6;
+        for (let row = 6; row >= 0; row--) {
+          const c = row * 7 + col;
+          if (!step.removed[c]) {
+            const t = tileGrid[c];
+            survivors.push({ ...t, row: write, y: write, phase: "idle", delay: 0 });
+            write--;
+          }
+        }
+        const removedCount = write + 1;
+        for (let row = removedCount - 1; row >= 0; row--) {
+          newTiles.push({
+            id: tileSeq++, sym: step.gridAfter[row * 7 + col], col, row,
+            y: row - removedCount - 1, phase: "idle", delay: 0
+          });
+        }
+      }
+      const all = [...survivors, ...newTiles];
+      setTiles(all);
+      await sleep(30);
+      setTiles(ts => ts.map(t => ({ ...t, y: t.row })));
+      AudioEngine.playSfx("tick");
+      await sleep(T(400));
+
+      tileGrid = new Array(M.CELLS);
+      for (const t of all) tileGrid[t.row * 7 + t.col] = { ...t, y: t.row };
+    }
+    return acc;
+  }
+
+  /* ---------- suured võidud & edetabel ---------- */
+
+  async function celebrate(win, bet, capped) {
+    const x = win / bet;
+    if (capped || x >= 5000) {
+      AudioEngine.playSfx("bigwin");
+      await timedOverlay({ kind: "bigwin", title: "MAX VÕIT!", cls: "cosmic", amt: win, ico: "👑" }, 4200);
+    } else if (x >= 500) {
+      AudioEngine.playSfx("bigwin");
+      await timedOverlay({ kind: "bigwin", title: "KOSMILINE VÕIT!", cls: "cosmic", amt: win, ico: "🌌" }, 3600);
+    } else if (x >= 100) {
+      AudioEngine.playSfx("bigwin");
+      await timedOverlay({ kind: "bigwin", title: "MEGAVÕIT!", cls: "", amt: win, ico: "💫" }, 3000);
+    } else if (x >= 20) {
+      AudioEngine.playSfx("bigwin");
+      await timedOverlay({ kind: "bigwin", title: "Kena võit!", cls: "", amt: win, ico: "🌟" }, 2400);
+    }
+  }
+
+  async function maybeSubmitScore(win, bet) {
+    if (!sb || win < 50 * bet) return;
+    await waitOverlay({ kind: "name", amt: win, mult: win / bet });
+  }
+
+  async function submitScore(win, mult) {
+    const name = nameVal.trim();
+    if (!name) return;
+    localStorage.setItem("kosmos_name", name);
+    try {
+      await sb.from("kosmos_leaderboard").insert({
+        name, win_amount: +win.toFixed(2), win_multiplier: +mult.toFixed(2)
+      });
+    } catch (err) { console.error(err); }
+  }
+
+  async function loadBoard() {
+    setBoardErr(null); setBoardRows(null);
+    const { data, error } = await sb.from("kosmos_leaderboard")
+      .select("name,win_amount,win_multiplier")
+      .order("win_multiplier", { ascending: false })
+      .limit(10);
+    if (error) { setBoardErr(error.message + " (" + error.code + ")"); return; }
+    setBoardRows(data || []);
+  }
+  useEffect(() => { if (boardOpen && sb) loadBoard(); }, [boardOpen]);
+
+  /* ---------- keerutus ---------- */
+
+  async function doSpin(buy) {
+    if (spinningRef.current) return;
+    const bet = BETS[betIdx];
+    const cost = buy ? 100 * bet : bet;
+    if (balanceRef.current < cost - 1e-9) { setOverlay({ kind: "refuel" }); return; }
+
+    spinningRef.current = true; setSpinning(true);
+    setBalance(b => +(b - cost).toFixed(2));
+    setLastWin(0); setWinDisplay(0);
+    AudioEngine.playSfx("spin");
+
+    const rng = rngRef.current;
+    const cap = M.MAX_WIN_X * bet;
+    const marks = M.freshMarks(), mults = M.freshMults();
+    const forced = buy ? M.drawBuyScatters(rng) : 0;
+    const result = M.playSpin(rng, bet, marks, mults, true, forced, cap);
+
+    await animateSpin(result, bet, false, 0);
+    let roundWin = result.win;
+
+    if (!result.capped && result.scatterCount >= 3) {
+      roundWin = await runBonus(result.scatterCount, bet, result.win, rng);
+    } else {
+      setBalance(b => +(b + result.win).toFixed(2));
+      setLastWin(result.win); setWinDisplay(result.win);
+      await celebrate(result.win, bet, result.capped);
+    }
+
+    if (roundWin > 0) setSessionBest(s => Math.max(s, roundWin));
+    await maybeSubmitScore(roundWin, bet);
+
+    spinningRef.current = false; setSpinning(false);
+    if (balanceRef.current < BETS[0] - 1e-9) setOverlay({ kind: "refuel" });
+  }
+
+  async function runBonus(scatters, bet, baseWin, rng) {
+    AudioEngine.playSfx("bonus");
+    const startSpins = M.spinsForScatters(scatters);
+    await waitOverlay({ kind: "bonusIntro", spins: startSpins, scatters });
+
+    const cap = M.MAX_WIN_X * bet;
+    const fsMarks = M.freshMarks(), fsMults = M.freshMults();
+    let remaining = startSpins, total = baseWin, fsWin = 0, capped = false;
+    setFs({ remaining, total: startSpins, win: 0 });
+
+    while (remaining > 0 && total < cap) {
+      remaining--;
+      setFs({ remaining, win: fsWin });
+      AudioEngine.playSfx("spin");
+      const r = M.playSpin(rng, bet, fsMarks, fsMults, true, 0, cap - total);
+      await animateSpin(r, bet, true, fsWin);
+      fsWin += r.win; total += r.win;
+      setFs({ remaining, win: fsWin });
+      setWinDisplay(fsWin);
+      if (r.capped) { capped = true; break; }
+      if (r.scatterCount >= 3) {
+        const extra = M.spinsForScatters(r.scatterCount);
+        remaining += extra;
+        AudioEngine.playSfx("bonus");
+        showToast("🕳️ +" + extra + " keerutust!");
+        setFs({ remaining, win: fsWin });
+        await sleep(T(900));
+      }
+      await sleep(T(280));
+    }
+
+    setFs(null);
+    setRingMults({});
+    setBalance(b => +(b + total).toFixed(2));
+    setLastWin(total); setWinDisplay(total);
+    AudioEngine.playSfx("bigwin");
+    await waitOverlay({ kind: "bonusEnd", amt: total, capped });
+    await celebrate(total, bet, capped);
+    return total;
+  }
+
+  function refuel() {
+    AudioEngine.playSfx("click");
+    setBalance(100); setSessionBest(0); setLastWin(0); setWinDisplay(0);
+    setOverlay(null);
+  }
+
+  /* ---------- render ---------- */
+
+  const bet = BETS[betIdx];
+  const buyCost = 100 * bet;
+  const buyAllowed = betIdx <= MAX_BUY_BET_IDX;
+  const dropSecs = (turbo ? .13 : .38);
+
+  const cellBgs = [];
+  for (let c = 0; c < M.CELLS; c++) {
+    cellBgs.push(e("div", {
+      key: "bg" + c, className: "cellbg",
+      style: { left: (c % 7) * CELL + "%", top: ((c / 7) | 0) * CELL + "%" }
+    }));
+  }
+
+  const rings = Object.entries(ringMults).map(([cell, val]) => {
+    const c = +cell;
+    return e("div", {
+      key: "r" + c + "-" + val,
+      className: "ring" + (val > 0 ? " hasMult pop" : ""),
+      style: { left: (c % 7) * CELL + "%", top: ((c / 7) | 0) * CELL + "%" }
+    }, val > 0 ? e("span", { className: "mval" }, "×" + val) : null);
+  });
+
+  const tileEls = tiles.map(t => e("div", {
+    key: t.id,
+    className: "tile" + (t.phase === "win" ? " win" : t.phase === "die" ? " die" : "") + (t.sym === M.SCATTER ? " scat" : ""),
+    style: {
+      left: t.col * CELL + "%", top: t.y * CELL + "%",
+      transitionDuration: dropSecs + "s", transitionDelay: (t.delay || 0) + "ms"
+    }
+  }, M.SYMBOLS[t.sym].emoji));
+
+  const particleEls = particles.map(p => e("div", {
+    key: p.id, className: "particle",
+    style: { left: p.x + "%", top: p.y + "%", background: p.color, "--dx": p.dx + "px", "--dy": p.dy + "px", boxShadow: "0 0 6px " + p.color }
+  }));
+
+  let ovl = null;
+  if (overlay) {
+    if (overlay.kind === "bonusIntro") {
+      ovl = e("div", { className: "ovl" },
+        e("div", { className: "bigico" }, "🕳️"),
+        e("h2", { style: { color: "var(--magenta)" } }, "TASUTA KEERUTUSED!"),
+        e("p", { style: { fontSize: 15 } }, overlay.scatters + " Musta Auku = ", e("b", { style: { color: "var(--gold)" } }, overlay.spins + " tasuta keerutust")),
+        e("p", { style: { fontSize: 12, color: "var(--inkSoft)", lineHeight: 1.5 } }, "Kordajad ja märgid püsivad kõigi tasuta keerutuste vältel!"),
+        e("button", { className: "neonbtn gold", onClick: () => { AudioEngine.playSfx("click"); resolveOverlay(); } }, "Alusta 🚀"));
+    } else if (overlay.kind === "bonusEnd") {
+      ovl = e("div", { className: "ovl" },
+        e("div", { className: "bigico" }, overlay.capped ? "👑" : "🏆"),
+        e("h2", null, "Boonus läbi!"),
+        e("div", { className: "winAmt" }, fmt(overlay.amt)),
+        e("p", { style: { fontSize: 13, color: "var(--inkSoft)" } }, fmtX(overlay.amt / bet) + " panusest"),
+        e("button", { className: "neonbtn", onClick: () => { AudioEngine.playSfx("click"); resolveOverlay(); } }, "Jätka"));
+    } else if (overlay.kind === "bigwin") {
+      ovl = e("div", { className: "ovl", onClick: resolveOverlay },
+        e("div", { className: "bigico" }, overlay.ico),
+        e("div", { className: "winTitle " + overlay.cls }, overlay.title),
+        e("div", { className: "winAmt" }, fmt(overlay.amt)));
+    } else if (overlay.kind === "refuel") {
+      ovl = e("div", { className: "ovl" },
+        e("div", { className: "bigico" }, "🛢️"),
+        e("h2", null, "Kütus otsas!"),
+        e("p", { style: { fontSize: 13, color: "var(--inkSoft)", lineHeight: 1.6 } }, "Sinu mänguraha on otsas.", e("br"), "Tangi paak uuesti täis — see on ju mängu­raha!"),
+        e("button", { className: "neonbtn gold", onClick: refuel }, "Tangi 100.00 ⛽"));
+    } else if (overlay.kind === "name") {
+      ovl = e("div", { className: "ovl" },
+        e("div", { className: "bigico" }, "🏆"),
+        e("h2", null, "Suur võit — " + fmtX(overlay.mult) + "!"),
+        e("p", { style: { fontSize: 13, color: "var(--inkSoft)" } }, "Kirjuta oma nimi edetabelisse:"),
+        e("input", {
+          className: "name-input", maxLength: 20, placeholder: "Sinu nimi",
+          value: nameVal, onChange: ev => setNameVal(ev.target.value)
+        }),
+        e("button", {
+          className: "neonbtn gold",
+          onClick: async () => { AudioEngine.playSfx("click"); await submitScore(overlay.amt, overlay.mult); resolveOverlay(); }
+        }, "Salvesta edetabelisse 🏆"),
+        e("button", { className: "neonbtn ghost", onClick: resolveOverlay }, "Jäta vahele"));
+    }
+  }
+
+  const boardOvl = boardOpen ? e("div", { className: "ovl", onClick: ev => { if (ev.target === ev.currentTarget) setBoardOpen(false); } },
+    e("div", { className: "panel" },
+      e("h2", { style: { marginBottom: 14 } }, "🏆 Edetabel"),
+      boardErr ? e("div", { className: "db-error" }, "Laadimine ebaõnnestus: " + boardErr) :
+        boardRows == null ? e("div", { className: "board-empty" }, "Laen…") :
+          boardRows.length === 0 ? e("div", { className: "board-empty" }, "Ole esimene edetabelis! Võida 50x panus.") :
+            boardRows.map((r, i) => e("div", { className: "board-row", key: i },
+              e("span", { className: "board-rank" }, i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1) + "."),
+              e("span", { className: "board-name" }, r.name),
+              e("span", { className: "board-mult" }, fmtX(+r.win_multiplier)),
+              e("span", { className: "board-amt" }, fmt(+r.win_amount)))),
+      e("div", { style: { textAlign: "center", marginTop: 14 } },
+        e("button", { className: "neonbtn ghost", onClick: () => setBoardOpen(false) }, "Sulge")))) : null;
+
+  return e(React.Fragment, null,
+    e("div", { className: "wrap" },
+      e("div", { className: "topbar" },
+        e("a", { className: "back", href: "/" }, "← AVALEHT"),
+        e("div", { className: "iconbtns" },
+          e("button", { className: "icobtn", onClick: () => { AudioEngine.playSfx("click"); setBoardOpen(true); }, title: "Edetabel" }, "🏆"),
+          e("button", {
+            className: "icobtn" + (musicOn ? "" : " off"),
+            onClick: () => { const v = !musicOn; setMusicOnState(v); AudioEngine.setMusic(v); }, title: "Muusika"
+          }, "🎵"),
+          e("button", {
+            className: "icobtn" + (sfxOn ? "" : " off"),
+            onClick: () => { const v = !sfxOn; setSfxOnState(v); AudioEngine.setSfx(v); AudioEngine.playSfx("click"); }, title: "Heliefektid"
+          }, "🔊"),
+          e("button", {
+            className: "icobtn" + (turbo ? " turbo-on" : ""),
+            onClick: () => { AudioEngine.playSfx("click"); setTurbo(t => !t); }, title: "Turbo"
+          }, "⚡"))),
+      e("div", { className: "hdr" },
+        e("h1", null, "KosmosBet"),
+        e("p", null, "kosmose klastrislott")),
+
+      fs ? e("div", { className: "fsbanner" },
+        e("span", null, "🕳️ Tasuta keerutused: ", e("b", null, fs.remaining)),
+        e("span", null, "Võit: ", e("b", null, fmt(fs.win || 0)))) : null,
+
+      e("div", { className: "board-outer" },
+        e("div", { className: "board" }, cellBgs, rings, tileEls, particleEls)),
+
+      e("div", { className: "statrow" },
+        e("div", { className: "stat" },
+          e("div", { className: "lbl" }, "Saldo"),
+          e("div", { className: "val" }, fmt(balance))),
+        e("div", { className: "stat" },
+          e("div", { className: "lbl" }, "Panus"),
+          e("div", { className: "val", style: { color: "var(--cyan)" } }, fmt(bet))),
+        e("div", { className: "stat" },
+          e("div", { className: "lbl" }, "Võit"),
+          e("div", { className: "val winval" }, fmt(winDisplay)))),
+
+      e("div", { className: "controls" },
+        e("div", { className: "betbox" },
+          e("button", {
+            className: "stepbtn", disabled: spinning || betIdx === 0,
+            onClick: () => { AudioEngine.playSfx("click"); setBetIdx(i => Math.max(0, i - 1)); }
+          }, "−"),
+          e("div", { className: "betval" }, fmt(bet)),
+          e("button", {
+            className: "stepbtn", disabled: spinning || betIdx === BETS.length - 1,
+            onClick: () => { AudioEngine.playSfx("click"); setBetIdx(i => Math.min(BETS.length - 1, i + 1)); }
+          }, "+")),
+        e("button", { className: "spinbtn", disabled: spinning, onClick: () => doSpin(false) },
+          spinning ? "..." : "KEERUTA 🚀")),
+
+      e("button", {
+        className: "buybtn", disabled: spinning || !buyAllowed,
+        onClick: () => doSpin(true),
+        title: buyAllowed ? "" : "Boonusost lubatud vaid panustel 0.2, 0.4 ja 1.0"
+      }, buyAllowed ? "🕳️ OSTA BOONUS — " + fmt(buyCost) : "🕳️ OSTA BOONUS (panus max 1.00)"),
+
+      e("p", { className: "capnote" },
+        sessionBest > 0 ? "Sessiooni suurim võit: " + fmt(sessionBest) + " · " : "",
+        "Mänguraha — päris raha siin ei liigu. Max võit 5000x panus.")),
+
+    toast ? e("div", { className: "toast" }, toast) : null,
+    ovl, boardOvl);
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(e(App));
+</script>
+</body>
+</html>
