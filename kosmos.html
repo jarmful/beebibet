@@ -409,18 +409,26 @@ const M = window.KosmosMath;
 
 const BETS = [0.2, 0.4, 1, 2, 5, 10, 20, 50, 100];
 const MAX_BUY_BET_IDX = 2;           // boonusost lubatud kuni panuseni 1.0
+const START_FUEL = 500;              // sessiooni algkütus; tulemuse kordaja = tulemus / START_FUEL
 const CELL = 100 / 7;
 const fmt = n => n.toFixed(2);
 const fmtX = n => (n >= 100 ? Math.round(n) : n >= 10 ? +n.toFixed(1) : +n.toFixed(2)) + "x";
 
 function lsNum(key, def) { const v = parseFloat(localStorage.getItem(key)); return isNaN(v) ? def : v; }
 
+// Kui algkütuse suurus on muutunud, alusta puhta sessiooniga
+if (localStorage.getItem("kosmos_fuelver") !== String(START_FUEL)) {
+  localStorage.setItem("kosmos_fuelver", String(START_FUEL));
+  localStorage.setItem("kosmos_bankroll", String(START_FUEL));
+  localStorage.setItem("kosmos_result", "0");
+}
+
 let tileSeq = 1;
 
 function App() {
-  // Sessioonimudel: mängid 100 läbi — panused tulevad "kütusest",
+  // Sessioonimudel: mängid START_FUEL läbi — panused tulevad "kütusest",
   // võidud kogunevad eraldi tulemuseks (neid uuesti panustada ei saa).
-  const [bankroll, setBankroll] = useState(() => lsNum("kosmos_bankroll", 100));
+  const [bankroll, setBankroll] = useState(() => lsNum("kosmos_bankroll", START_FUEL));
   const [result, setResult] = useState(() => lsNum("kosmos_result", 0));
   const [betIdx, setBetIdx] = useState(() => Math.min(8, Math.max(0, lsNum("kosmos_betidx", 0) | 0)));
   const [lastWin, setLastWin] = useState(0);
@@ -759,7 +767,7 @@ function App() {
 
   function newSession() {
     AudioEngine.playSfx("click");
-    setBankroll(100); setResult(0); setLastWin(0); setWinDisplay(0);
+    setBankroll(START_FUEL); setResult(0); setLastWin(0); setWinDisplay(0);
     setOverlay(null);
   }
 
@@ -823,11 +831,11 @@ function App() {
         e("div", { className: "winTitle " + overlay.cls }, overlay.title),
         e("div", { className: "winAmt" }, fmt(overlay.amt)));
     } else if (overlay.kind === "gameover") {
-      const mult = overlay.amt / 100;
+      const mult = overlay.amt / START_FUEL;
       ovl = e("div", { className: "ovl" },
         e("div", { className: "bigico" }, "🛢️"),
         e("h2", null, "Kütus otsas — mäng läbi!"),
-        e("p", { style: { fontSize: 13, color: "var(--inkSoft)" } }, "100 mängitud. Sinu tulemus:"),
+        e("p", { style: { fontSize: 13, color: "var(--inkSoft)" } }, START_FUEL + " mängitud. Sinu tulemus:"),
         e("div", { className: "winAmt" }, fmt(overlay.amt)),
         e("p", { style: { fontSize: 13, color: "var(--inkSoft)" } }, fmtX(mult) + " · kirjuta nimi ja salvesta edetabelisse"),
         overlay.amt > 0 && sb ? e("input", {
@@ -842,14 +850,14 @@ function App() {
             // Sulge kohe — salvestus käib taustal, tulemus tuleb toastina
             newSession();
             setBoardOpen(true);
-            submitScore(amt, amt / 100).then(ok => {
+            submitScore(amt, amt / START_FUEL).then(ok => {
               showToast(ok ? "🏆 Tulemus salvestatud!" : "Salvestamine ebaõnnestus — server ei vasta", ok ? 2200 : 3200);
               if (ok) loadBoard();
             });
           }
         }, "Salvesta ja uus mäng 🏆") : null,
         e("button", { className: overlay.amt > 0 ? "neonbtn ghost" : "neonbtn gold", onClick: newSession },
-          overlay.amt > 0 ? "Uus mäng ilma salvestamata" : "Uus mäng — tangi 100 ⛽"));
+          overlay.amt > 0 ? "Uus mäng ilma salvestamata" : "Uus mäng — tangi " + START_FUEL + " ⛽"));
     }
   }
 
@@ -858,7 +866,7 @@ function App() {
       e("h2", { style: { marginBottom: 14 } }, "🏆 Edetabel"),
       boardErr ? e("div", { className: "db-error" }, "Laadimine ebaõnnestus: " + boardErr) :
         boardRows == null ? e("div", { className: "board-empty" }, "Laen…") :
-          boardRows.length === 0 ? e("div", { className: "board-empty" }, "Ole esimene edetabelis! Mängi oma 100 läbi ja salvesta tulemus.") :
+          boardRows.length === 0 ? e("div", { className: "board-empty" }, "Ole esimene edetabelis! Mängi oma " + START_FUEL + " läbi ja salvesta tulemus.") :
             boardRows.map((r, i) => e("div", { className: "board-row", key: i },
               e("span", { className: "board-rank" }, i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1) + "."),
               e("span", { className: "board-name" }, r.name),
@@ -931,7 +939,7 @@ function App() {
       }, buyAllowed ? "🕳️ OSTA BOONUS — " + fmt(buyCost) : "🕳️ OSTA BOONUS (panus max 1.00)"),
 
       e("p", { className: "capnote" },
-        "Mängid 100 kütust läbi — kõik võidud kogunevad tulemuseks ja tulemus läheb edetabelisse. ",
+        "Mängid " + START_FUEL + " kütust läbi — kõik võidud kogunevad tulemuseks ja tulemus läheb edetabelisse. ",
         "Mänguraha, päris raha siin ei liigu. Max võit 5000x panus.")),
 
     toast ? e("div", { className: "toast" }, toast) : null,
