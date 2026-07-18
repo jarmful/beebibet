@@ -173,7 +173,7 @@
     padding:8px 6px; text-align:center;
   }
   .stat .lbl { font-size:9px; letter-spacing:1.2px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; }
-  .stat .val { font-size:15px; font-weight:900; margin-top:1px; }
+  .stat .val { font-size:14px; font-weight:900; margin-top:1px; }
   .stat .val.winval { color:var(--banana); text-shadow:0 0 10px rgba(255,213,79,.5); }
 
   .controls { display:flex; align-items:center; gap:10px; margin-top:12px; }
@@ -587,18 +587,28 @@ const M = window.ZoolandMath;
 
 const BETS = [0.2, 0.4, 1, 2, 5, 10, 20, 50, 100];
 const MAX_BUY_BET_IDX = 2;   // boonusost lubatud kuni panuseni 1.0
-const START_BALANCE = 100;
-const LEADERBOARD_MIN_X = 50; // 50x+ võit -> edetabel
+const START_SALDO = 100;     // sessiooni algsaldo; tulemuse kordaja = tulemus / START_SALDO
 const CW = 100 / 6, CH = 100 / 5;
 const fmt = n => n.toFixed(2);
 const fmtX = n => (n >= 100 ? Math.round(n) : n >= 10 ? +n.toFixed(1) : +n.toFixed(2)) + "x";
 
 function lsNum(key, def) { const v = parseFloat(localStorage.getItem(key)); return isNaN(v) ? def : v; }
 
+// Kui algsaldo suurus on muutunud, alusta puhta sessiooniga
+if (localStorage.getItem("zooland_saldover") !== String(START_SALDO)) {
+  localStorage.setItem("zooland_saldover", String(START_SALDO));
+  localStorage.setItem("zooland_saldo", String(START_SALDO));
+  localStorage.setItem("zooland_result", "0");
+}
+
 let tileSeq = 1;
 
 function App() {
-  const [balance, setBalance] = useState(() => lsNum("zooland_balance", START_BALANCE));
+  // Sessioonimudel (nagu KosmosBetis): mängid START_SALDO läbi — panused
+  // tulevad saldost, võidud kogunevad eraldi tulemuseks (neid uuesti
+  // panustada ei saa). Tulemus / START_SALDO = edetabeli kordaja.
+  const [saldo, setSaldo] = useState(() => lsNum("zooland_saldo", START_SALDO));
+  const [result, setResult] = useState(() => lsNum("zooland_result", 0));
   const [betIdx, setBetIdx] = useState(() => Math.min(BETS.length - 1, Math.max(0, lsNum("zooland_betidx", 0) | 0)));
   const [ante, setAnte] = useState(() => localStorage.getItem("zooland_ante") === "1");
   const [lastWin, setLastWin] = useState(0);
@@ -622,7 +632,8 @@ function App() {
 
   const rngRef = useRef(M.makeRng(M.randomSeed()));
   const turboRef = useRef(turbo); turboRef.current = turbo;
-  const balanceRef = useRef(balance); balanceRef.current = balance;
+  const saldoRef = useRef(saldo); saldoRef.current = saldo;
+  const resultRef = useRef(result); resultRef.current = result;
   const spinningRef = useRef(false);
   const overlayResolve = useRef(null);
   const winCounterRef = useRef(null);
@@ -636,7 +647,8 @@ function App() {
     return () => clearTimeout(t);
   }, []);
 
-  useEffect(() => { localStorage.setItem("zooland_balance", String(balance)); }, [balance]);
+  useEffect(() => { localStorage.setItem("zooland_saldo", String(saldo)); }, [saldo]);
+  useEffect(() => { localStorage.setItem("zooland_result", String(result)); }, [result]);
   useEffect(() => { localStorage.setItem("zooland_betidx", String(betIdx)); }, [betIdx]);
   useEffect(() => { localStorage.setItem("zooland_ante", ante ? "1" : "0"); }, [ante]);
   useEffect(() => { localStorage.setItem("zooland_turbo", turbo ? "1" : "0"); }, [turbo]);
@@ -896,14 +908,14 @@ function App() {
     if (spinningRef.current) return;
     const bet = BETS[betIdx];
     const cost = buy ? 100 * bet : ante ? +(1.25 * bet).toFixed(2) : bet;
-    if (balanceRef.current < cost - 1e-9) {
-      if (balanceRef.current < BETS[0] - 1e-9) setOverlay({ kind: "feed" });
-      else showToast("Saldo ei kata panust!");
+    if (saldoRef.current < cost - 1e-9) {
+      if (saldoRef.current < BETS[0] - 1e-9) setOverlay({ kind: "gameover", amt: resultRef.current });
+      else showToast("Saldo ei kata panust — vähenda panust!");
       return;
     }
 
     spinningRef.current = true; setSpinning(true);
-    setBalance(b => +(b - cost).toFixed(2));
+    setSaldo(s => +(s - cost).toFixed(2));
     setLastWin(0); setWinDisplay(0);
     AudioEngine.playSfx("spin");
 
@@ -927,18 +939,14 @@ function App() {
       await celebrate(spinRes.win, bet0, spinRes.capped);
     }
 
-    if (roundWin > 0) setBalance(b => +(b + roundWin).toFixed(2));
-
-    // 50x+ võit -> paku edetabelisse kandmist
-    if (roundWin >= LEADERBOARD_MIN_X * bet0 && sb) {
-      await waitOverlay({ kind: "namePrompt", amt: roundWin, mult: roundWin / bet0 });
-    }
+    // Võit läheb tulemusse, mitte tagasi saldosse
+    const finalResult = +(resultRef.current + roundWin).toFixed(2);
+    if (roundWin > 0) setResult(finalResult);
 
     spinningRef.current = false; setSpinning(false);
-    await sleep(60); // lase saldo-uuendusel jõustuda enne kontrolli
-    if (balanceRef.current < BETS[0] - 1e-9) {
-      await sleep(350);
-      setOverlay({ kind: "feed" });
+    if (saldoRef.current < BETS[0] - 1e-9) {
+      await sleep(400);
+      setOverlay({ kind: "gameover", amt: finalResult });
     }
   }
 
@@ -980,10 +988,9 @@ function App() {
     return total;
   }
 
-  function feedAnimals() {
+  function newSession() {
     AudioEngine.playSfx("click");
-    setBalance(START_BALANCE);
-    setLastWin(0); setWinDisplay(0);
+    setSaldo(START_SALDO); setResult(0); setLastWin(0); setWinDisplay(0);
     setOverlay(null);
   }
 
@@ -1057,35 +1064,34 @@ function App() {
         e("div", { className: "bigico" + (overlay.chest ? " chest" : "") }, overlay.ico),
         e("div", { className: "winTitle " + overlay.cls }, overlay.title),
         e("div", { className: "winAmt" }, fmt(overlay.amt)));
-    } else if (overlay.kind === "namePrompt") {
+    } else if (overlay.kind === "gameover") {
+      const mult = overlay.amt / START_SALDO;
       ovl = e("div", { className: "ovl" },
-        e("div", { className: "bigico" }, "🏆"),
-        e("h2", null, "Suur võit!"),
+        e("div", { className: "bigico" }, "🦁"),
+        e("h2", null, "Toit otsas — mäng läbi!"),
+        e("p", { style: { fontSize: 13, color: "var(--inkSoft)" } }, START_SALDO + " saldot mängitud. Sinu tulemus:"),
         e("div", { className: "winAmt" }, fmt(overlay.amt)),
-        e("p", { style: { fontSize: 13, color: "var(--inkSoft)" } }, fmtX(overlay.mult) + " panusest — kirjuta nimi ja pääse edetabelisse!"),
-        e("input", {
+        e("p", { style: { fontSize: 13, color: "var(--inkSoft)" } }, fmtX(mult) + " · kirjuta nimi ja salvesta edetabelisse"),
+        overlay.amt > 0 && sb ? e("input", {
           className: "name-input", maxLength: 20, placeholder: "Sinu nimi",
           value: nameVal, onChange: ev => setNameVal(ev.target.value)
-        }),
-        e("button", {
+        }) : null,
+        overlay.amt > 0 && sb ? e("button", {
           className: "junglebtn green",
           onClick: () => {
             AudioEngine.playSfx("click");
-            const { amt, mult } = overlay;
-            resolveOverlay();
-            submitScore(amt, mult).then(ok => {
+            const amt = overlay.amt;
+            // Sulge kohe — salvestus käib taustal, tulemus tuleb toastina
+            newSession();
+            setBoardOpen(true);
+            submitScore(amt, amt / START_SALDO).then(ok => {
               showToast(ok ? "🏆 Tulemus salvestatud!" : "Salvestamine ebaõnnestus — server ei vasta", ok ? 2200 : 3200);
+              if (ok) loadBoard();
             });
           }
-        }, "Salvesta 🏆"),
-        e("button", { className: "junglebtn ghost", onClick: () => { AudioEngine.playSfx("click"); resolveOverlay(); } }, "Jäta vahele"));
-    } else if (overlay.kind === "feed") {
-      ovl = e("div", { className: "ovl" },
-        e("div", { className: "bigico" }, "🦁"),
-        e("h2", null, "Loomad on näljased!"),
-        e("p", { style: { fontSize: 13, color: "var(--inkSoft)", lineHeight: 1.6 } },
-          "Saldo sai otsa. Toida loomi ja saad uue ", e("b", { style: { color: "var(--banana)" } }, START_BALANCE + " krediidi"), " varu — edetabel jääb puutumata."),
-        e("button", { className: "junglebtn", onClick: feedAnimals }, "Toida loomi 🍌"));
+        }, "Salvesta ja uus mäng 🏆") : null,
+        e("button", { className: overlay.amt > 0 ? "junglebtn ghost" : "junglebtn", onClick: newSession },
+          overlay.amt > 0 ? "Uus mäng ilma salvestamata" : "Uus mäng — toida loomi 🍌"));
     }
   }
 
@@ -1097,7 +1103,7 @@ function App() {
         e("div", { style: { textAlign: "center", marginTop: 10 } },
           e("button", { className: "junglebtn ghost", onClick: () => loadBoard() }, "Proovi uuesti 🔄"))) :
         boardRows == null ? e("div", { className: "board-empty" }, "Laen…") :
-          boardRows.length === 0 ? e("div", { className: "board-empty" }, "Ole esimene edetabelis! Võida " + LEADERBOARD_MIN_X + "x panus või rohkem.") :
+          boardRows.length === 0 ? e("div", { className: "board-empty" }, "Ole esimene edetabelis! Mängi oma " + START_SALDO + " saldot läbi ja salvesta tulemus.") :
             boardRows.map((r, i) => e("div", { className: "board-row", key: i },
               e("span", { className: "board-rank" }, i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1) + "."),
               e("span", { className: "board-name" }, r.name),
@@ -1140,13 +1146,16 @@ function App() {
       e("div", { className: "statrow" },
         e("div", { className: "stat" },
           e("div", { className: "lbl" }, "Saldo"),
-          e("div", { className: "val" }, fmt(balance))),
+          e("div", { className: "val" }, fmt(saldo))),
         e("div", { className: "stat" },
           e("div", { className: "lbl" }, "Panus"),
           e("div", { className: "val", style: { color: "var(--jungle)" } }, fmt(ante ? +(bet * 1.25).toFixed(2) : bet))),
         e("div", { className: "stat" },
           e("div", { className: "lbl" }, "Võit"),
-          e("div", { className: "val winval" }, fmt(winDisplay)))),
+          e("div", { className: "val winval" }, fmt(winDisplay))),
+        e("div", { className: "stat" },
+          e("div", { className: "lbl" }, "Tulemus"),
+          e("div", { className: "val", style: { color: "var(--sunset)" } }, fmt(result)))),
 
       e("div", { className: "controls" },
         e("div", { className: "betbox" },
@@ -1175,8 +1184,8 @@ function App() {
         }, betIdx <= MAX_BUY_BET_IDX ? "🎁 OSTA BOONUS — " + fmt(buyCost) : "🎁 OSTA BOONUS (max 1.00)")),
 
       e("p", { className: "capnote" },
-        "Mänguraha — päris raha siin ei liigu. 8+ sama sümbolit ükskõik kus võidab. ",
-        "4+ Kuldset Banaani = 10 tasuta keerutust pommikordajatega. Max võit " + M.MAX_WIN_X + "x panus.")),
+        "Mängid " + START_SALDO + " saldot läbi — panused tulevad saldost, kõik võidud kogunevad tulemuseks ja tulemus läheb edetabelisse. ",
+        "Mänguraha, päris raha siin ei liigu. 8+ sama sümbolit ükskõik kus võidab. Max võit " + M.MAX_WIN_X + "x panus.")),
 
     toast ? e("div", { className: "toast" }, toast) : null,
     ovl, boardOvl);
