@@ -638,25 +638,38 @@ function App() {
     }
   }
 
+  // Ära lase rippuval võrgupäringul UI-d blokeerida
+  function withTimeout(p, ms) {
+    return Promise.race([
+      Promise.resolve(p),
+      new Promise((_, rej) => setTimeout(() => rej(new Error("Ajalõpp — server ei vasta")), ms))
+    ]);
+  }
+
+  // Taustal salvestus; tagastab kas õnnestus
   async function submitScore(win, mult) {
     const name = nameVal.trim();
-    if (!name) return;
+    if (!name || !sb) return false;
     localStorage.setItem("kosmos_name", name);
     try {
-      await sb.from("kosmos_leaderboard").insert({
+      const { error } = await withTimeout(sb.from("kosmos_leaderboard").insert({
         name, win_amount: +win.toFixed(2), win_multiplier: +mult.toFixed(2)
-      });
-    } catch (err) { console.error(err); }
+      }), 8000);
+      if (error) throw error;
+      return true;
+    } catch (err) { console.error("Edetabeli salvestus:", err); return false; }
   }
 
   async function loadBoard() {
     setBoardErr(null); setBoardRows(null);
-    const { data, error } = await sb.from("kosmos_leaderboard")
-      .select("name,win_amount,win_multiplier")
-      .order("win_multiplier", { ascending: false })
-      .limit(10);
-    if (error) { setBoardErr(error.message + " (" + error.code + ")"); return; }
-    setBoardRows(data || []);
+    try {
+      const { data, error } = await withTimeout(sb.from("kosmos_leaderboard")
+        .select("name,win_amount,win_multiplier")
+        .order("win_multiplier", { ascending: false })
+        .limit(10), 8000);
+      if (error) { setBoardErr(error.message + " (" + error.code + ")"); return; }
+      setBoardRows(data || []);
+    } catch (err) { setBoardErr(err.message); }
   }
   useEffect(() => { if (boardOpen && sb) loadBoard(); }, [boardOpen]);
 
@@ -823,7 +836,17 @@ function App() {
         }) : null,
         overlay.amt > 0 && sb ? e("button", {
           className: "neonbtn gold",
-          onClick: async () => { AudioEngine.playSfx("click"); await submitScore(overlay.amt, mult); newSession(); setBoardOpen(true); }
+          onClick: () => {
+            AudioEngine.playSfx("click");
+            const amt = overlay.amt;
+            // Sulge kohe — salvestus käib taustal, tulemus tuleb toastina
+            newSession();
+            setBoardOpen(true);
+            submitScore(amt, amt / 100).then(ok => {
+              showToast(ok ? "🏆 Tulemus salvestatud!" : "Salvestamine ebaõnnestus — server ei vasta", ok ? 2200 : 3200);
+              if (ok) loadBoard();
+            });
+          }
         }, "Salvesta ja uus mäng 🏆") : null,
         e("button", { className: overlay.amt > 0 ? "neonbtn ghost" : "neonbtn gold", onClick: newSession },
           overlay.amt > 0 ? "Uus mäng ilma salvestamata" : "Uus mäng — tangi 100 ⛽"));
