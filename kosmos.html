@@ -654,30 +654,38 @@ function App() {
     ]);
   }
 
-  // Taustal salvestus; tagastab kas õnnestus
+  // Taustal salvestus, kuni 2 katset; tagastab kas õnnestus.
+  // Pikk ajalõpp: uinunud Supabase või aeglane mobiilivõrk vajab aega.
   async function submitScore(win, mult) {
     const name = nameVal.trim();
     if (!name || !sb) return false;
     localStorage.setItem("kosmos_name", name);
-    try {
-      const { error } = await withTimeout(sb.from("kosmos_leaderboard").insert({
-        name, win_amount: +win.toFixed(2), win_multiplier: +mult.toFixed(2)
-      }), 8000);
-      if (error) throw error;
-      return true;
-    } catch (err) { console.error("Edetabeli salvestus:", err); return false; }
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const { error } = await withTimeout(sb.from("kosmos_leaderboard").insert({
+          name, win_amount: +win.toFixed(2), win_multiplier: +mult.toFixed(2)
+        }), 15000);
+        if (error) throw error;
+        return true;
+      } catch (err) { console.error("Edetabeli salvestus (katse " + attempt + "):", err); }
+    }
+    return false;
   }
 
-  async function loadBoard() {
+  async function loadBoard(attempt) {
+    attempt = attempt || 1;
     setBoardErr(null); setBoardRows(null);
     try {
       const { data, error } = await withTimeout(sb.from("kosmos_leaderboard")
         .select("name,win_amount,win_multiplier")
         .order("win_multiplier", { ascending: false })
-        .limit(10), 8000);
-      if (error) { setBoardErr(error.message + " (" + error.code + ")"); return; }
+        .limit(10), 15000);
+      if (error) throw new Error(error.message + (error.code ? " (" + error.code + ")" : ""));
       setBoardRows(data || []);
-    } catch (err) { setBoardErr(err.message); }
+    } catch (err) {
+      if (attempt < 2) return loadBoard(attempt + 1);
+      setBoardErr(err.message);
+    }
   }
   useEffect(() => { if (boardOpen && sb) loadBoard(); }, [boardOpen]);
 
@@ -864,7 +872,10 @@ function App() {
   const boardOvl = boardOpen ? e("div", { className: "ovl", onClick: ev => { if (ev.target === ev.currentTarget) setBoardOpen(false); } },
     e("div", { className: "panel" },
       e("h2", { style: { marginBottom: 14 } }, "🏆 Edetabel"),
-      boardErr ? e("div", { className: "db-error" }, "Laadimine ebaõnnestus: " + boardErr) :
+      boardErr ? e("div", null,
+        e("div", { className: "db-error" }, "Laadimine ebaõnnestus: " + boardErr),
+        e("div", { style: { textAlign: "center", marginTop: 10 } },
+          e("button", { className: "neonbtn ghost", onClick: () => loadBoard() }, "Proovi uuesti 🔄"))) :
         boardRows == null ? e("div", { className: "board-empty" }, "Laen…") :
           boardRows.length === 0 ? e("div", { className: "board-empty" }, "Ole esimene edetabelis! Mängi oma " + START_FUEL + " läbi ja salvesta tulemus.") :
             boardRows.map((r, i) => e("div", { className: "board-row", key: i },
