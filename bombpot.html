@@ -103,7 +103,7 @@
     margin-bottom:5px; background:rgba(8,26,16,.55); border:1px solid transparent; transition:all .3s;
   }
   .prow.win { border-color:var(--gold); background:rgba(60,48,10,.35); box-shadow:0 0 14px rgba(255,213,79,.25); }
-  .pname { width:72px; flex-shrink:0; font-size:11.5px; font-weight:800; color:var(--inkSoft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .pname { width:84px; flex-shrink:0; font-size:11px; font-weight:800; color:var(--inkSoft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .prow.win .pname { color:var(--gold); }
   .pcards { display:flex; gap:4px; flex:1; }
   .pwin { font-size:12px; font-weight:900; min-width:44px; text-align:right; color:var(--gold); text-shadow:0 0 8px rgba(255,213,79,.5); }
@@ -314,9 +314,22 @@ const e = React.createElement;
 const { useState, useEffect, useRef } = React;
 
 const START_STAKE = 100, BET = 10, TOTAL_BETS = 10;
+const OPP_NAMES = ["Fill Aivi", "Doil Branson", "Filip Hellmutt"];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const fmt = n => { const v = Math.round(+n * 100) / 100; return Number.isInteger(v) ? String(v) : v.toFixed(2); };
-const pname = i => i === 0 ? "Sina" : "Vastane " + i;
+
+// Vastased saavad igal panusel juhuslikus järjekorras nimed nimepoolist;
+// kui vastaseid on rohkem kui nimesid, saavad ülejäänud numbri.
+function assignNames(opponents) {
+  const pool = OPP_NAMES.slice();
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = (Math.random() * (i + 1)) | 0;
+    const t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+  }
+  const names = ["Sina"];
+  for (let i = 1; i <= opponents; i++) names.push(pool[i - 1] || "Vastane " + i);
+  return names;
+}
 
 function App() {
   const [stake, setStake] = useState(START_STAKE);
@@ -327,6 +340,7 @@ function App() {
   const [opp, setOpp] = useState(2);
   const [variant, setVariant] = useState("holdem");
   const [nBoards, setNBoards] = useState(1);
+  const [dealMode, setDealMode] = useState(localStorage.getItem("bombpot_dealmode") || "manual");
 
   const [phase, setPhase] = useState("setup"); // setup | dealing | result
   const [deal, setDeal] = useState(null);
@@ -396,29 +410,15 @@ function App() {
 
   /* ---------- panus ---------- */
 
-  async function allIn() {
-    if (busyRef.current || phase !== "setup" || betsDone >= TOTAL_BETS) return;
-    busyRef.current = true;
-    AudioEngine.playSfx("allin");
+  const pendingRef = useRef(null);
 
-    const d = M.dealBet(opp, variant, nBoards, rngRef.current);
-    const pot = (opp + 1) * BET;
-    setStake(s => s - BET);
-    setBetsDone(n => n + 1);
-    setDeal({ hands: d.hands, boards: d.boards, variant, pot });
-    setOutcome(null); setReveal(0); setPhase("dealing");
-
-    // Taskukaardid lendavad lauale, siis floppp → turn → river
-    await sleep(1000);
-    AudioEngine.playSfx("flip"); setReveal(3); await sleep(1100);
-    AudioEngine.playSfx("flip"); setReveal(4); await sleep(1100);
-    AudioEngine.playSfx("flip"); setReveal(5); await sleep(850);
-
-    // Arveldus: iga laud = pot / laudade arv, viik jagab võrdselt
+  // Arveldus: iga laud = pot / laudade arv, viik jagab võrdselt
+  function finishBet() {
+    const { d, pot } = pendingRef.current;
     const half = pot / d.boards.length;
     let total = 0;
     const boardsOut = d.boards.map(b => {
-      const s = M.settleBoard(d.hands, b, variant);
+      const s = M.settleBoard(d.hands, b, d.variant);
       const share = half / s.winners.length;
       const mine = s.winners.indexOf(0) >= 0 ? share : 0;
       total += mine;
@@ -435,7 +435,46 @@ function App() {
     }
     AudioEngine.playSfx(total >= pot ? "bigwin" : total > 0 ? "win" : "lose");
     setPhase("result");
+  }
+
+  async function allIn() {
+    if (busyRef.current || phase !== "setup" || betsDone >= TOTAL_BETS) return;
+    busyRef.current = true;
+    AudioEngine.playSfx("allin");
+
+    const d = M.dealBet(opp, variant, nBoards, rngRef.current);
+    d.variant = variant;
+    const pot = (opp + 1) * BET;
+    pendingRef.current = { d, pot };
+    setStake(s => s - BET);
+    setBetsDone(n => n + 1);
+    setDeal({ hands: d.hands, boards: d.boards, variant, pot, names: assignNames(opp), mode: dealMode });
+    setOutcome(null); setReveal(0); setPhase("dealing");
+
+    if (dealMode === "auto") {
+      // Kiirjagamine: taskukaardid lendavad lauale, siis flopp → turn → river
+      await sleep(1000);
+      AudioEngine.playSfx("flip"); setReveal(3); await sleep(1100);
+      AudioEngine.playSfx("flip"); setReveal(4); await sleep(1100);
+      AudioEngine.playSfx("flip"); setReveal(5); await sleep(850);
+      finishBet();
+    }
     busyRef.current = false;
+  }
+
+  // Nupuga jagamine: iga vajutus avab järgmise tänava, river arveldab
+  async function dealStreet() {
+    if (busyRef.current || phase !== "dealing") return;
+    AudioEngine.playSfx("flip");
+    if (reveal < 3) setReveal(3);
+    else if (reveal === 3) setReveal(4);
+    else if (reveal === 4) {
+      setReveal(5);
+      busyRef.current = true;
+      await sleep(800);
+      finishBet();
+      busyRef.current = false;
+    }
   }
 
   function next() {
@@ -497,6 +536,16 @@ function App() {
           className: "optbtn" + (nBoards === 2 ? " on" : ""),
           onClick: () => { AudioEngine.playSfx("click"); setNBoards(2); }
         }, "2 lauda", e("small", null, "pott jaguneb pooleks"))),
+      e("div", { className: "optlbl" }, "Jagamine"),
+      e("div", { className: "optrow" },
+        e("button", {
+          className: "optbtn" + (dealMode === "manual" ? " on" : ""),
+          onClick: () => { AudioEngine.playSfx("click"); setDealMode("manual"); localStorage.setItem("bombpot_dealmode", "manual"); }
+        }, "Nupuga", e("small", null, "jaga flopp, turn ja river ise")),
+        e("button", {
+          className: "optbtn" + (dealMode === "auto" ? " on" : ""),
+          onClick: () => { AudioEngine.playSfx("click"); setDealMode("auto"); localStorage.setItem("bombpot_dealmode", "auto"); }
+        }, "Kiire", e("small", null, "laud jagatakse automaatselt"))),
       e("div", { className: "potline" }, "Pott", e("b", null, fmt(pot))),
       e("button", { className: "allinbtn", disabled: betsDone >= TOTAL_BETS, onClick: allIn },
         "ALL IN 💥"),
@@ -510,7 +559,7 @@ function App() {
       if (outcome) outcome.boards.forEach(b => { if (b.winners.indexOf(i) >= 0) myWin += b.share; });
       const usedAny = c => outcome && isWinner && outcome.boards.some(b => b.winners.indexOf(i) >= 0 && b.used[c]);
       return e("div", { key: i, className: "prow" + (isWinner ? " win" : "") },
-        e("div", { className: "pname" }, pname(i)),
+        e("div", { className: "pname" }, deal.names[i]),
         e("div", { className: "pcards" }, h.map((c, j) =>
           cardEl(c, c, outcome ? (usedAny(c) ? " used" : (isWinner ? "" : " dim")) : "", (i * 90 + j * 45)))),
         outcome ? e("div", { className: "pwin" + (myWin > 0 ? "" : " zero") },
@@ -521,7 +570,7 @@ function App() {
       const res = outcome ? outcome.boards[bi] : null;
       let banner = null;
       if (res) {
-        const names = res.winners.map(pname).join(" ja ");
+        const names = res.winners.map(i => deal.names[i]).join(" ja ");
         const won = res.winners.indexOf(0) >= 0;
         banner = e("div", { className: "bresult" },
           e("span", { className: "who" + (won ? "" : " lostb") },
@@ -546,6 +595,8 @@ function App() {
           deal.boards.length > 1 ? " · 2 lauda" : "")),
       playerRows,
       boardBoxes,
+      !outcome && deal.mode === "manual" ? e("button", { className: "contbtn", onClick: dealStreet },
+        reveal < 3 ? "Jaga flopp 🃏" : reveal === 3 ? "Jaga turn 🃏" : "Jaga river 🃏") : null,
       outcome ? e("div", { className: "betresult" },
         e("div", { className: "amt" + (outcome.total > 0 ? "" : " zero") },
           outcome.total > 0 ? "+" + fmt(outcome.total) + " 💰" : "Seekord ei võitnud 💨"),
