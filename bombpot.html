@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Bomb Pot — beebibet</title>
+<meta name="description" content="Bomb Pot — pokkeri all-in simulaator. 10 panust, Hold'em või Omaha, 1 või 2 lauda. Kogu võidud ja pääse edetabelisse!" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg0:#03100a; --bg1:#0a2414; --panel:rgba(10,34,20,.6);
+    --gold:#ffd54f; --red:#ff5c6c; --green:#58d68d;
+    --ink:#eef7ee; --inkSoft:#8fb49b; --line:rgba(120,220,160,.22);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body {
+    background:radial-gradient(120% 90% at 50% 0%,#123f24 0%,var(--bg1) 45%,var(--bg0) 100%);
+    font-family:'Nunito',sans-serif; color:var(--ink); min-height:100vh;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  h1,h2 { font-family:'Fraunces',serif; font-weight:600; }
+  .deco { position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:0; }
+  .deco span { position:absolute; font-size:30px; opacity:.08; }
+  @keyframes float0 { 0%,100%{transform:translateY(0) rotate(-6deg)} 50%{transform:translateY(-18px) rotate(6deg)} }
+  @keyframes float1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-24px) rotate(-8deg)} }
+  @keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+  .wrap { max-width:480px; margin:0 auto; padding:0 12px 40px; position:relative; z-index:2; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; padding:12px 2px 4px; }
+  .back { font-size:12px; font-weight:800; color:var(--inkSoft); text-decoration:none; letter-spacing:1px; }
+  .iconbtns { display:flex; gap:6px; }
+  .icobtn {
+    width:36px; height:36px; border-radius:12px; border:1px solid var(--line);
+    background:rgba(8,28,16,.6); color:var(--ink); font-size:16px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:transform .12s;
+  }
+  .icobtn:active { transform:scale(.92); }
+  .icobtn.off { opacity:.35; }
+
+  .hdr { text-align:center; padding:2px 0 10px; }
+  .hdr h1 {
+    font-size:36px; letter-spacing:-1px;
+    background:linear-gradient(90deg,var(--red),var(--gold) 60%,#fff6d8);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(0 0 14px rgba(255,92,108,.35));
+  }
+  .hdr p { font-size:10px; letter-spacing:4px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; margin-top:2px; }
+
+  .statrow { display:flex; gap:8px; margin-top:4px; }
+  .stat {
+    flex:1; background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:8px 6px; text-align:center; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  }
+  .stat .lbl { font-size:9px; letter-spacing:1.2px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; }
+  .stat .val { font-size:15px; font-weight:900; margin-top:1px; }
+  .stat .val.winval { color:var(--gold); text-shadow:0 0 10px rgba(255,213,79,.5); }
+  .stat .val.betsval { color:var(--red); }
+
+  /* ---------- panuse seadistus ---------- */
+  .setup {
+    background:var(--panel); border:1px solid var(--line); border-radius:20px;
+    padding:16px; margin-top:10px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  }
+  .optlbl { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; margin:12px 0 6px; }
+  .optlbl:first-child { margin-top:0; }
+  .optrow { display:flex; gap:6px; }
+  .optbtn {
+    flex:1; padding:11px 2px; border-radius:12px; border:1px solid var(--line);
+    background:rgba(8,26,16,.6); color:var(--ink); font-family:'Nunito',sans-serif;
+    font-size:15px; font-weight:800; cursor:pointer; transition:all .12s; text-align:center;
+  }
+  .optbtn:active { transform:scale(.95); }
+  .optbtn.on { border-color:var(--gold); color:var(--gold); background:rgba(60,48,10,.4); box-shadow:0 0 10px rgba(255,213,79,.25); }
+  .optbtn small { display:block; font-size:8.5px; color:var(--inkSoft); font-weight:700; margin-top:2px; letter-spacing:.3px; }
+  .potline { text-align:center; margin-top:16px; font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; }
+  .potline b { display:block; font-size:26px; letter-spacing:0; color:var(--gold); text-shadow:0 0 14px rgba(255,213,79,.5); }
+  .allinbtn {
+    width:100%; margin-top:12px; height:64px; border:none; border-radius:20px; cursor:pointer;
+    font-family:'Nunito',sans-serif; font-size:21px; font-weight:900; letter-spacing:2px; color:#fff;
+    background:linear-gradient(135deg,var(--red),#c2183a);
+    box-shadow:0 8px 26px rgba(255,92,108,.4), inset 0 -3px 0 rgba(0,0,0,.25);
+    transition:transform .12s, filter .2s;
+  }
+  .allinbtn:active { transform:scale(.96); }
+  .allinbtn:disabled { filter:grayscale(.7) brightness(.6); }
+
+  /* ---------- laud & kaardid ---------- */
+  .table {
+    background:var(--panel); border:1px solid var(--line); border-radius:20px;
+    padding:10px; margin-top:10px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  }
+  .potbanner {
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    background:linear-gradient(90deg,rgba(255,92,108,.14),rgba(255,213,79,.14));
+    border:1px solid rgba(255,213,79,.4); border-radius:12px;
+    padding:6px 10px; margin-bottom:8px; font-size:12px; font-weight:800;
+  }
+  .potbanner b { color:var(--gold); font-size:15px; }
+
+  .prow {
+    display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:12px;
+    margin-bottom:5px; background:rgba(8,26,16,.55); border:1px solid transparent; transition:all .3s;
+  }
+  .prow.win { border-color:var(--gold); background:rgba(60,48,10,.35); box-shadow:0 0 14px rgba(255,213,79,.25); }
+  .pname { width:72px; flex-shrink:0; font-size:11.5px; font-weight:800; color:var(--inkSoft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .prow.win .pname { color:var(--gold); }
+  .pcards { display:flex; gap:4px; flex:1; }
+  .pwin { font-size:12px; font-weight:900; min-width:44px; text-align:right; color:var(--gold); text-shadow:0 0 8px rgba(255,213,79,.5); }
+  .pwin.zero { color:var(--inkSoft); opacity:.5; text-shadow:none; }
+
+  .card {
+    width:32px; height:44px; border-radius:6px; background:#fdfcf5; position:relative;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,.45); user-select:none;
+    animation:cardIn .35s cubic-bezier(.2,1.4,.4,1) both; transition:opacity .3s, box-shadow .3s;
+  }
+  .card .crank { font-size:12.5px; font-weight:900; line-height:1; }
+  .card .csuit { font-size:11px; line-height:1.15; }
+  .card.red { color:#c62839; }
+  .card.blk { color:#1e2733; }
+  .card.big { width:46px; height:64px; border-radius:8px; }
+  .card.big .crank { font-size:18px; }
+  .card.big .csuit { font-size:16px; }
+  /* Tulemuse esiletõst: eemalda jagamisanimatsioon, muidu selle
+     lõppkaader (fill:both, opacity:1) kirjutaks opacity üle */
+  .card.used { animation:none; box-shadow:0 0 0 2px var(--gold), 0 0 14px rgba(255,213,79,.6); }
+  .card.dim { animation:none; opacity:.38; }
+  @keyframes cardIn {
+    0% { transform:translateY(-14px) rotateY(90deg) scale(.6); opacity:0; }
+    100% { transform:translateY(0) rotateY(0) scale(1); opacity:1; }
+  }
+
+  .boardbox { background:rgba(6,22,13,.55); border:1px solid var(--line); border-radius:14px; padding:8px 8px 10px; margin-top:8px; }
+  .blabel { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; margin-bottom:6px; text-align:center; }
+  .bcards { display:flex; gap:6px; justify-content:center; }
+  .slot { width:46px; height:64px; border-radius:8px; border:1px dashed rgba(120,220,160,.28); background:rgba(8,26,16,.35); }
+  .bresult { margin-top:8px; font-size:12px; font-weight:800; text-align:center; line-height:1.45; }
+  .bresult .who { color:var(--gold); }
+  .bresult .who.lostb { color:var(--red); }
+  .bresult .hand { color:var(--inkSoft); font-weight:700; font-size:11px; display:block; }
+
+  .betresult { text-align:center; margin-top:12px; animation:ovlIn .3s ease-out; }
+  .betresult .amt { font-size:26px; font-weight:900; color:var(--gold); text-shadow:0 0 16px rgba(255,213,79,.6); }
+  .betresult .amt.zero { color:var(--inkSoft); text-shadow:none; font-size:18px; }
+  .contbtn {
+    width:100%; margin-top:10px; height:56px; border:none; border-radius:18px; cursor:pointer;
+    font-family:'Nunito',sans-serif; font-size:17px; font-weight:900; letter-spacing:1px; color:#2b1c05;
+    background:linear-gradient(135deg,var(--gold),#ffab40);
+    box-shadow:0 8px 26px rgba(255,213,79,.35), inset 0 -3px 0 rgba(0,0,0,.15);
+    transition:transform .12s;
+  }
+  .contbtn:active { transform:scale(.96); }
+
+  /* ---------- overlay & edetabel ---------- */
+  .ovl {
+    position:fixed; inset:0; z-index:60; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:14px; padding:24px; text-align:center;
+    background:rgba(2,10,6,.93); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    animation:ovlIn .25s ease-out;
+  }
+  @keyframes ovlIn { from{opacity:0} to{opacity:1} }
+  .ovl h2 { font-size:30px; }
+  .ovl .bigico { font-size:64px; animation:float1 2.6s ease-in-out infinite; }
+  .winAmt { font-size:38px; font-weight:900; color:var(--gold); text-shadow:0 0 18px rgba(255,213,79,.7); }
+  .neonbtn {
+    padding:15px 36px; border-radius:999px; border:none; cursor:pointer;
+    font-family:'Nunito',sans-serif; font-size:17px; font-weight:900; color:#2b1c05;
+    background:linear-gradient(135deg,var(--gold),#ffab40);
+    box-shadow:0 8px 26px rgba(255,213,79,.4); transition:transform .12s;
+  }
+  .neonbtn:active { transform:scale(.95); }
+  .neonbtn.ghost { background:transparent; color:var(--inkSoft); box-shadow:none; border:1px solid var(--line); }
+
+  .toast {
+    position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:80;
+    background:rgba(10,34,20,.95); border:1px solid var(--gold); color:var(--ink);
+    padding:10px 22px; border-radius:999px; font-weight:900; font-size:14px;
+    box-shadow:0 0 22px rgba(255,213,79,.35); animation:ovlIn .2s ease-out; max-width:90vw;
+  }
+
+  .panel {
+    width:100%; max-width:400px; background:rgba(8,26,16,.97);
+    border:1px solid var(--line); border-radius:22px; padding:22px;
+    max-height:80vh; overflow-y:auto;
+  }
+  .board-row { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:12px; margin-bottom:6px; background:rgba(16,44,26,.6); }
+  .board-rank { font-size:16px; min-width:26px; }
+  .board-name { flex:1; font-weight:700; font-size:14px; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .board-amt { font-weight:900; font-size:15px; color:var(--gold); }
+  .board-empty { color:var(--inkSoft); font-size:13px; padding:14px 0; }
+  .db-error { background:rgba(120,20,40,.4); border:1px solid rgba(255,90,110,.5); border-radius:12px; padding:10px; font-size:11px; color:#ff9aa8; margin-top:8px; word-break:break-all; }
+
+  .name-input {
+    width:220px; padding:13px 16px; border-radius:14px; border:1px solid var(--line);
+    font-size:16px; font-family:'Nunito',sans-serif; font-weight:800; color:var(--ink);
+    background:rgba(6,20,12,.8); text-align:center;
+  }
+  .name-input:focus { outline:none; border-color:var(--gold); box-shadow:0 0 12px rgba(255,213,79,.3); }
+
+  .capnote { font-size:11px; color:var(--inkSoft); text-align:center; margin-top:12px; line-height:1.55; }
+</style>
+</head>
+<body>
+<div class="deco" id="deco"></div>
+<div id="app"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/bombpot-math.js"></script>
+
+<script>
+"use strict";
+/* ============================================================
+   Supabase (sama projekt nagu teised beebibet mängud)
+   ============================================================ */
+const SUPABASE_URL = "https://thrsacygpqwbnkcppmpk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_-QaY7mGpitakhestu3w1fg_sCGquRvx";
+let sb = null;
+try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (err) { console.error("Supabase init:", err); }
+
+const M = BombpotMath;
+
+// Pokkerihindaja mõistlikkuskontrollid — ava konsool, et tulemusi näha
+// (ratasrida, Omaha "täpselt 2" reegel, poti jagamine viigi korral jm)
+try { M.runChecks(); } catch (err) { console.error("runChecks:", err); }
+
+/* ============================================================
+   Taustadekoratsioon
+   ============================================================ */
+(function deco() {
+  const d = document.getElementById("deco");
+  ["♠", "♥", "♦", "♣", "💣", "♠", "♥", "🃏"].forEach((t, i) => {
+    const s = document.createElement("span");
+    s.textContent = t;
+    s.style.left = [6, 84, 12, 90, 46, 70, 30, 60][i] + "%";
+    s.style.top = [10, 6, 72, 58, 88, 30, 40, 78][i] + "%";
+    s.style.animation = "float" + (i % 3) + " " + (6 + i) + "s ease-in-out infinite";
+    d.appendChild(s);
+  });
+})();
+
+/* ============================================================
+   Helimootor (Web Audio, failideta)
+   ============================================================ */
+const AudioEngine = (() => {
+  let ctx = null, sfxBus = null;
+  let sfxOn = localStorage.getItem("bombpot_sfx") !== "0";
+
+  function ensure() {
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      ctx = new AC();
+      sfxBus = ctx.createGain(); sfxBus.gain.value = sfxOn ? .7 : 0; sfxBus.connect(ctx.destination);
+    }
+    if (ctx.state === "suspended") ctx.resume();
+    return true;
+  }
+
+  function tone(freq, dur, opts) {
+    if (!ctx) return;
+    opts = opts || {};
+    const t = ctx.currentTime + (opts.delay || 0);
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = opts.type || "sine";
+    o.frequency.setValueAtTime(freq, t);
+    if (opts.slide) o.frequency.exponentialRampToValueAtTime(opts.slide, t + dur);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(opts.vol != null ? opts.vol : .25, t + .012);
+    g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g); g.connect(sfxBus); o.start(t); o.stop(t + dur + .05);
+  }
+
+  function playSfx(name) {
+    if (!sfxOn || !ensure()) return;
+    switch (name) {
+      case "click": tone(660, .07, { type: "triangle", vol: .18 }); break;
+      case "allin":
+        tone(196, .16, { type: "square", vol: .22 });
+        tone(147, .22, { type: "square", vol: .22, delay: .09 });
+        tone(392, .3, { type: "sawtooth", vol: .12, delay: .2, slide: 588 });
+        break;
+      case "flip":
+        tone(340, .06, { type: "triangle", vol: .2 });
+        tone(510, .05, { type: "triangle", vol: .14, delay: .04 });
+        break;
+      case "win":
+        [523, 659, 784].forEach((f, i) => tone(f, .18, { type: "triangle", vol: .22, delay: i * .09 }));
+        break;
+      case "bigwin":
+        [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, .22, { type: "triangle", vol: .24, delay: i * .1 }));
+        tone(262, .8, { type: "sawtooth", vol: .08, delay: .1 });
+        break;
+      case "lose":
+        tone(320, .28, { type: "sawtooth", vol: .12, slide: 170 });
+        break;
+    }
+  }
+
+  function setSfx(v) {
+    sfxOn = v; localStorage.setItem("bombpot_sfx", v ? "1" : "0");
+    if (ensure() && sfxBus) sfxBus.gain.value = v ? .7 : 0;
+  }
+
+  return { playSfx, setSfx, get sfxOn() { return sfxOn; } };
+})();
+
+/* ============================================================
+   React UI
+   ============================================================ */
+const e = React.createElement;
+const { useState, useEffect, useRef } = React;
+
+const START_STAKE = 100, BET = 10, TOTAL_BETS = 10;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = n => { const v = Math.round(+n * 100) / 100; return Number.isInteger(v) ? String(v) : v.toFixed(2); };
+const pname = i => i === 0 ? "Sina" : "Vastane " + i;
+
+function App() {
+  const [stake, setStake] = useState(START_STAKE);
+  const [winnings, setWinnings] = useState(0);
+  const [betsDone, setBetsDone] = useState(0);
+  const [bestPot, setBestPot] = useState(0);
+
+  const [opp, setOpp] = useState(2);
+  const [variant, setVariant] = useState("holdem");
+  const [nBoards, setNBoards] = useState(1);
+
+  const [phase, setPhase] = useState("setup"); // setup | dealing | result
+  const [deal, setDeal] = useState(null);
+  const [reveal, setReveal] = useState(0);     // avatud lauakaarte laua kohta (0/3/4/5)
+  const [outcome, setOutcome] = useState(null);
+
+  const [overlay, setOverlay] = useState(null);
+  const [boardOpen, setBoardOpen] = useState(false);
+  const [boardRows, setBoardRows] = useState(null);
+  const [boardErr, setBoardErr] = useState(null);
+  const [nameVal, setNameVal] = useState(localStorage.getItem("bombpot_name") || "");
+  const [toast, setToast] = useState(null);
+  const [sfxOn, setSfxOnState] = useState(AudioEngine.sfxOn);
+
+  const busyRef = useRef(false);
+  const rngRef = useRef(M.makeRng());
+  const toastRef = useRef(null);
+
+  function showToast(msg, ms) {
+    clearTimeout(toastRef.current);
+    setToast(msg);
+    toastRef.current = setTimeout(() => setToast(null), ms || 2200);
+  }
+
+  /* ---------- edetabel ---------- */
+
+  // Ära lase rippuval võrgupäringul UI-d blokeerida
+  function withTimeout(p, ms) {
+    return Promise.race([
+      Promise.resolve(p),
+      new Promise((_, rej) => setTimeout(() => rej(new Error("Ajalõpp — server ei vasta")), ms))
+    ]);
+  }
+
+  // Taustal salvestus, kuni 2 katset; tagastab kas õnnestus.
+  // Pikk ajalõpp: uinunud Supabase või aeglane mobiilivõrk vajab aega.
+  async function submitScore(score) {
+    const name = nameVal.trim();
+    if (!name || !sb) return false;
+    localStorage.setItem("bombpot_name", name);
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const { error } = await withTimeout(sb.from("bombpot_scores").insert({ name, score }), 15000);
+        if (error) throw error;
+        return true;
+      } catch (err) { console.error("Edetabeli salvestus (katse " + attempt + "):", err); }
+    }
+    return false;
+  }
+
+  async function loadBoard(attempt) {
+    attempt = attempt || 1;
+    setBoardErr(null); setBoardRows(null);
+    try {
+      const { data, error } = await withTimeout(sb.from("bombpot_scores")
+        .select("name,score")
+        .order("score", { ascending: false })
+        .limit(10), 15000);
+      if (error) throw new Error(error.message + (error.code ? " (" + error.code + ")" : ""));
+      setBoardRows(data || []);
+    } catch (err) {
+      if (attempt < 2) return loadBoard(attempt + 1);
+      setBoardErr(err.message);
+    }
+  }
+  useEffect(() => { if (boardOpen && sb) loadBoard(); }, [boardOpen]);
+
+  /* ---------- panus ---------- */
+
+  async function allIn() {
+    if (busyRef.current || phase !== "setup" || betsDone >= TOTAL_BETS) return;
+    busyRef.current = true;
+    AudioEngine.playSfx("allin");
+
+    const d = M.dealBet(opp, variant, nBoards, rngRef.current);
+    const pot = (opp + 1) * BET;
+    setStake(s => s - BET);
+    setBetsDone(n => n + 1);
+    setDeal({ hands: d.hands, boards: d.boards, variant, pot });
+    setOutcome(null); setReveal(0); setPhase("dealing");
+
+    // Taskukaardid lendavad lauale, siis floppp → turn → river
+    await sleep(1000);
+    AudioEngine.playSfx("flip"); setReveal(3); await sleep(1100);
+    AudioEngine.playSfx("flip"); setReveal(4); await sleep(1100);
+    AudioEngine.playSfx("flip"); setReveal(5); await sleep(850);
+
+    // Arveldus: iga laud = pot / laudade arv, viik jagab võrdselt
+    const half = pot / d.boards.length;
+    let total = 0;
+    const boardsOut = d.boards.map(b => {
+      const s = M.settleBoard(d.hands, b, variant);
+      const share = half / s.winners.length;
+      const mine = s.winners.indexOf(0) >= 0 ? share : 0;
+      total += mine;
+      const used = {};
+      s.winners.forEach(w => s.results[w].cards.forEach(c => { used[c] = 1; }));
+      return { winners: s.winners, hand: M.handName(s.bestScore), share, mine, used };
+    });
+    total = Math.round(total * 100) / 100;
+
+    setOutcome({ boards: boardsOut, total });
+    if (total > 0) {
+      setWinnings(w => Math.round((w + total) * 100) / 100);
+      setBestPot(p => Math.max(p, total));
+    }
+    AudioEngine.playSfx(total >= pot ? "bigwin" : total > 0 ? "win" : "lose");
+    setPhase("result");
+    busyRef.current = false;
+  }
+
+  function next() {
+    AudioEngine.playSfx("click");
+    if (betsDone >= TOTAL_BETS) {
+      setOverlay({ kind: "gameover" });
+    } else {
+      setDeal(null); setOutcome(null); setPhase("setup");
+    }
+  }
+
+  function newSession() {
+    AudioEngine.playSfx("click");
+    setStake(START_STAKE); setWinnings(0); setBetsDone(0); setBestPot(0);
+    setDeal(null); setOutcome(null); setPhase("setup"); setOverlay(null);
+  }
+
+  /* ---------- render ---------- */
+
+  const pot = (opp + 1) * BET;
+
+  function cardEl(c, key, extra, delayMs, big) {
+    return e("div", {
+      key,
+      className: "card " + (M.isRed(c) ? "red" : "blk") + (big ? " big" : "") + (extra || ""),
+      style: delayMs ? { animationDelay: delayMs + "ms" } : null
+    },
+      e("span", { className: "crank" }, M.RANK_CHARS[M.rankOf(c)]),
+      e("span", { className: "csuit" }, M.SUIT_CHARS[M.suitOf(c)]));
+  }
+
+  let main;
+  if (!deal) {
+    // Seadistuspaneel
+    main = e("div", { className: "setup" },
+      e("div", { className: "optlbl" }, "Vastaste arv"),
+      e("div", { className: "optrow" }, [1, 2, 3, 4, 5].map(n =>
+        e("button", {
+          key: n, className: "optbtn" + (opp === n ? " on" : ""),
+          onClick: () => { AudioEngine.playSfx("click"); setOpp(n); }
+        }, String(n)))),
+      e("div", { className: "optlbl" }, "Pokkerivariant"),
+      e("div", { className: "optrow" },
+        e("button", {
+          className: "optbtn" + (variant === "holdem" ? " on" : ""),
+          onClick: () => { AudioEngine.playSfx("click"); setVariant("holdem"); }
+        }, "Hold'em", e("small", null, "2 taskukaarti")),
+        e("button", {
+          className: "optbtn" + (variant === "omaha" ? " on" : ""),
+          onClick: () => { AudioEngine.playSfx("click"); setVariant("omaha"); }
+        }, "Omaha", e("small", null, "4 taskukaarti, mängi täpselt 2"))),
+      e("div", { className: "optlbl" }, "Laudu"),
+      e("div", { className: "optrow" },
+        e("button", {
+          className: "optbtn" + (nBoards === 1 ? " on" : ""),
+          onClick: () => { AudioEngine.playSfx("click"); setNBoards(1); }
+        }, "1 laud", e("small", null, "võitja saab kõik")),
+        e("button", {
+          className: "optbtn" + (nBoards === 2 ? " on" : ""),
+          onClick: () => { AudioEngine.playSfx("click"); setNBoards(2); }
+        }, "2 lauda", e("small", null, "pott jaguneb pooleks"))),
+      e("div", { className: "potline" }, "Pott", e("b", null, fmt(pot))),
+      e("button", { className: "allinbtn", disabled: betsDone >= TOTAL_BETS, onClick: allIn },
+        "ALL IN 💥"),
+      e("p", { className: "capnote", style: { marginTop: 10 } },
+        "Rohkem vastaseid = suurem pott, aga väiksem võiduvõimalus. Kaks lauda jagavad poti pooleks — lihtsam midagi võita, raskem kõike korraga."));
+  } else {
+    // Mängulaud
+    const playerRows = deal.hands.map((h, i) => {
+      const isWinner = outcome && outcome.boards.some(b => b.winners.indexOf(i) >= 0);
+      let myWin = 0;
+      if (outcome) outcome.boards.forEach(b => { if (b.winners.indexOf(i) >= 0) myWin += b.share; });
+      const usedAny = c => outcome && isWinner && outcome.boards.some(b => b.winners.indexOf(i) >= 0 && b.used[c]);
+      return e("div", { key: i, className: "prow" + (isWinner ? " win" : "") },
+        e("div", { className: "pname" }, pname(i)),
+        e("div", { className: "pcards" }, h.map((c, j) =>
+          cardEl(c, c, outcome ? (usedAny(c) ? " used" : (isWinner ? "" : " dim")) : "", (i * 90 + j * 45)))),
+        outcome ? e("div", { className: "pwin" + (myWin > 0 ? "" : " zero") },
+          myWin > 0 ? "+" + fmt(myWin) : "—") : null);
+    });
+
+    const boardBoxes = deal.boards.map((b, bi) => {
+      const res = outcome ? outcome.boards[bi] : null;
+      let banner = null;
+      if (res) {
+        const names = res.winners.map(pname).join(" ja ");
+        const won = res.winners.indexOf(0) >= 0;
+        banner = e("div", { className: "bresult" },
+          e("span", { className: "who" + (won ? "" : " lostb") },
+            (won ? "🏆 " : "") + names + (res.winners.length > 1 ? " (viik)" : "") +
+            " · +" + fmt(res.share) + (res.winners.length > 1 ? " igaühele" : "")),
+          e("span", { className: "hand" }, res.hand));
+      }
+      return e("div", { key: bi, className: "boardbox" },
+        deal.boards.length > 1 ? e("div", { className: "blabel" }, "Laud " + (bi + 1) + " · pott " + fmt(deal.pot / 2)) :
+          e("div", { className: "blabel" }, "Laud · pott " + fmt(deal.pot)),
+        e("div", { className: "bcards" }, b.map((c, ci) =>
+          ci < reveal
+            ? cardEl(c, c, res ? (res.used[c] ? " used" : " dim") : "", 0, true)
+            : e("div", { key: "s" + ci, className: "slot" }))),
+        banner);
+    });
+
+    main = e("div", { className: "table" },
+      e("div", { className: "potbanner" },
+        e("span", null, "💣 Pott: ", e("b", null, fmt(deal.pot))),
+        e("span", null, deal.variant === "omaha" ? "Omaha" : "Hold'em",
+          deal.boards.length > 1 ? " · 2 lauda" : "")),
+      playerRows,
+      boardBoxes,
+      outcome ? e("div", { className: "betresult" },
+        e("div", { className: "amt" + (outcome.total > 0 ? "" : " zero") },
+          outcome.total > 0 ? "+" + fmt(outcome.total) + " 💰" : "Seekord ei võitnud 💨"),
+        e("button", { className: "contbtn", onClick: next },
+          betsDone >= TOTAL_BETS ? "Vaata lõpptulemust 🏁" : "Järgmine panus ➡")) : null);
+  }
+
+  /* ---------- overlayd ---------- */
+
+  let ovl = null;
+  if (overlay && overlay.kind === "gameover") {
+    const score = Math.round(winnings);
+    ovl = e("div", { className: "ovl" },
+      e("div", { className: "bigico" }, "💣"),
+      e("h2", null, "Mäng läbi!"),
+      e("p", { style: { fontSize: 13, color: "var(--inkSoft)" } }, TOTAL_BETS + " panust tehtud. Sinu võidud kokku:"),
+      e("div", { className: "winAmt" }, fmt(winnings)),
+      e("p", { style: { fontSize: 13, color: "var(--inkSoft)" } },
+        "Suurim võidetud pott: " + fmt(bestPot) +
+        (winnings > 0 && sb ? " · kirjuta nimi ja salvesta edetabelisse" : "")),
+      winnings > 0 && sb ? e("input", {
+        className: "name-input", maxLength: 20, placeholder: "Sinu nimi",
+        value: nameVal, onChange: ev => setNameVal(ev.target.value)
+      }) : null,
+      winnings > 0 && sb ? e("button", {
+        className: "neonbtn",
+        onClick: () => {
+          AudioEngine.playSfx("click");
+          // Sulge kohe — salvestus käib taustal, tulemus tuleb toastina
+          newSession();
+          setBoardOpen(true);
+          submitScore(score).then(ok => {
+            showToast(ok ? "🏆 Tulemus salvestatud!" : "Salvestamine ebaõnnestus — server ei vasta", ok ? 2200 : 3200);
+            if (ok) loadBoard();
+          });
+        }
+      }, "Salvesta ja uus mäng 🏆") : null,
+      e("button", { className: winnings > 0 ? "neonbtn ghost" : "neonbtn", onClick: newSession },
+        winnings > 0 ? "Uus mäng ilma salvestamata" : "Uus mäng 💣"));
+  }
+
+  const boardOvl = boardOpen ? e("div", { className: "ovl", onClick: ev => { if (ev.target === ev.currentTarget) setBoardOpen(false); } },
+    e("div", { className: "panel" },
+      e("h2", { style: { marginBottom: 14 } }, "🏆 Edetabel"),
+      boardErr ? e("div", null,
+        e("div", { className: "db-error" }, "Laadimine ebaõnnestus: " + boardErr),
+        e("div", { style: { textAlign: "center", marginTop: 10 } },
+          e("button", { className: "neonbtn ghost", onClick: () => loadBoard() }, "Proovi uuesti 🔄"))) :
+        boardRows == null ? e("div", { className: "board-empty" }, "Laen…") :
+          boardRows.length === 0 ? e("div", { className: "board-empty" }, "Ole esimene edetabelis! Mängi 10 panust läbi ja salvesta tulemus.") :
+            boardRows.map((r, i) => e("div", { className: "board-row", key: i },
+              e("span", { className: "board-rank" }, i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1) + "."),
+              e("span", { className: "board-name" }, r.name),
+              e("span", { className: "board-amt" }, fmt(+r.score)))),
+      e("div", { style: { textAlign: "center", marginTop: 14 } },
+        e("button", { className: "neonbtn ghost", onClick: () => setBoardOpen(false) }, "Sulge")))) : null;
+
+  return e(React.Fragment, null,
+    e("div", { className: "wrap" },
+      e("div", { className: "topbar" },
+        e("a", { className: "back", href: "/" }, "← AVALEHT"),
+        e("div", { className: "iconbtns" },
+          e("button", { className: "icobtn", onClick: () => { AudioEngine.playSfx("click"); setBoardOpen(true); }, title: "Edetabel" }, "🏆"),
+          e("button", {
+            className: "icobtn" + (sfxOn ? "" : " off"),
+            onClick: () => { const v = !sfxOn; setSfxOnState(v); AudioEngine.setSfx(v); AudioEngine.playSfx("click"); }, title: "Heliefektid"
+          }, "🔊"))),
+      e("div", { className: "hdr" },
+        e("h1", null, "Bomb Pot 💣"),
+        e("p", null, "pokkeri all-in simulaator")),
+
+      e("div", { className: "statrow" },
+        e("div", { className: "stat" },
+          e("div", { className: "lbl" }, "Pank"),
+          e("div", { className: "val" }, fmt(stake))),
+        e("div", { className: "stat" },
+          e("div", { className: "lbl" }, "Võidud"),
+          e("div", { className: "val winval" }, fmt(winnings))),
+        e("div", { className: "stat" },
+          e("div", { className: "lbl" }, "Panuseid alles"),
+          e("div", { className: "val betsval" }, (TOTAL_BETS - betsDone) + "/" + TOTAL_BETS))),
+
+      main,
+
+      !deal ? e("p", { className: "capnote" },
+        "Mängid " + START_STAKE + " läbi: täpselt " + TOTAL_BETS + " all-in panust à " + BET + ". ",
+        "Kõik võidud kogunevad eraldi potti ja lõppsumma läheb edetabelisse. ",
+        "Mänguraha, päris raha siin ei liigu.") : null),
+
+    toast ? e("div", { className: "toast" }, toast) : null,
+    ovl, boardOvl);
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(e(App));
+</script>
+</body>
+</html>
