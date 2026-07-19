@@ -511,7 +511,7 @@ function App() {
     // Seadistuspaneel
     main = e("div", { className: "setup" },
       e("div", { className: "optlbl" }, "Vastaste arv"),
-      e("div", { className: "optrow" }, [1, 2, 3, 4, 5].map(n =>
+      e("div", { className: "optrow" }, [1, 2, 3].map(n =>
         e("button", {
           key: n, className: "optbtn" + (opp === n ? " on" : ""),
           onClick: () => { AudioEngine.playSfx("click"); setOpp(n); }
