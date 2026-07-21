@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Bagel Jackpot — USA Lahtised — beebibet</title>
+<meta name="description" content="Bagel Jackpot — loosi US Openi matš. 6:0 sett matšis = 25× jackpot, 6:1 sett = 3× auhind!" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/usopen.css" />
+<style>
+  .matchcard {
+    background:var(--panel); border:1px solid var(--line); border-radius:20px;
+    padding:18px 14px; margin-top:10px; text-align:center; position:relative; overflow:hidden;
+  }
+  .matchcard.cycling { border-color:rgba(255,213,79,.5); }
+  .matchcard.cycling .mc-in { filter:blur(.7px); animation:cycflick .07s linear infinite; }
+  .matchcard.locked { animation:snapIn .38s cubic-bezier(.2,1.6,.4,1) both; border-color:rgba(0,230,118,.45); }
+  .mc-vs { font-size:12px; font-weight:800; color:var(--inkSoft); margin:8px 0; letter-spacing:2px; }
+  .mc-p { font-size:19px; font-weight:900; }
+  .mc-meta { font-size:11px; color:var(--inkSoft); font-weight:800; margin-top:10px; letter-spacing:1px; }
+  .paytable { display:flex; gap:8px; margin-top:12px; }
+  .payrow {
+    flex:1; border:1px solid var(--line); border-radius:14px; padding:12px 8px; text-align:center;
+    background:rgba(14,16,28,.6);
+  }
+  .payrow b { display:block; font-size:22px; font-weight:900; }
+  .payrow small { display:block; font-size:10px; color:var(--inkSoft); font-weight:800; margin-top:3px; letter-spacing:.5px; }
+  .payrow.jp { border-color:rgba(255,213,79,.55); }
+  .payrow.jp b { color:var(--gold); text-shadow:0 0 12px rgba(255,213,79,.5); }
+  .payrow.mini b { color:var(--green); }
+</style>
+</head>
+<body>
+<div class="deco" id="deco"></div>
+<canvas id="confetti"></canvas>
+<div id="app"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/usopen-data.js"></script>
+<script src="/usopen-shared.js"></script>
+
+<script>
+"use strict";
+const U = window.USH;
+const { useState, useRef } = React;
+const el = React.createElement;
+const { SFX, Confetti, fmt2, round2, sleep, buzz, pick } = U;
+const GAME = "bagel";
+
+(function deco() {
+  const d = document.getElementById("deco");
+  ["🥯", "🍩", "🎾", "🥯", "🗽", "0️⃣"].forEach((t, i) => {
+    const s = document.createElement("span");
+    s.textContent = t;
+    s.style.left = [8, 82, 15, 88, 45, 68][i] + "%";
+    s.style.top = [12, 8, 70, 58, 90, 32][i] + "%";
+    s.style.animation = "float" + (i % 3) + " " + (6 + i) + "s ease-in-out infinite";
+    d.appendChild(s);
+  });
+})();
+
+function MatchCard(props) {
+  const m = props.m;
+  const p1 = U.player(m.p1), p2 = U.player(m.p2);
+  return el("div", { className: "matchcard " + (props.state || "") },
+    el("div", { className: "mc-in" },
+      el("div", { className: "mc-p" }, el(U.ui.PlayerChip, { p: p1 })),
+      el("div", { className: "mc-vs" }, "— VS —"),
+      el("div", { className: "mc-p" }, el(U.ui.PlayerChip, { p: p2 })),
+      el("div", { className: "mc-meta" }, m.tour + " · " + m.court + " · " + m.time + " · " + U.D.meta.day1)));
+}
+
+function App() {
+  const [name, setName] = useState(U.getName());
+  const [buyIn, setBuyIn] = useState(5);
+  const [phase, setPhase] = useState("setup");     // setup | spin | ticket
+  const [preview, setPreview] = useState(null);
+  const [picked, setPicked] = useState(null);
+  const [ticket, setTicket] = useState(null);
+  const [saveState, setSaveState] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const spinningRef = useRef(false);
+
+  async function runSpin() {
+    if (spinningRef.current) return;
+    spinningRef.current = true;
+    SFX.click();
+    const chosen = pick(U.D.matches);
+    setPicked(null); setTicket(null); setSaveState(null); setPhase("spin");
+    const t0 = Date.now();
+    while (Date.now() - t0 < 1800) {
+      setPreview(pick(U.D.matches));
+      SFX.tick();
+      await sleep(80);
+    }
+    setPreview(null);
+    setPicked(chosen);
+    SFX.snap(); buzz(50);
+    Confetti.rain(["🥯", "🍩"], 26);
+    await sleep(700);
+    const t = {
+      game: GAME, name, buyIn,
+      details: { matchId: chosen.id, jackpotMult: 25, miniMult: 3 },
+      potentialWin: round2(buyIn * 25)
+    };
+    setTicket(t);
+    setPhase("ticket");
+    setSaveState("saving");
+    const res = await U.saveTicket(t);
+    setSaveState(res.ok ? "ok" : "err");
+    if (res.ok) setRefreshKey(k => k + 1);
+    spinningRef.current = false;
+  }
+
+  function describe(t) {
+    const d = t.details || {};
+    const m = U.match(d.matchId);
+    const title = m ? U.player(m.p1).name + " vs " + U.player(m.p2).name : "?";
+    let sub = "Panus " + (+t.buy_in) + " · 6:0 sett → " + fmt2(+t.buy_in * 25) + " · 6:1 sett → " + fmt2(+t.buy_in * 3);
+    if (t.status === "won") sub = "Panus " + (+t.buy_in) + " · " + (+t.win_amount === round2(+t.buy_in * 25) ? "🥯 BAGEL-JACKPOT!" : "6:1 miniauhind");
+    return { title, sub };
+  }
+
+  const hdr = el("div", { className: "hdr" },
+    el("h1", null, "Bagel Jackpot"),
+    el("p", null, "USA Lahtised · 6:0 = 25×"));
+
+  let body = null;
+  if (!name) {
+    body = el(U.ui.NameGate, { onDone: setName });
+  } else if (phase === "setup") {
+    body = el("div", { className: "setup" },
+      el(U.ui.BuyinRow, { value: buyIn, onChange: setBuyIn }),
+      el("div", { className: "paytable" },
+        el("div", { className: "payrow jp" }, el("b", null, "25×"), el("small", null, "matšis tuleb 6:0 sett")),
+        el("div", { className: "payrow mini" }, el("b", null, "3×"), el("small", null, "6:1 sett (ilma 6:0-ta)"))),
+      el("button", { className: "spinbtn", onClick: runSpin }, "LOOSI MATŠ 🥯"),
+      el("div", { className: "hint" }, "Üks keerutus valib päeva mängukavast juhusliku matši."));
+  } else {
+    const showM = picked || preview;
+    body = el("div", null,
+      el("div", { className: "spintitle" }, phase === "spin" && !picked ? "Loosin matši…" : "Sinu matš!"),
+      showM ? el(MatchCard, { m: showM, state: picked ? "locked" : "cycling" }) : null,
+      phase === "ticket" && ticket ? el(React.Fragment, null,
+        el("div", { className: "receipt" },
+          el("div", { className: "rc-head" },
+            el("h2", null, "🥯 Bagel Jackpot"),
+            el("p", null, "Panus " + ticket.buyIn + " · " + U.D.meta.day1)),
+          el("div", { className: "rc-foot" },
+            el("div", { className: "rc-row" },
+              el("span", { className: "rc-lbl" }, "6:0 sett matšis"),
+              el("span", { className: "potwin" }, fmt2(ticket.buyIn * 25))),
+            el("div", { className: "rc-row" },
+              el("span", { className: "rc-lbl" }, "6:1 sett (ilma 6:0-ta)"),
+              el("span", { className: "raw-odds", style: { color: "var(--green)" } }, fmt2(ticket.buyIn * 3))),
+            el("div", { className: "rc-row" },
+              el("span", { className: "rc-lbl" }, "Muidu"),
+              el("span", { style: { fontWeight: 900, color: "var(--red)" } }, "kaotatud")),
+            saveState === "saving" ? el("div", { className: "savestate" }, "Salvestan piletit…") :
+              saveState === "ok" ? el("div", { className: "savestate" }, "✓ Pilet salvestatud — arveldatakse päris tulemusega") :
+                saveState === "err" ? el("div", { className: "savestate err" }, "Salvestamine ebaõnnestus — server ei vasta") : null)),
+        el("button", { className: "mainbtn", onClick: runSpin }, "LOOSI UUS MATŠ 🥯"),
+        el("button", { className: "ghostbtn", onClick: () => { SFX.click(); setPhase("setup"); } }, "Muuda panust")) : null);
+  }
+
+  return el(React.Fragment, null,
+    el("div", { className: "wrap" },
+      el(U.ui.Topbar, {}),
+      hdr, body,
+      name ? el(U.ui.MyTickets, { game: GAME, name, refreshKey, describe }) : null,
+      el(U.ui.Board, { game: GAME, refreshKey }),
+      el("a", { className: "ghostbtn", style: { marginTop: 16 }, href: "/usalahtised" }, "← Tagasi USA Lahtiste juurde")));
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(el(App));
+</script>
+</body>
+</html>

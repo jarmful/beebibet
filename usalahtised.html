@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>USA Lahtised 🎾 — beebibet</title>
+<meta name="description" content="USA Lahtiste (US Open) õnnemängud — kuus mängu, mille piletid arveldatakse päris turniiritulemustega!" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/usopen.css" />
+<style>
+  .uso-hero {
+    margin-top:10px; border-radius:24px; overflow:hidden; text-align:center;
+    background:linear-gradient(160deg,#001854 0%,#0b3d91 55%,#2478cc 100%);
+    border:1px solid rgba(255,212,0,.45);
+    box-shadow:0 16px 44px rgba(0,24,84,.55);
+    padding:30px 18px 24px; position:relative;
+  }
+  .uso-hero::after {
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(60% 40% at 50% 0%,rgba(255,212,0,.18),transparent 70%);
+  }
+  .uso-hero .ball { font-size:52px; display:block; filter:drop-shadow(0 6px 14px rgba(0,0,0,.4)); }
+  .uso-hero h1 {
+    font-size:40px; letter-spacing:-1px; margin-top:6px;
+    background:linear-gradient(90deg,#ffffff,var(--usoYellow) 70%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(0 0 18px rgba(255,212,0,.35));
+  }
+  .uso-hero p { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:#bcd4f5; font-weight:800; margin-top:4px; }
+  .uso-hero .sub { letter-spacing:1px; text-transform:none; font-size:12.5px; margin-top:10px; color:#dce9fb; font-weight:700; }
+  .gcard {
+    display:block; text-decoration:none; color:var(--ink);
+    background:var(--panel); border:1px solid var(--line); border-radius:20px;
+    padding:16px; margin-top:12px; transition:transform .15s;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    position:relative; overflow:hidden;
+  }
+  .gcard:active { transform:scale(.97); }
+  .gcard .grow { display:flex; align-items:center; gap:14px; }
+  .gcard .gicon {
+    width:54px; height:54px; border-radius:16px; flex-shrink:0; font-size:28px;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(14,16,28,.7); border:1px solid var(--line);
+  }
+  .gcard .gname { font-size:18px; font-weight:900; }
+  .gcard .gdesc { font-size:12px; color:var(--inkSoft); font-weight:700; line-height:1.45; margin-top:3px; }
+  .gcard .gcta {
+    flex-shrink:0; padding:9px 18px; border-radius:999px; font-size:13px; font-weight:900;
+    color:#03140a; background:linear-gradient(135deg,var(--green),#00b357);
+    box-shadow:0 6px 16px rgba(0,230,118,.3);
+  }
+  .gcard .stripe { position:absolute; left:0; top:0; bottom:0; width:4px; }
+</style>
+</head>
+<body>
+<div class="deco" id="deco"></div>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="/">← AVALEHT</a>
+  </div>
+
+  <div class="uso-hero">
+    <span class="ball">🎾</span>
+    <h1>USA Lahtised</h1>
+    <p>US Open · New York</p>
+    <div class="sub">Kuus õnnemängu, mille piletid arveldatakse<br/>päris turniiritulemustega!</div>
+  </div>
+
+  <a class="gcard" href="/usalahtised/survivor">
+    <span class="stripe" style="background:linear-gradient(180deg,#00e676,#2478cc)"></span>
+    <div class="grow">
+      <span class="gicon">🪜</span>
+      <div style="flex:1">
+        <div class="gname">Survivor Spin</div>
+        <div class="gdesc">Loosi endale mängija ja roni redelil — iga võidetud ring korrutab kordajat. Võta raha välja või mine tiitlini!</div>
+      </div>
+      <span class="gcta">Mängi</span>
+    </div>
+  </a>
+
+  <a class="gcard" href="/usalahtised/slot">
+    <span class="stripe" style="background:linear-gradient(180deg,#ffd54f,#f5a623)"></span>
+    <div class="grow">
+      <span class="gicon">🎰</span>
+      <div style="flex:1">
+        <div class="gname">Grand Slam Slot</div>
+        <div class="gdesc">Kolm rulli: mängija, turg ja boonuskordaja. Longshot + puhas võit + ×5 = JACKPOT!</div>
+      </div>
+      <span class="gcta">Mängi</span>
+    </div>
+  </a>
+
+  <a class="gcard" href="/usalahtised/bagel">
+    <span class="stripe" style="background:linear-gradient(180deg,#ff9052,#ffd54f)"></span>
+    <div class="grow">
+      <span class="gicon">🥯</span>
+      <div style="flex:1">
+        <div class="gname">Bagel Jackpot</div>
+        <div class="gdesc">Loosi päeva mängukavast matš. Kui matšis tuleb 6:0 sett — 25× jackpot! 6:1 sett annab 3×.</div>
+      </div>
+      <span class="gcta">Mängi</span>
+    </div>
+  </a>
+
+  <a class="gcard" href="/usalahtised/rulett">
+    <span class="stripe" style="background:linear-gradient(180deg,#ff5c6c,#8e44ad)"></span>
+    <div class="grow">
+      <span class="gicon">🎡</span>
+      <div style="flex:1">
+        <div class="gname">Seti Rulett</div>
+        <div class="gdesc">Loosi matš ja keeruta ratast: mitu setti tuleb või kas tuleb tiebreak? Päris koefitsiendid maksavad võidu.</div>
+      </div>
+      <span class="gcta">Mängi</span>
+    </div>
+  </a>
+
+  <a class="gcard" href="/usalahtised/puhaspaev">
+    <span class="stripe" style="background:linear-gradient(180deg,#2478cc,#00e676)"></span>
+    <div class="grow">
+      <span class="gicon">🧹</span>
+      <div style="flex:1">
+        <div class="gname">Puhas Päev</div>
+        <div class="gdesc">3–5 juhuslikku favoriiti — kõik peavad võitma puhtalt! Boonus ×1.25, üks mööda annab 25% lohutuse.</div>
+      </div>
+      <span class="gcta">Mängi</span>
+    </div>
+  </a>
+
+  <a class="gcard" href="/usalahtised/yllataja">
+    <span class="stripe" style="background:linear-gradient(180deg,#ffd400,#ff5c6c)"></span>
+    <div class="grow">
+      <span class="gicon">🃏</span>
+      <div style="flex:1">
+        <div class="gname">Üllataja Loto</div>
+        <div class="gdesc">Kraabi lahti päeva üllataja! Kui autsaider võidab oma matši, maksab pilet päris koefitsiendi × boonusratta.</div>
+      </div>
+      <span class="gcta">Mängi</span>
+    </div>
+  </a>
+</div>
+<script>
+(function () {
+  const d = document.getElementById("deco");
+  ["🎾", "🗽", "🏆", "🎾", "🥯", "🎡"].forEach((t, i) => {
+    const s = document.createElement("span");
+    s.textContent = t;
+    s.style.left = [8, 82, 15, 88, 45, 68][i] + "%";
+    s.style.top = [12, 8, 70, 58, 90, 32][i] + "%";
+    s.style.animation = "float" + (i % 3) + " " + (6 + i) + "s ease-in-out infinite";
+    d.appendChild(s);
+  });
+})();
+</script>
+</body>
+</html>

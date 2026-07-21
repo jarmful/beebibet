@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Seti Rulett — USA Lahtised — beebibet</title>
+<meta name="description" content="Seti Rulett — loosi US Openi matš ja keeruta ratast: mitu setti tuleb või kas tuleb tiebreak? Päris koefitsiendid maksavad võidu." />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/usopen.css" />
+<style>
+  .wheelbox { text-align:center; margin-top:10px; position:relative; }
+  .wheelbox svg { max-width:320px; width:100%; height:auto; filter:drop-shadow(0 10px 30px rgba(0,0,0,.55)); }
+  .pointer {
+    position:absolute; top:-4px; left:50%; transform:translateX(-50%);
+    font-size:28px; z-index:5; filter:drop-shadow(0 3px 6px rgba(0,0,0,.6));
+  }
+  .pocketlist { margin-top:12px; }
+  .pocketrow {
+    display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:12px;
+    border:1px solid var(--line); background:rgba(14,16,28,.55); margin-bottom:6px; font-size:13px; font-weight:800;
+  }
+  .pocketrow .dot { width:12px; height:12px; border-radius:4px; flex-shrink:0; }
+  .pocketrow .po { margin-left:auto; font-weight:900; color:var(--gold); }
+  .pocketrow.hit { border-color:var(--gold); background:rgba(60,48,10,.4); animation:badgepulse 1.1s ease infinite alternate; }
+  .mline {
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:12px; margin-top:10px;
+  }
+  .mline.cycling { border-color:rgba(255,213,79,.5); }
+  .mline.cycling .fixline { filter:blur(.6px); animation:cycflick .07s linear infinite; }
+  .mline.locked { animation:snapIn .38s cubic-bezier(.2,1.6,.4,1) both; border-color:rgba(0,230,118,.45); }
+</style>
+</head>
+<body>
+<div class="deco" id="deco"></div>
+<canvas id="confetti"></canvas>
+<div id="app"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/usopen-data.js"></script>
+<script src="/usopen-shared.js"></script>
+
+<script>
+"use strict";
+const U = window.USH;
+const { useState, useRef } = React;
+const el = React.createElement;
+const { SFX, Confetti, fmt2, round2, sleep, buzz, pick, randInt } = U;
+const GAME = "rulett";
+
+(function deco() {
+  const d = document.getElementById("deco");
+  ["🎡", "🎾", "🔴", "⚫", "🗽", "🎰"].forEach((t, i) => {
+    const s = document.createElement("span");
+    s.textContent = t;
+    s.style.left = [8, 82, 15, 88, 45, 68][i] + "%";
+    s.style.top = [12, 8, 70, 58, 90, 32][i] + "%";
+    s.style.animation = "float" + (i % 3) + " " + (6 + i) + "s ease-in-out infinite";
+    d.appendChild(s);
+  });
+})();
+
+/* Taskud matši tuuri järgi — koefid otse andmefailist */
+function pocketsFor(m) {
+  if (m.tour === "ATP") {
+    return [
+      { kind: "sets", n: 3, label: "3 setti",             short: "3 SETTI",  odds: m.totalSets["3"], col: "#b3123a" },
+      { kind: "sets", n: 4, label: "4 setti",             short: "4 SETTI",  odds: m.totalSets["4"], col: "#1d2233" },
+      { kind: "sets", n: 5, label: "5 setti",             short: "5 SETTI",  odds: m.totalSets["5"], col: "#b3123a" },
+      { kind: "tb", yes: true,  label: "Tiebreak tuleb",  short: "TIEBREAK", odds: m.tiebreakYes,    col: "#0d7a43" },
+      { kind: "tb", yes: false, label: "Ei ühtegi tiebreaki", short: "EI TB", odds: m.tiebreakNo,   col: "#1c4d86" }
+    ];
+  }
+  return [
+    { kind: "sets", n: 2, label: "2 setti",              short: "2 SETTI",  odds: m.totalSets["2"], col: "#b3123a" },
+    { kind: "sets", n: 3, label: "3 setti",              short: "3 SETTI",  odds: m.totalSets["3"], col: "#1d2233" },
+    { kind: "tb", yes: true,  label: "Tiebreak tuleb",   short: "TIEBREAK", odds: m.tiebreakYes,    col: "#0d7a43" },
+    { kind: "tb", yes: false, label: "Ei ühtegi tiebreaki", short: "EI TB", odds: m.tiebreakNo,    col: "#1c4d86" }
+  ];
+}
+
+function arcPath(cx, cy, r, a0, a1) {
+  const rad = a => a * Math.PI / 180;
+  const x0 = cx + r * Math.cos(rad(a0)), y0 = cy + r * Math.sin(rad(a0));
+  const x1 = cx + r * Math.cos(rad(a1)), y1 = cy + r * Math.sin(rad(a1));
+  const large = (a1 - a0) > 180 ? 1 : 0;
+  return "M " + cx + " " + cy + " L " + x0 + " " + y0 + " A " + r + " " + r + " 0 " + large + " 1 " + x1 + " " + y1 + " Z";
+}
+
+function Wheel(props) {
+  const pockets = props.pockets;
+  const n = pockets.length, step = 360 / n;
+  const sectors = [];
+  for (let i = 0; i < n; i++) {
+    const a0 = -90 + i * step, a1 = a0 + step, ac = a0 + step / 2;
+    const lx = 150 + 92 * Math.cos(ac * Math.PI / 180);
+    const ly = 150 + 92 * Math.sin(ac * Math.PI / 180);
+    sectors.push(el("path", { key: "s" + i, d: arcPath(150, 150, 140, a0, a1), fill: pockets[i].col, stroke: "#ffd54f", strokeWidth: 2 }));
+    sectors.push(el("text", {
+      key: "t" + i, x: lx, y: ly, fill: "#fff", fontSize: 13, fontWeight: 900,
+      textAnchor: "middle", dominantBaseline: "middle", fontFamily: "Nunito,sans-serif",
+      transform: "rotate(" + (ac + 90) + " " + lx + " " + ly + ")"
+    }, pockets[i].short));
+    sectors.push(el("text", {
+      key: "o" + i, x: 150 + 122 * Math.cos(ac * Math.PI / 180), y: 150 + 122 * Math.sin(ac * Math.PI / 180),
+      fill: "rgba(255,255,255,.85)", fontSize: 10, fontWeight: 800,
+      textAnchor: "middle", dominantBaseline: "middle", fontFamily: "Nunito,sans-serif",
+      transform: "rotate(" + (ac + 90) + " " + (150 + 122 * Math.cos(ac * Math.PI / 180)) + " " + (150 + 122 * Math.sin(ac * Math.PI / 180)) + ")"
+    }, fmt2(pockets[i].odds)));
+  }
+  return el("div", { className: "wheelbox" },
+    el("span", { className: "pointer" }, "🔻"),
+    el("svg", { viewBox: "0 0 300 300" },
+      el("circle", { cx: 150, cy: 150, r: 146, fill: "#0a0c14", stroke: "#ffd54f", strokeWidth: 4 }),
+      el("g", { transform: "rotate(" + props.rotation + " 150 150)" }, sectors),
+      el("circle", { cx: 150, cy: 150, r: 30, fill: "#0a0c14", stroke: "#ffd54f", strokeWidth: 3 }),
+      el("text", { x: 150, y: 151, fill: "#ffd54f", fontSize: 22, textAnchor: "middle", dominantBaseline: "middle" }, "🎾")));
+}
+
+function App() {
+  const [name, setName] = useState(U.getName());
+  const [buyIn, setBuyIn] = useState(5);
+  const [phase, setPhase] = useState("setup");     // setup | match | wheel | ticket
+  const [previewM, setPreviewM] = useState(null);
+  const [pickedM, setPickedM] = useState(null);
+  const [rotation, setRotation] = useState(0);
+  const [hitIdx, setHitIdx] = useState(null);
+  const [ticket, setTicket] = useState(null);
+  const [saveState, setSaveState] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const spinningRef = useRef(false);
+
+  async function runSpin() {
+    if (spinningRef.current) return;
+    spinningRef.current = true;
+    SFX.click();
+    setTicket(null); setSaveState(null); setPickedM(null); setHitIdx(null); setRotation(0);
+    setPhase("match");
+
+    /* 1. keerutus: matš */
+    const m = pick(U.D.matches);
+    const t0 = Date.now();
+    while (Date.now() - t0 < 1500) {
+      setPreviewM(pick(U.D.matches));
+      SFX.tick();
+      await sleep(80);
+    }
+    setPreviewM(null);
+    setPickedM(m);
+    SFX.snap(); buzz(40);
+    await sleep(650);
+
+    /* 2. keerutus: ratas */
+    setPhase("wheel");
+    const pockets = pocketsFor(m);
+    const n = pockets.length, step = 360 / n;
+    const target = randInt(n);
+    const jitter = (Math.random() - .5) * step * .6;
+    const finalRot = 360 * 5 - (target * step + step / 2) + jitter;
+    const DUR = 4200;
+    await new Promise(resolve => {
+      const start = performance.now();
+      let lastTickSector = -1;
+      function frame(now) {
+        const t = Math.min(1, (now - start) / DUR);
+        const eased = 1 - Math.pow(1 - t, 3);
+        const rot = finalRot * eased;
+        setRotation(rot);
+        const sectorAtPointer = Math.floor(((-rot % 360) + 360) % 360 / step);
+        if (sectorAtPointer !== lastTickSector) { SFX.tick(); lastTickSector = sectorAtPointer; }
+        if (t < 1) requestAnimationFrame(frame);
+        else resolve();
+      }
+      requestAnimationFrame(frame);
+    });
+    setHitIdx(target);
+    SFX.snap(); buzz(60);
+    const pocket = pockets[target];
+    Confetti.burst(pocket.odds >= 3 ? 180 : 90);
+    if (pocket.odds >= 3) SFX.win();
+    await sleep(800);
+
+    const t = {
+      game: GAME, name, buyIn,
+      details: {
+        matchId: m.id,
+        pocket: { kind: pocket.kind, n: pocket.n, yes: pocket.yes, label: pocket.label },
+        odds: pocket.odds
+      },
+      potentialWin: round2(buyIn * pocket.odds)
+    };
+    setTicket(t);
+    setPhase("ticket");
+    setSaveState("saving");
+    const res = await U.saveTicket(t);
+    setSaveState(res.ok ? "ok" : "err");
+    if (res.ok) setRefreshKey(k => k + 1);
+    spinningRef.current = false;
+  }
+
+  function describe(t) {
+    const d = t.details || {};
+    const m = U.match(d.matchId);
+    const title = m ? U.player(m.p1).name + " vs " + U.player(m.p2).name : "?";
+    return { title, sub: "Panus " + (+t.buy_in) + " · " + ((d.pocket && d.pocket.label) || "?") + " @ " + fmt2(d.odds || 0) };
+  }
+
+  const hdr = el("div", { className: "hdr" },
+    el("h1", null, "Seti Rulett"),
+    el("p", null, "USA Lahtised · setid ja tiebreakid"));
+
+  let body = null;
+  if (!name) {
+    body = el(U.ui.NameGate, { onDone: setName });
+  } else if (phase === "setup") {
+    body = el("div", { className: "setup" },
+      el(U.ui.BuyinRow, { value: buyIn, onChange: setBuyIn }),
+      el("button", { className: "spinbtn", onClick: runSpin }, "KEERUTA 🎡"),
+      el("div", { className: "hint" }, "1. keerutus loosib matši, 2. keerutus taskukese — päris koefitsiendid maksavad võidu."));
+  } else {
+    const showM = pickedM || previewM;
+    const pockets = pickedM ? pocketsFor(pickedM) : null;
+    body = el("div", null,
+      el("div", { className: "spintitle" },
+        phase === "match" ? (pickedM ? "Matš valitud!" : "Loosin matši…") :
+          phase === "wheel" ? "Ratas keerleb…" : "Sinu pilet!"),
+      showM ? el("div", { className: "mline " + (pickedM ? "locked" : "cycling") },
+        el(U.ui.MatchLine, { m: showM })) : null,
+      pockets && (phase === "wheel" || phase === "ticket")
+        ? el(Wheel, { pockets, rotation }) : null,
+      pockets && (phase === "wheel" || phase === "ticket")
+        ? el("div", { className: "pocketlist" },
+            pockets.map((p, i) => el("div", { className: "pocketrow" + (hitIdx === i ? " hit" : ""), key: i },
+              el("span", { className: "dot", style: { background: p.col } }),
+              el("span", null, p.label),
+              el("span", { className: "po" }, fmt2(p.odds))))) : null,
+      phase === "ticket" && ticket ? el(React.Fragment, null,
+        el("div", { className: "receipt" },
+          el("div", { className: "rc-head" },
+            el("h2", null, "🎡 Seti Rulett"),
+            el("p", null, "Panus " + ticket.buyIn + " · " + U.D.meta.day1)),
+          el("div", { className: "rc-leg" },
+            el(U.ui.MatchLine, { m: pickedM }),
+            el("div", { className: "rc-row", style: { marginTop: 8 } },
+              el("span", { style: { fontSize: 13, fontWeight: 800 } }, ticket.details.pocket.label),
+              el("span", { className: "odds" }, fmt2(ticket.details.odds)))),
+          el("div", { className: "rc-foot" },
+            el("div", { className: "rc-row" },
+              el("span", { className: "rc-lbl" }, "Võimalik võit"),
+              el("span", { className: "potwin" }, fmt2(ticket.potentialWin))),
+            saveState === "saving" ? el("div", { className: "savestate" }, "Salvestan piletit…") :
+              saveState === "ok" ? el("div", { className: "savestate" }, "✓ Pilet salvestatud — arveldatakse päris tulemusega") :
+                saveState === "err" ? el("div", { className: "savestate err" }, "Salvestamine ebaõnnestus — server ei vasta") : null)),
+        el("button", { className: "mainbtn", onClick: runSpin }, "KEERUTA UUESTI 🎡"),
+        el("button", { className: "ghostbtn", onClick: () => { SFX.click(); setPhase("setup"); } }, "Muuda panust")) : null);
+  }
+
+  return el(React.Fragment, null,
+    el("div", { className: "wrap" },
+      el(U.ui.Topbar, {}),
+      hdr, body,
+      name ? el(U.ui.MyTickets, { game: GAME, name, refreshKey, describe }) : null,
+      el(U.ui.Board, { game: GAME, refreshKey }),
+      el("a", { className: "ghostbtn", style: { marginTop: 16 }, href: "/usalahtised" }, "← Tagasi USA Lahtiste juurde")));
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(el(App));
+</script>
+</body>
+</html>
