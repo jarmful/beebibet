@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Survivor Spin — USA Lahtised — beebibet</title>
+<meta name="description" content="Survivor Spin — loosi endale US Openi mängija ja roni kordajate redelil. Võta raha välja õigel hetkel või mine tiitlini!" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/usopen.css" />
+<style>
+  .bigslot {
+    min-height:96px; align-items:center; text-align:center; justify-content:center;
+  }
+  .bigslot .pname { font-size:22px; font-weight:900; }
+  .bigslot .pmeta { font-size:11px; color:var(--inkSoft); font-weight:800; display:flex; gap:6px; align-items:center; justify-content:center; flex-wrap:wrap; }
+  .ladder { margin-top:12px; }
+  .rung {
+    display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:12px;
+    border:1px solid var(--line); background:rgba(14,16,28,.55); margin-bottom:6px;
+  }
+  .rung .rlbl { width:84px; flex-shrink:0; font-size:12px; font-weight:900; letter-spacing:1px; }
+  .rung .rmult { margin-left:auto; font-size:15px; font-weight:900; color:var(--inkSoft); }
+  .rung .rstate { font-size:11px; font-weight:800; color:var(--inkSoft); }
+  .rung.done { border-color:rgba(0,230,118,.5); background:rgba(0,60,30,.35); }
+  .rung.done .rmult { color:var(--green); text-shadow:0 0 8px rgba(0,230,118,.4); }
+  .rung.now { border-color:var(--gold); background:rgba(60,48,10,.35); animation:badgepulse 1.1s ease infinite alternate; }
+  .rung.now .rmult { color:var(--gold); text-shadow:0 0 10px rgba(255,213,79,.5); }
+  .rung.bust { border-color:rgba(255,92,108,.55); background:rgba(70,12,20,.4); }
+  .rung.bust .rmult { color:var(--red); text-decoration:line-through; }
+  .rung.champ { border-style:dashed; }
+  .cashbtn {
+    width:100%; margin-top:8px; height:44px; border:none; border-radius:14px; cursor:pointer;
+    font-family:'Nunito',sans-serif; font-size:14px; font-weight:900; letter-spacing:1px; color:#241a02;
+    background:linear-gradient(135deg,var(--gold),#f5a623);
+    box-shadow:0 6px 16px rgba(255,213,79,.28), inset 0 -2px 0 rgba(0,0,0,.2);
+    transition:transform .12s;
+  }
+  .cashbtn:active { transform:scale(.96); }
+  .cashbtn:disabled { filter:grayscale(.8) brightness(.6); }
+</style>
+</head>
+<body>
+<div class="deco" id="deco"></div>
+<canvas id="confetti"></canvas>
+<div id="app"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/usopen-data.js"></script>
+<script src="/usopen-shared.js"></script>
+
+<script>
+"use strict";
+const U = window.USH;
+const { useState, useEffect, useRef } = React;
+const el = React.createElement;
+const { SFX, Confetti, fmt2, round2, sleep, buzz, pick } = U;
+const ROUNDS = U.D.meta.rounds;
+const GAME = "survivor";
+
+(function deco() {
+  const d = document.getElementById("deco");
+  ["🎾", "🪜", "🏆", "🎾", "🗽", "💪"].forEach((t, i) => {
+    const s = document.createElement("span");
+    s.textContent = t;
+    s.style.left = [8, 82, 15, 88, 45, 68][i] + "%";
+    s.style.top = [12, 8, 70, 58, 90, 32][i] + "%";
+    s.style.animation = "float" + (i % 3) + " " + (6 + i) + "s ease-in-out infinite";
+    d.appendChild(s);
+  });
+})();
+
+/* Kumulatiivsed kordajad: cum[i] = kordaja PÄRAST ringi i võitu */
+function cumMults(adv) {
+  const out = []; let m = 1;
+  for (let i = 0; i < 7; i++) { m *= adv[i]; out.push(round2(m)); }
+  return out;
+}
+
+function Ladder(props) {
+  const p = props.player;
+  const cums = cumMults(p.adv);
+  const roundsWon = props.roundsWon || 0;
+  const eliminated = !!props.eliminated;
+  const rows = [];
+  for (let i = 0; i < 7; i++) {
+    let cls = "rung", state = "";
+    if (i < roundsWon) { cls += " done"; state = "✓ võidetud"; }
+    else if (eliminated && i === roundsWon) { cls += " bust"; state = "✗ langes välja"; }
+    else if (!eliminated && i === roundsWon) { cls += " now"; state = "järgmine matš"; }
+    const label = i === 6 ? "F → 🏆" : ROUNDS[i] + " → " + (ROUNDS[i + 1] || "🏆");
+    rows.push(el("div", { className: cls, key: i },
+      el("span", { className: "rlbl" }, label),
+      el("span", { className: "rstate" }, state),
+      el("span", { className: "rmult" }, "×" + fmt2(cums[i]))));
+  }
+  return el("div", { className: "ladder" }, rows.reverse());
+}
+
+function App() {
+  const [name, setName] = useState(U.getName());
+  const [buyIn, setBuyIn] = useState(5);
+  const [phase, setPhase] = useState("setup");       // setup | spin | ticket
+  const [preview, setPreview] = useState(null);
+  const [picked, setPicked] = useState(null);
+  const [ticket, setTicket] = useState(null);
+  const [saveState, setSaveState] = useState(null);
+  const [results, setResults] = useState({ matches: {}, players: {} });
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [toast, setToast] = useState(null);
+  const [shake, setShake] = useState(false);
+  const spinningRef = useRef(false);
+  const cashingRef = useRef(false);
+
+  useEffect(() => {
+    if (!U.sb) return;
+    U.loadResults().then(setResults).catch(err => console.error("Tulemused:", err));
+  }, [refreshKey]);
+
+  function showToast(msg) { setToast(msg); setTimeout(() => setToast(t => t === msg ? null : t), 2600); }
+
+  async function runSpin() {
+    if (spinningRef.current) return;
+    spinningRef.current = true;
+    const chosen = pick(U.D.players);              /* ühtlane juhus — õnn otsustab */
+    setPicked(null); setSaveState(null); setPhase("spin");
+    SFX.click();
+    const t0 = Date.now();
+    while (Date.now() - t0 < 1900) {
+      setPreview(pick(U.D.players));
+      SFX.tick();
+      await sleep(75);
+    }
+    setPreview(null);
+    setPicked(chosen);
+    SFX.snap(); buzz(50);
+    Confetti.burst(chosen.tier === "longshot" ? 60 : 130);
+    await sleep(700);
+    const potWin = round2(buyIn * cumMults(chosen.adv)[6]);
+    const t = {
+      game: GAME, name, buyIn,
+      details: { playerId: chosen.id, playerName: chosen.name, advOdds: chosen.adv },
+      potentialWin: potWin
+    };
+    setTicket(t);
+    setPhase("ticket");
+    setSaveState("saving");
+    const res = await U.saveTicket(t);
+    setSaveState(res.ok ? "ok" : "err");
+    if (res.ok) setRefreshKey(k => k + 1);
+    spinningRef.current = false;
+  }
+
+  async function cashOut(t) {
+    if (cashingRef.current) return;
+    cashingRef.current = true;
+    try {
+      const d = t.details;
+      const pr = results.players[d.playerId] || {};
+      const rounds = pr.roundsWon || 0;
+      const mult = U.survivorMult(d.advOdds, rounds);
+      const win = round2(+t.buy_in * mult);
+      await U.updateTicket(t.id, {
+        status: "won", win_amount: win,
+        details: Object.assign({}, d, { cashedOut: true, cashoutRounds: rounds, cashoutMult: mult })
+      });
+      SFX.fanfare(); buzz([60, 40, 60, 40, 120]);
+      Confetti.burst(220);
+      setShake(true); setTimeout(() => setShake(false), 750);
+      showToast("💰 Raha väljas: " + fmt2(win) + " (×" + fmt2(mult) + ")");
+      setRefreshKey(k => k + 1);
+    } catch (err) {
+      console.error("Cash-out:", err);
+      showToast("Väljamakse ebaõnnestus — proovi uuesti");
+    }
+    cashingRef.current = false;
+  }
+
+  function describe(t) {
+    const d = t.details || {};
+    const pr = results.players[d.playerId] || {};
+    const rounds = pr.roundsWon || 0;
+    let sub;
+    if (d.cashedOut) sub = "Raha võetud välja ×" + fmt2(d.cashoutMult || 1) + " (" + (d.cashoutRounds || 0) + " ringi)";
+    else if (t.status === "lost") sub = "Mängija langes välja";
+    else if (t.status === "won") sub = "🏆 Tšempion!";
+    else sub = "Võidetud ringe: " + rounds + " · praegune kordaja ×" + fmt2(U.survivorMult(d.advOdds || [], rounds));
+    return { title: d.playerName || "?", sub: "Panus " + (+t.buy_in) + " · " + sub };
+  }
+
+  function renderExtra(t) {
+    if (t.status !== "pending") return null;
+    const d = t.details || {};
+    const pr = results.players[d.playerId] || {};
+    if (pr.eliminated) return null;
+    const rounds = pr.roundsWon || 0;
+    const mult = U.survivorMult(d.advOdds || [], rounds);
+    const win = round2(+t.buy_in * mult);
+    return el("button", { className: "cashbtn", onClick: () => cashOut(t) },
+      "💰 VÕTA RAHA VÄLJA — " + fmt2(win) + " (×" + fmt2(mult) + ")");
+  }
+
+  const hdr = el("div", { className: "hdr" },
+    el("h1", null, "Survivor Spin"),
+    el("p", null, "USA Lahtised · roni redelil"));
+
+  let body = null;
+  if (!name) {
+    body = el(U.ui.NameGate, { onDone: setName });
+  } else if (phase === "setup") {
+    body = el("div", { className: "setup" },
+      el(U.ui.BuyinRow, { value: buyIn, onChange: setBuyIn }),
+      el("button", { className: "spinbtn", onClick: runSpin }, "LOOSI MÄNGIJA 🎾"),
+      el("div", { className: "hint" }, "Loos on ühtlane — iga mängija sama tõenäoline. Iga võidetud ring korrutab kordajat!"));
+  } else if (phase === "spin") {
+    const p = picked || preview;
+    body = el("div", null,
+      el("div", { className: "spintitle" }, picked ? "Sinu mängija!" : "Loosin mängijat…"),
+      el("div", { className: "slot bigslot" + (picked ? " locked" : " cycling") },
+        p ? el("div", { className: picked ? "" : "cycrow", style: { textAlign: "center" } },
+          el("div", { className: "pname" }, el(U.ui.PlayerChip, { p })),
+          el("div", { className: "pmeta", style: { marginTop: 6 } },
+            el("span", { className: "tourtag" }, p.tour),
+            el("span", { className: "tiertag " + p.tier }, p.tier === "favorite" ? "Favoriit" : p.tier === "mid" ? "Keskmik" : "Longshot"),
+            el("span", null, "turniirivõit " + fmt2(p.outright)))) : null));
+  } else if (phase === "ticket" && ticket) {
+    const p = U.player(ticket.details.playerId);
+    const pr = results.players[p.id] || {};
+    body = el("div", null,
+      el("div", { className: "receipt" },
+        el("div", { className: "rc-head" },
+          el("h2", null, "🪜 Survivor Spin"),
+          el("p", null, "Panus " + ticket.buyIn + " · " + U.D.meta.name)),
+        el("div", { className: "rc-leg", style: { textAlign: "center" } },
+          el("div", { style: { fontSize: 20, fontWeight: 900 } }, el(U.ui.PlayerChip, { p })),
+          el("div", { className: "pmeta", style: { marginTop: 6, display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap" } },
+            el("span", { className: "tourtag" }, p.tour),
+            el("span", { className: "tiertag " + p.tier }, p.tier === "favorite" ? "Favoriit" : p.tier === "mid" ? "Keskmik" : "Longshot"))),
+        el("div", { className: "rc-foot" },
+          el("div", { className: "rc-row" },
+            el("span", { className: "rc-lbl" }, "Võit tiitli korral"),
+            el("span", { className: "potwin" }, fmt2(ticket.potentialWin))),
+          saveState === "saving" ? el("div", { className: "savestate" }, "Salvestan piletit…") :
+            saveState === "ok" ? el("div", { className: "savestate" }, "✓ Pilet salvestatud — arveldatakse päris tulemustega") :
+              saveState === "err" ? el("div", { className: "savestate err" }, "Salvestamine ebaõnnestus — server ei vasta") : null)),
+      el("div", { className: "seclbl" }, "🪜 Redel"),
+      el(Ladder, { player: p, roundsWon: pr.roundsWon || 0, eliminated: pr.eliminated }),
+      el("button", { className: "mainbtn", onClick: runSpin }, "LOOSI UUS PILET 🎾"),
+      el("button", { className: "ghostbtn", onClick: () => { SFX.click(); setPhase("setup"); } }, "Muuda panust"));
+  }
+
+  return el(React.Fragment, null,
+    el("div", { className: "wrap" + (shake ? " shake" : "") },
+      el(U.ui.Topbar, {}),
+      hdr, body,
+      name ? el(U.ui.MyTickets, { game: GAME, name, refreshKey, describe, renderExtra }) : null,
+      el(U.ui.Board, { game: GAME, refreshKey }),
+      el("a", { className: "ghostbtn", style: { marginTop: 16 }, href: "/usalahtised" }, "← Tagasi USA Lahtiste juurde")),
+    toast ? el("div", { className: "toast" }, toast) : null);
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(el(App));
+</script>
+</body>
+</html>

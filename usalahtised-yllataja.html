@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Üllataja Loto — USA Lahtised — beebibet</title>
+<meta name="description" content="Üllataja Loto — kraabi lahti päeva üllataja! Kui autsaider võidab oma US Openi matši, maksab pilet päris koefitsiendi × boonusratta." />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/usopen.css" />
+<style>
+  .lotto {
+    border:2px dashed rgba(255,212,0,.55); border-radius:20px; margin-top:10px;
+    background:linear-gradient(160deg,rgba(0,24,84,.55),rgba(19,22,36,.8));
+    padding:16px; text-align:center; position:relative;
+  }
+  .lotto .lt-head { font-size:12px; letter-spacing:3px; font-weight:900; color:var(--usoYellow); text-transform:uppercase; }
+  .scratchwrap { position:relative; margin-top:12px; border-radius:14px; overflow:hidden; }
+  .scratch-under {
+    min-height:130px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:8px; background:rgba(10,12,22,.85); padding:14px;
+  }
+  .scratch-under .sname { font-size:21px; font-weight:900; }
+  .scratch-under .smeta { font-size:11px; color:var(--inkSoft); font-weight:800; }
+  #scratchcv { position:absolute; inset:0; width:100%; height:100%; touch-action:none; cursor:crosshair; }
+  .wheelbox { text-align:center; margin-top:12px; position:relative; }
+  .wheelbox svg { max-width:220px; width:70%; height:auto; filter:drop-shadow(0 8px 24px rgba(0,0,0,.5)); }
+  .pointer { position:absolute; top:-2px; left:50%; transform:translateX(-50%); font-size:24px; z-index:5; }
+</style>
+</head>
+<body>
+<div class="deco" id="deco"></div>
+<canvas id="confetti"></canvas>
+<div id="app"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/usopen-data.js"></script>
+<script src="/usopen-shared.js"></script>
+
+<script>
+"use strict";
+const U = window.USH;
+const { useState, useEffect, useRef } = React;
+const el = React.createElement;
+const { SFX, Confetti, fmt2, round2, sleep, buzz, pick } = U;
+const GAME = "yllataja";
+
+const BONUSES = [
+  { mult: 1,   w: 45, col: "#1d2233" },
+  { mult: 1.5, w: 30, col: "#1c4d86" },
+  { mult: 2,   w: 17, col: "#0d7a43" },
+  { mult: 3,   w: 8,  col: "#b3123a" }
+];
+
+(function deco() {
+  const d = document.getElementById("deco");
+  ["🃏", "🎾", "🪙", "🎟️", "🗽", "❓"].forEach((t, i) => {
+    const s = document.createElement("span");
+    s.textContent = t;
+    s.style.left = [8, 82, 15, 88, 45, 68][i] + "%";
+    s.style.top = [12, 8, 70, 58, 90, 32][i] + "%";
+    s.style.animation = "float" + (i % 3) + " " + (6 + i) + "s ease-in-out infinite";
+    d.appendChild(s);
+  });
+})();
+
+/* Autsaiderid: iga matši suurema koefiga pool; kaal ∝ koefitsient
+   (mida pikem koefitsient, seda veidi suurem šanss — metsikud piletid on tavalised) */
+const DOGS = U.D.matches.map(m => {
+  const dg = U.dogOf(m);
+  return { matchId: m.id, playerId: dg.id, odds: dg.odds };
+});
+function rollDog() { return U.weightedPick(DOGS, d => d.odds); }
+function rollBonus() { return U.weightedPick(BONUSES, b => b.w); }
+
+/* Kraapimiskaart: canvas kihina nime peal */
+function ScratchCard(props) {
+  const cvRef = useRef(null);
+  const doneRef = useRef(false);
+  useEffect(() => {
+    const cv = cvRef.current;
+    const box = cv.parentElement.getBoundingClientRect();
+    cv.width = Math.max(1, Math.round(box.width));
+    cv.height = Math.max(1, Math.round(box.height));
+    const cx = cv.getContext("2d");
+    const grad = cx.createLinearGradient(0, 0, cv.width, cv.height);
+    grad.addColorStop(0, "#5a6178"); grad.addColorStop(1, "#3a4157");
+    cx.fillStyle = grad;
+    cx.fillRect(0, 0, cv.width, cv.height);
+    cx.fillStyle = "rgba(255,255,255,.55)";
+    cx.font = "900 15px Nunito, sans-serif";
+    cx.textAlign = "center"; cx.textBaseline = "middle";
+    cx.fillText("🪙 KRAABI SIIT 🪙", cv.width / 2, cv.height / 2 - 10);
+    cx.font = "800 11px Nunito, sans-serif";
+    cx.fillText("lohista sõrme või hiirt", cv.width / 2, cv.height / 2 + 14);
+
+    let scratching = false, moves = 0;
+    function scratchAt(ev) {
+      const r = cv.getBoundingClientRect();
+      const x = (ev.clientX - r.left) * (cv.width / r.width);
+      const y = (ev.clientY - r.top) * (cv.height / r.height);
+      cx.globalCompositeOperation = "destination-out";
+      cx.beginPath();
+      cx.arc(x, y, 24, 0, Math.PI * 2);
+      cx.fill();
+      cx.globalCompositeOperation = "source-over";
+      if (++moves % 6 === 0) checkProgress();
+    }
+    function checkProgress() {
+      if (doneRef.current) return;
+      const img = cx.getImageData(0, 0, cv.width, cv.height).data;
+      let clear = 0, total = 0;
+      for (let i = 3; i < img.length; i += 4 * 9) { total++; if (img[i] < 40) clear++; }
+      if (clear / total > 0.45) {
+        doneRef.current = true;
+        cv.style.transition = "opacity .5s";
+        cv.style.opacity = "0";
+        setTimeout(() => { cv.style.display = "none"; }, 520);
+        props.onRevealed();
+      }
+    }
+    function down(ev) { scratching = true; cv.setPointerCapture(ev.pointerId); scratchAt(ev); SFX.tick(); }
+    function move(ev) { if (scratching) { scratchAt(ev); if (moves % 4 === 0) SFX.tick(); } }
+    function up() { scratching = false; }
+    cv.addEventListener("pointerdown", down);
+    cv.addEventListener("pointermove", move);
+    cv.addEventListener("pointerup", up);
+    cv.addEventListener("pointercancel", up);
+    return () => {
+      cv.removeEventListener("pointerdown", down);
+      cv.removeEventListener("pointermove", move);
+      cv.removeEventListener("pointerup", up);
+      cv.removeEventListener("pointercancel", up);
+    };
+  }, []);
+  return el("canvas", { id: "scratchcv", ref: cvRef });
+}
+
+function BonusWheel(props) {
+  const n = BONUSES.length, step = 360 / n;
+  const sectors = [];
+  function arcPath(cx, cy, r, a0, a1) {
+    const rad = a => a * Math.PI / 180;
+    const x0 = cx + r * Math.cos(rad(a0)), y0 = cy + r * Math.sin(rad(a0));
+    const x1 = cx + r * Math.cos(rad(a1)), y1 = cy + r * Math.sin(rad(a1));
+    return "M " + cx + " " + cy + " L " + x0 + " " + y0 + " A " + r + " " + r + " 0 0 1 " + x1 + " " + y1 + " Z";
+  }
+  for (let i = 0; i < n; i++) {
+    const a0 = -90 + i * step, ac = a0 + step / 2;
+    const lx = 110 + 62 * Math.cos(ac * Math.PI / 180);
+    const ly = 110 + 62 * Math.sin(ac * Math.PI / 180);
+    sectors.push(el("path", { key: "s" + i, d: arcPath(110, 110, 100, a0, a0 + step), fill: BONUSES[i].col, stroke: "#ffd54f", strokeWidth: 2 }));
+    sectors.push(el("text", {
+      key: "t" + i, x: lx, y: ly, fill: "#fff", fontSize: 20, fontWeight: 900,
+      textAnchor: "middle", dominantBaseline: "middle", fontFamily: "Nunito,sans-serif",
+      transform: "rotate(" + (ac + 90) + " " + lx + " " + ly + ")"
+    }, "×" + BONUSES[i].mult));
+  }
+  return el("div", { className: "wheelbox" },
+    el("span", { className: "pointer" }, "🔻"),
+    el("svg", { viewBox: "0 0 220 220" },
+      el("circle", { cx: 110, cy: 110, r: 106, fill: "#0a0c14", stroke: "#ffd54f", strokeWidth: 3 }),
+      el("g", { transform: "rotate(" + props.rotation + " 110 110)" }, sectors),
+      el("circle", { cx: 110, cy: 110, r: 22, fill: "#0a0c14", stroke: "#ffd54f", strokeWidth: 2 }),
+      el("text", { x: 110, y: 111, fill: "#ffd54f", fontSize: 16, textAnchor: "middle", dominantBaseline: "middle" }, "🃏")));
+}
+
+function App() {
+  const [name, setName] = useState(U.getName());
+  const [buyIn, setBuyIn] = useState(5);
+  const [phase, setPhase] = useState("setup");     // setup | scratch | wheel | ticket
+  const [dog, setDog] = useState(null);
+  const [bonus, setBonus] = useState(null);
+  const [rotation, setRotation] = useState(0);
+  const [ticket, setTicket] = useState(null);
+  const [saveState, setSaveState] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [shake, setShake] = useState(false);
+  const busyRef = useRef(false);
+
+  function startSpin() {
+    if (busyRef.current) return;
+    SFX.click();
+    setDog(rollDog());
+    setBonus(null); setTicket(null); setSaveState(null); setRotation(0);
+    setPhase("scratch");
+  }
+
+  async function onRevealed() {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    SFX.snap(); buzz(50);
+    Confetti.burst(110);
+    await sleep(900);
+
+    /* boonusratas */
+    setPhase("wheel");
+    const b = rollBonus();
+    const idx = BONUSES.indexOf(b);
+    const n = BONUSES.length, step = 360 / n;
+    const jitter = (Math.random() - .5) * step * .5;
+    const finalRot = 360 * 4 - (idx * step + step / 2) + jitter;
+    const DUR = 3000;
+    await new Promise(resolve => {
+      const start = performance.now();
+      let lastSector = -1;
+      function frame(now) {
+        const t = Math.min(1, (now - start) / DUR);
+        const eased = 1 - Math.pow(1 - t, 3);
+        setRotation(finalRot * eased);
+        const sec = Math.floor(((-(finalRot * eased) % 360) + 360) % 360 / step);
+        if (sec !== lastSector) { SFX.tick(); lastSector = sec; }
+        if (t < 1) requestAnimationFrame(frame); else resolve();
+      }
+      requestAnimationFrame(frame);
+    });
+    setBonus(b);
+    SFX.snap(); buzz(60);
+    if (b.mult >= 2) { SFX.win(); Confetti.burst(180); }
+    if (b.mult === 3) {
+      SFX.fanfare();
+      setShake(true); setTimeout(() => setShake(false), 750);
+    }
+    await sleep(800);
+
+    const totalOdds = round2(dog.odds * b.mult);
+    const t = {
+      game: GAME, name, buyIn,
+      details: {
+        playerId: dog.playerId, playerName: U.player(dog.playerId).name,
+        matchId: dog.matchId, odds: dog.odds, bonus: b.mult
+      },
+      potentialWin: round2(buyIn * totalOdds)
+    };
+    setTicket(t);
+    setPhase("ticket");
+    setSaveState("saving");
+    const res = await U.saveTicket(t);
+    setSaveState(res.ok ? "ok" : "err");
+    if (res.ok) setRefreshKey(k => k + 1);
+    busyRef.current = false;
+  }
+
+  function describe(t) {
+    const d = t.details || {};
+    const m = U.match(d.matchId);
+    const opp = m ? U.player(m.p1 === d.playerId ? m.p2 : m.p1).name : "?";
+    return {
+      title: (d.playerName || "?") + " võidab (vs " + opp + ")",
+      sub: "Panus " + (+t.buy_in) + " · koef " + fmt2(d.odds || 0) + " × boonus ×" + (d.bonus || 1)
+    };
+  }
+
+  const hdr = el("div", { className: "hdr" },
+    el("h1", null, "Üllataja Loto"),
+    el("p", null, "USA Lahtised · kraabi lahti üllataja"));
+
+  const dogView = dog ? (() => {
+    const p = U.player(dog.playerId);
+    const m = U.match(dog.matchId);
+    const opp = U.player(m.p1 === dog.playerId ? m.p2 : m.p1);
+    return el("div", { className: "scratch-under" },
+      el("div", { className: "sname" }, el(U.ui.PlayerChip, { p })),
+      el("div", { className: "smeta" }, "võidab matši vs " + opp.name),
+      el("div", { className: "smeta" }, m.tour + " · " + m.court + " · " + m.time + " · koef " + fmt2(dog.odds)));
+  })() : null;
+
+  let body = null;
+  if (!name) {
+    body = el(U.ui.NameGate, { onDone: setName });
+  } else if (phase === "setup") {
+    body = el("div", { className: "setup" },
+      el(U.ui.BuyinRow, { value: buyIn, onChange: setBuyIn }),
+      el("button", { className: "spinbtn", onClick: startSpin }, "OSTA LOTOPILET 🃏"),
+      el("div", { className: "hint" }, "Loos valib päeva mängukavast autsaideri — mida pikem koefitsient, seda veidi suurem šanss. Kui üllataja lööb, maksab päris koefitsient × boonus!"));
+  } else {
+    body = el("div", null,
+      el("div", { className: "lotto" },
+        el("div", { className: "lt-head" }, "🎟️ Üllataja Loto · " + U.D.meta.day1),
+        el("div", { className: "scratchwrap" },
+          dogView,
+          phase === "scratch" ? el(ScratchCard, { onRevealed, key: dog && dog.playerId }) : null),
+        phase === "wheel" || (phase === "ticket" && bonus) ? el(BonusWheel, { rotation }) : null,
+        phase === "wheel" && !bonus ? el("div", { className: "spintitle" }, "Boonusratas keerleb…") : null),
+      phase === "ticket" && ticket ? el(React.Fragment, null,
+        el("div", { className: "receipt" },
+          el("div", { className: "rc-head" },
+            el("h2", null, "🃏 Üllataja Loto"),
+            el("p", null, "Panus " + ticket.buyIn + " · " + U.D.meta.day1)),
+          el("div", { className: "rc-leg" },
+            el("div", { className: "rc-row" },
+              el("span", { style: { fontSize: 13, fontWeight: 800 } }, ticket.details.playerName + " võidab matši"),
+              el("span", { className: "odds" }, fmt2(ticket.details.odds)))),
+          el("div", { className: "rc-foot" },
+            el("div", { className: "rc-row" },
+              el("span", { className: "rc-lbl" }, "Koefitsient"),
+              el("span", null,
+                ticket.details.bonus > 1
+                  ? el(React.Fragment, null,
+                      el("span", { className: "raw-odds cut" }, fmt2(ticket.details.odds)),
+                      el("span", { className: "boostbadge", style: { margin: "0 8px" } }, "×" + ticket.details.bonus),
+                      el("span", { className: "boosted-odds" }, fmt2(round2(ticket.details.odds * ticket.details.bonus))))
+                  : el("span", { className: "raw-odds" }, fmt2(ticket.details.odds)))),
+            el("div", { className: "rc-row" },
+              el("span", { className: "rc-lbl" }, "Võimalik võit"),
+              el("span", { className: "potwin" }, fmt2(ticket.potentialWin))),
+            saveState === "saving" ? el("div", { className: "savestate" }, "Salvestan piletit…") :
+              saveState === "ok" ? el("div", { className: "savestate" }, "✓ Pilet salvestatud — arveldatakse päris tulemusega") :
+                saveState === "err" ? el("div", { className: "savestate err" }, "Salvestamine ebaõnnestus — server ei vasta") : null)),
+        el("button", { className: "mainbtn", onClick: startSpin }, "OSTA UUS PILET 🃏"),
+        el("button", { className: "ghostbtn", onClick: () => { SFX.click(); setPhase("setup"); } }, "Muuda panust")) : null);
+  }
+
+  return el(React.Fragment, null,
+    el("div", { className: "wrap" + (shake ? " shake" : "") },
+      el(U.ui.Topbar, {}),
+      hdr, body,
+      name ? el(U.ui.MyTickets, { game: GAME, name, refreshKey, describe }) : null,
+      el(U.ui.Board, { game: GAME, refreshKey }),
+      el("a", { className: "ghostbtn", style: { marginTop: 16 }, href: "/usalahtised" }, "← Tagasi USA Lahtiste juurde")));
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(el(App));
+</script>
+</body>
+</html>

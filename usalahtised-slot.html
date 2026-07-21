@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Grand Slam Slot — USA Lahtised — beebibet</title>
+<meta name="description" content="Grand Slam Slot — kolm rulli: mängija, turg ja boonuskordaja. Pilet arveldatakse päris US Openi tulemustega!" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/usopen.css" />
+<style>
+  .reels { display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+  .reel {
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:12px; min-height:78px; position:relative; overflow:hidden;
+    display:flex; flex-direction:column; justify-content:center; text-align:center; gap:4px;
+  }
+  .reel .rlabel {
+    position:absolute; top:6px; left:10px; font-size:9px; font-weight:900;
+    letter-spacing:2px; color:var(--inkSoft); text-transform:uppercase;
+  }
+  .reel.cycling { border-color:rgba(255,213,79,.5); }
+  .reel.cycling .rval { filter:blur(.7px); animation:cycflick .07s linear infinite; }
+  .reel.locked { animation:snapIn .38s cubic-bezier(.2,1.6,.4,1) both; border-color:rgba(0,230,118,.45); }
+  .reel.idle { border-style:dashed; opacity:.45; }
+  .rval { font-size:17px; font-weight:900; line-height:1.3; }
+  .rval .sub { display:block; font-size:11px; color:var(--inkSoft); font-weight:800; margin-top:2px; }
+  .bonusval { font-size:30px; font-weight:900; color:var(--gold); text-shadow:0 0 14px rgba(255,213,79,.5); }
+  .bonusval.x1 { color:var(--inkSoft); text-shadow:none; }
+</style>
+</head>
+<body>
+<div class="deco" id="deco"></div>
+<canvas id="confetti"></canvas>
+<div id="app"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/usopen-data.js"></script>
+<script src="/usopen-shared.js"></script>
+
+<script>
+"use strict";
+const U = window.USH;
+const { useState, useEffect, useRef } = React;
+const el = React.createElement;
+const { SFX, Confetti, fmt2, round2, sleep, buzz, pick } = U;
+const GAME = "slot";
+
+(function deco() {
+  const d = document.getElementById("deco");
+  ["🎾", "🎰", "🍒", "💎", "🗽", "7️⃣"].forEach((t, i) => {
+    const s = document.createElement("span");
+    s.textContent = t;
+    s.style.left = [8, 82, 15, 88, 45, 68][i] + "%";
+    s.style.top = [12, 8, 70, 58, 90, 32][i] + "%";
+    s.style.animation = "float" + (i % 3) + " " + (6 + i) + "s ease-in-out infinite";
+    d.appendChild(s);
+  });
+})();
+
+/* 1. rulli mängijad: kõik päeva mängukavas osalejad, kaal tieri järgi (~60/30/10) */
+const DAY_PLAYERS = [];
+U.D.matches.forEach(m => { DAY_PLAYERS.push(U.player(m.p1), U.player(m.p2)); });
+const TIER_W = { favorite: 6, mid: 3, longshot: 1 };
+function rollPlayer() { return U.weightedPick(DAY_PLAYERS, p => TIER_W[p.tier] || 1); }
+
+/* 3. rull: boonuskordajad */
+const BONUSES = [
+  { mult: 1,   w: 50 }, { mult: 1.5, w: 25 }, { mult: 2, w: 15 },
+  { mult: 3,   w: 8 },  { mult: 5,   w: 2 }
+];
+function rollBonus() { return U.weightedPick(BONUSES, b => b.w).mult; }
+
+function marketLabel(mkKey, m) {
+  if (mkKey === "clean") return "Võidab puhtalt (" + U.cleanScore(m) + ")";
+  if (mkKey === "distance") return "Matš läheb täispikkuseks (" + U.maxSets(m) + " setti)";
+  return U.marketByKey[mkKey].label;
+}
+
+function App() {
+  const [name, setName] = useState(U.getName());
+  const [buyIn, setBuyIn] = useState(5);
+  const [phase, setPhase] = useState("setup");     // setup | spin | ticket
+  const [reelView, setReelView] = useState({});    // {p, pLock, mk, mkLock, bonus, bonusLock}
+  const [ticket, setTicket] = useState(null);
+  const [saveState, setSaveState] = useState(null);
+  const [jackpot, setJackpot] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [shake, setShake] = useState(false);
+  const spinningRef = useRef(false);
+
+  async function runSpin() {
+    if (spinningRef.current) return;
+    spinningRef.current = true;
+    SFX.click();
+    setTicket(null); setSaveState(null); setPhase("spin");
+
+    const p = rollPlayer();
+    const mk = pick(U.MARKETS);
+    const bonus = rollBonus();
+    const m = U.matchOf(p.id);
+    const odds = round2(mk.odds(m, p.id));
+    const totalOdds = round2(odds * bonus);
+    const potWin = round2(buyIn * totalOdds);
+    const isJackpot = p.tier === "longshot" && mk.key === "clean" && bonus === 5;
+
+    /* Rull 1: mängija */
+    setReelView({});
+    let t0 = Date.now();
+    while (Date.now() - t0 < 1300) { setReelView({ p: rollPlayer() }); SFX.tick(); await sleep(70); }
+    setReelView({ p, pLock: true });
+    SFX.snap(); buzz(35);
+    await sleep(350);
+    /* Rull 2: turg */
+    t0 = Date.now();
+    while (Date.now() - t0 < 1100) { setReelView({ p, pLock: true, mk: pick(U.MARKETS) }); SFX.tick(); await sleep(80); }
+    setReelView({ p, pLock: true, mk, mkLock: true });
+    SFX.snap(); buzz(35);
+    await sleep(350);
+    /* Rull 3: boonus */
+    t0 = Date.now();
+    while (Date.now() - t0 < 1200) { setReelView({ p, pLock: true, mk, mkLock: true, bonus: rollBonus() }); SFX.tick(); await sleep(85); }
+    setReelView({ p, pLock: true, mk, mkLock: true, bonus, bonusLock: true });
+    SFX.snap(); buzz(50);
+    await sleep(500);
+
+    if (isJackpot) {
+      SFX.fanfare(); buzz([80, 50, 80, 50, 200]);
+      Confetti.burst(320);
+      setJackpot(true);
+      setShake(true); setTimeout(() => setShake(false), 750);
+    } else if (bonus >= 2) {
+      SFX.win(); buzz(60);
+      Confetti.burst(120);
+    } else {
+      SFX.win();
+      Confetti.burst(50);
+    }
+
+    const t = {
+      game: GAME, name, buyIn,
+      details: {
+        playerId: p.id, playerName: p.name, matchId: m.id,
+        market: mk.key, marketLabel: marketLabel(mk.key, m),
+        odds, bonus, totalOdds, jackpot: isJackpot
+      },
+      potentialWin: potWin
+    };
+    setTicket(t);
+    setPhase("ticket");
+    setSaveState("saving");
+    const res = await U.saveTicket(t);
+    setSaveState(res.ok ? "ok" : "err");
+    if (res.ok) setRefreshKey(k => k + 1);
+    spinningRef.current = false;
+  }
+
+  function describe(t) {
+    const d = t.details || {};
+    return {
+      title: (d.playerName || "?") + " — " + (d.marketLabel || d.market),
+      sub: "Panus " + (+t.buy_in) + " · koef " + fmt2(d.odds || 0) + " × boonus ×" + (d.bonus || 1) + (d.jackpot ? " · 💥 JACKPOT-kombo" : "")
+    };
+  }
+
+  const reels = phase !== "setup" ? el("div", { className: "reels" },
+    el("div", { className: "reel " + (reelView.pLock ? "locked" : reelView.p ? "cycling" : "idle") },
+      el("span", { className: "rlabel" }, "Mängija"),
+      reelView.p ? el("div", { className: "rval" },
+        el(U.ui.PlayerChip, { p: reelView.p }),
+        el("span", { className: "sub" },
+          reelView.p.tour + " · " + (reelView.p.tier === "favorite" ? "favoriit" : reelView.p.tier === "mid" ? "keskmik" : "longshot"))) : el("div", { className: "rval" }, "· · ·")),
+    el("div", { className: "reel " + (reelView.mkLock ? "locked" : reelView.mk ? "cycling" : "idle") },
+      el("span", { className: "rlabel" }, "Turg"),
+      reelView.mk ? el("div", { className: "rval" },
+        reelView.pLock ? marketLabel(reelView.mk.key, U.matchOf(reelView.p.id)) : reelView.mk.label) : el("div", { className: "rval" }, "· · ·")),
+    el("div", { className: "reel " + (reelView.bonusLock ? "locked" : reelView.bonus != null ? "cycling" : "idle") },
+      el("span", { className: "rlabel" }, "Boonus"),
+      reelView.bonus != null
+        ? el("div", { className: "bonusval" + (reelView.bonus === 1 ? " x1" : "") }, "×" + reelView.bonus)
+        : el("div", { className: "rval" }, "· · ·"))) : null;
+
+  const hdr = el("div", { className: "hdr" },
+    el("h1", null, "Grand Slam Slot"),
+    el("p", null, "USA Lahtised · kolm rulli"));
+
+  let body = null;
+  if (!name) {
+    body = el(U.ui.NameGate, { onDone: setName });
+  } else if (phase === "setup") {
+    body = el("div", { className: "setup" },
+      el(U.ui.BuyinRow, { value: buyIn, onChange: setBuyIn }),
+      el("button", { className: "spinbtn", onClick: runSpin }, "KEERUTA 🎰"),
+      el("div", { className: "hint" }, "Mängija × turg × boonus. Longshot + puhas võit + ×5 = JACKPOT!"));
+  } else {
+    const m = ticket ? U.match(ticket.details.matchId) : null;
+    body = el("div", null,
+      el("div", { className: "spintitle" },
+        phase === "spin" ? "Rullid keerlevad…" : ticket && ticket.details.jackpot ? "💥 JACKPOT-KOMBO!" : "Sinu pilet!"),
+      reels,
+      phase === "ticket" && ticket ? el(React.Fragment, null,
+        el("div", { className: "receipt" },
+          el("div", { className: "rc-head" },
+            el("h2", null, "🎰 Grand Slam Slot"),
+            el("p", null, "Panus " + ticket.buyIn + " · " + U.D.meta.day1)),
+          el("div", { className: "rc-leg" },
+            el(U.ui.MatchLine, { m }),
+            el("div", { className: "rc-row", style: { marginTop: 8 } },
+              el("span", { style: { fontSize: 13, fontWeight: 800 } },
+                ticket.details.playerName + " — " + ticket.details.marketLabel),
+              el("span", { className: "odds" }, fmt2(ticket.details.odds)))),
+          el("div", { className: "rc-foot" },
+            el("div", { className: "rc-row" },
+              el("span", { className: "rc-lbl" }, "Koefitsient"),
+              el("span", null,
+                ticket.details.bonus > 1
+                  ? el(React.Fragment, null,
+                      el("span", { className: "raw-odds cut" }, fmt2(ticket.details.odds)),
+                      el("span", { className: "boostbadge", style: { margin: "0 8px" } }, "×" + ticket.details.bonus),
+                      el("span", { className: "boosted-odds" }, fmt2(ticket.details.totalOdds)))
+                  : el("span", { className: "raw-odds" }, fmt2(ticket.details.totalOdds)))),
+            el("div", { className: "rc-row" },
+              el("span", { className: "rc-lbl" }, "Võimalik võit"),
+              el("span", { className: "potwin" }, fmt2(ticket.potentialWin))),
+            saveState === "saving" ? el("div", { className: "savestate" }, "Salvestan piletit…") :
+              saveState === "ok" ? el("div", { className: "savestate" }, "✓ Pilet salvestatud — arveldatakse päris tulemusega") :
+                saveState === "err" ? el("div", { className: "savestate err" }, "Salvestamine ebaõnnestus — server ei vasta") : null)),
+        el("button", { className: "mainbtn", onClick: runSpin }, "KEERUTA UUESTI 🎰"),
+        el("button", { className: "ghostbtn", onClick: () => { SFX.click(); setPhase("setup"); } }, "Muuda panust")) : null);
+  }
+
+  const jackpotOvl = jackpot ? el("div", { className: "jackpot-ovl", onClick: () => setJackpot(false) },
+    el("h1", null, "JACKPOT!"),
+    el("p", null, ticket ? ticket.details.playerName + " puhtalt + ×5 boonus\nVõimalik võit " + fmt2(ticket.potentialWin) : ""),
+    el("p", { style: { marginTop: 18, fontSize: 12, color: "var(--inkSoft)" } }, "Puuduta jätkamiseks")) : null;
+
+  return el(React.Fragment, null,
+    el("div", { className: "wrap" + (shake ? " shake" : "") },
+      el(U.ui.Topbar, {}),
+      hdr, body,
+      name ? el(U.ui.MyTickets, { game: GAME, name, refreshKey, describe }) : null,
+      el(U.ui.Board, { game: GAME, refreshKey }),
+      el("a", { className: "ghostbtn", style: { marginTop: 16 }, href: "/usalahtised" }, "← Tagasi USA Lahtiste juurde")),
+    jackpotOvl);
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(el(App));
+</script>
+</body>
+</html>

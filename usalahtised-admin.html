@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Admin — USA Lahtised — beebibet</title>
+<meta name="robots" content="noindex" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/usopen.css" />
+<style>
+  .tabs { display:flex; gap:8px; margin-top:10px; }
+  .tab {
+    flex:1; padding:12px 4px; border-radius:14px; border:1px solid var(--line);
+    background:rgba(14,16,28,.7); color:var(--ink); font-family:'Nunito',sans-serif;
+    font-size:14px; font-weight:900; cursor:pointer; text-align:center;
+  }
+  .tab.on { border-color:var(--usoYellow); color:var(--usoYellow); background:rgba(60,48,10,.4); }
+  .adm { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:12px; margin-top:10px; }
+  .adm .ttl { font-size:13px; font-weight:900; margin-bottom:8px; }
+  .adm .sub { font-size:10.5px; color:var(--inkSoft); font-weight:800; margin-bottom:8px; }
+  .row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:6px; }
+  .mini {
+    padding:8px 10px; border-radius:10px; border:1px solid var(--line);
+    background:rgba(14,16,28,.7); color:var(--ink); font-family:'Nunito',sans-serif;
+    font-size:12px; font-weight:800; cursor:pointer;
+  }
+  .mini.on { border-color:var(--green); color:var(--green); background:rgba(0,60,30,.4); }
+  .mini.warn.on { border-color:var(--red); color:var(--red); background:rgba(70,12,20,.4); }
+  select {
+    padding:8px 10px; border-radius:10px; border:1px solid var(--line);
+    background:rgba(14,16,28,.9); color:var(--ink); font-family:'Nunito',sans-serif;
+    font-size:12px; font-weight:800;
+  }
+  .savemini {
+    margin-left:auto; padding:8px 16px; border-radius:10px; border:none; cursor:pointer;
+    background:linear-gradient(135deg,var(--green),#00b357); color:#03140a;
+    font-family:'Nunito',sans-serif; font-size:12px; font-weight:900;
+  }
+  .savemini:disabled { filter:grayscale(.8) brightness(.6); }
+  .donebadge { font-size:10px; font-weight:900; color:var(--green); }
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div id="app"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/usopen-data.js"></script>
+<script src="/usopen-shared.js"></script>
+
+<script>
+"use strict";
+const U = window.USH;
+const { useState, useEffect } = React;
+const el = React.createElement;
+const { fmt2 } = U;
+
+const PASSCODE = "usopen2026";
+const ROUND_LABELS = ["0 (pole veel võite)", "1 (R1 võidetud)", "2 (R2 võidetud)", "3 (R3 võidetud)",
+  "4 (R4 võidetud)", "5 (QF võidetud)", "6 (SF võidetud)", "7 (TŠEMPION 🏆)"];
+
+function scoresFor(tour) { return tour === "ATP" ? ["3-0", "3-1", "3-2"] : ["2-0", "2-1"]; }
+
+function MatchForm(props) {
+  const m = props.m;
+  const p1 = U.player(m.p1), p2 = U.player(m.p2);
+  const existing = props.existing;
+  const [winner, setWinner] = useState(existing ? existing.winner : null);
+  const [score, setScore] = useState(existing ? existing.score : scoresFor(m.tour)[0]);
+  const [bagel, setBagel] = useState(existing ? !!existing.bagel : false);
+  const [sixOne, setSixOne] = useState(existing ? !!existing.sixOne : false);
+  const [tiebreak, setTiebreak] = useState(existing ? !!existing.tiebreak : false);
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    if (!winner) { props.toast("Vali võitja!"); return; }
+    setBusy(true);
+    try {
+      await U.saveResult(m.id, "match", { winner, score, bagel, sixOne, tiebreak });
+      const n = await U.settleAllPending();
+      props.toast("✓ " + m.id + " salvestatud · " + n + " piletit arveldatud");
+      props.onSaved();
+    } catch (err) { props.toast("Viga: " + err.message); }
+    setBusy(false);
+  }
+
+  return el("div", { className: "adm" },
+    el("div", { className: "ttl" }, p1.name + " vs " + p2.name,
+      existing ? el("span", { className: "donebadge" }, "  ✓ sisestatud") : null),
+    el("div", { className: "sub" }, m.id + " · " + m.tour + " · " + m.court + " · " + m.time),
+    el("div", { className: "row" },
+      el("button", { className: "mini" + (winner === m.p1 ? " on" : ""), onClick: () => setWinner(m.p1) }, "Võitja: " + p1.name),
+      el("button", { className: "mini" + (winner === m.p2 ? " on" : ""), onClick: () => setWinner(m.p2) }, "Võitja: " + p2.name)),
+    el("div", { className: "row" },
+      el("select", { value: score, onChange: ev => setScore(ev.target.value) },
+        scoresFor(m.tour).map(s => el("option", { key: s, value: s }, "Setid " + s))),
+      el("button", { className: "mini" + (bagel ? " on" : ""), onClick: () => setBagel(v => !v) }, "6:0 sett 🥯"),
+      el("button", { className: "mini" + (sixOne ? " on" : ""), onClick: () => setSixOne(v => !v) }, "6:1 sett"),
+      el("button", { className: "mini" + (tiebreak ? " on" : ""), onClick: () => setTiebreak(v => !v) }, "Tiebreak")),
+    el("div", { className: "row" },
+      el("button", { className: "savemini", disabled: busy, onClick: save }, busy ? "Salvestan…" : "Salvesta + arvelda")));
+}
+
+function PlayerForm(props) {
+  const p = props.p;
+  const existing = props.existing;
+  const [rounds, setRounds] = useState(existing ? (existing.roundsWon || 0) : 0);
+  const [elim, setElim] = useState(existing ? !!existing.eliminated : false);
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    setBusy(true);
+    try {
+      await U.saveResult(p.id, "player", { roundsWon: rounds, eliminated: elim });
+      const n = await U.settleAllPending();
+      props.toast("✓ " + p.name + " salvestatud · " + n + " piletit arveldatud");
+      props.onSaved();
+    } catch (err) { props.toast("Viga: " + err.message); }
+    setBusy(false);
+  }
+
+  return el("div", { className: "adm" },
+    el("div", { className: "ttl" }, p.name,
+      existing ? el("span", { className: "donebadge" }, "  ✓ sisestatud") : null),
+    el("div", { className: "sub" }, p.id + " · " + p.tour + (p.seed ? " · asetus " + p.seed : "") + " · " + p.tier),
+    el("div", { className: "row" },
+      el("select", { value: rounds, onChange: ev => setRounds(+ev.target.value) },
+        ROUND_LABELS.map((lbl, i) => el("option", { key: i, value: i }, "Võidetud ringe: " + lbl))),
+      el("button", { className: "mini warn" + (elim ? " on" : ""), onClick: () => setElim(v => !v) }, "Langes välja ✗")),
+    el("div", { className: "row" },
+      el("button", { className: "savemini", disabled: busy, onClick: save }, busy ? "Salvestan…" : "Salvesta + arvelda")));
+}
+
+function App() {
+  const [authed, setAuthed] = useState(sessionStorage.getItem("usopen_admin") === "1");
+  const [code, setCode] = useState("");
+  const [tab, setTab] = useState("matches");
+  const [results, setResults] = useState(null);
+  const [pending, setPending] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  function showToast(msg) { setToast(msg); setTimeout(() => setToast(t => t === msg ? null : t), 3200); }
+
+  async function reload() {
+    try {
+      const r = await U.loadResults();
+      setResults(r);
+      const { count, error } = await U.withTimeout(
+        U.sb.from("usopen_tickets").select("id", { count: "exact", head: true }).eq("status", "pending"), 15000);
+      if (!error) setPending(count);
+    } catch (err) {
+      showToast("Laadimine ebaõnnestus: " + err.message);
+      setResults(r => r || { matches: {}, players: {} });
+    }
+  }
+  useEffect(() => { if (authed) reload(); }, [authed]);
+
+  async function settleAll() {
+    setBusy(true);
+    try {
+      const n = await U.settleAllPending();
+      showToast("✓ " + n + " piletit arveldatud");
+      reload();
+    } catch (err) { showToast("Viga: " + err.message); }
+    setBusy(false);
+  }
+
+  if (!authed) {
+    return el("div", { className: "wrap" },
+      el("div", { className: "hdr", style: { paddingTop: 40 } },
+        el("h1", null, "Admin"),
+        el("p", null, "USA Lahtised · tulemused ja arveldus")),
+      el("div", { className: "setup namegate" },
+        el("h2", null, "Salakood 🔐"),
+        el("input", {
+          className: "nameinput", type: "password", value: code, placeholder: "Sisesta salakood",
+          onChange: ev => setCode(ev.target.value),
+          onKeyDown: ev => {
+            if (ev.key === "Enter") {
+              if (code === PASSCODE) { sessionStorage.setItem("usopen_admin", "1"); setAuthed(true); }
+              else showToast("Vale salakood");
+            }
+          }
+        }),
+        el("button", {
+          className: "mainbtn", onClick: () => {
+            if (code === PASSCODE) { sessionStorage.setItem("usopen_admin", "1"); setAuthed(true); }
+            else showToast("Vale salakood");
+          }
+        }, "SISENE")),
+      toast ? el("div", { className: "toast" }, toast) : null);
+  }
+
+  return el(React.Fragment, null,
+    el("div", { className: "wrap" },
+      el("div", { className: "topbar" },
+        el("a", { className: "back", href: "/usalahtised" }, "← USA LAHTISED")),
+      el("div", { className: "hdr" },
+        el("h1", null, "Admin"),
+        el("p", null, "tulemused · arveldus")),
+      el("div", { className: "adm", style: { textAlign: "center" } },
+        el("div", { className: "ttl" }, pending == null ? "…" : pending + " ootel piletit"),
+        el("button", { className: "savemini", style: { margin: "0 auto" }, disabled: busy, onClick: settleAll },
+          busy ? "Arveldan…" : "Arvelda kõik ootel piletid")),
+      el("div", { className: "tabs" },
+        el("button", { className: "tab" + (tab === "matches" ? " on" : ""), onClick: () => setTab("matches") }, "Matšid"),
+        el("button", { className: "tab" + (tab === "players" ? " on" : ""), onClick: () => setTab("players") }, "Mängijad")),
+      results == null ? el("div", { className: "board-empty" }, "Laen tulemusi…") :
+        tab === "matches"
+          ? U.D.matches.map(m => el(MatchForm, {
+              key: m.id + JSON.stringify(results.matches[m.id] || null),
+              m, existing: results.matches[m.id] || null, toast: showToast, onSaved: reload
+            }))
+          : U.D.players.map(p => el(PlayerForm, {
+              key: p.id + JSON.stringify(results.players[p.id] || null),
+              p, existing: results.players[p.id] || null, toast: showToast, onSaved: reload
+            }))),
+    toast ? el("div", { className: "toast" }, toast) : null);
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(el(App));
+</script>
+</body>
+</html>

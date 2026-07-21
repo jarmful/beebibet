@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Puhas Päev — USA Lahtised — beebibet</title>
+<meta name="description" content="Puhas Päev — 3–5 juhuslikku US Openi favoriiti, kõik peavad võitma puhtalt! Boonus ×1.25, üks mööda annab 25% lohutuse." />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/usopen.css" />
+<style>
+  .legpick { display:flex; gap:8px; }
+</style>
+</head>
+<body>
+<div class="deco" id="deco"></div>
+<canvas id="confetti"></canvas>
+<div id="app"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/usopen-data.js"></script>
+<script src="/usopen-shared.js"></script>
+
+<script>
+"use strict";
+const U = window.USH;
+const { useState, useRef } = React;
+const el = React.createElement;
+const { SFX, Confetti, fmt2, round2, sleep, buzz, pick, randInt } = U;
+const GAME = "puhaspaev";
+const BONUS = 1.25;
+
+(function deco() {
+  const d = document.getElementById("deco");
+  ["🧹", "🎾", "✨", "🧼", "🗽", "💫"].forEach((t, i) => {
+    const s = document.createElement("span");
+    s.textContent = t;
+    s.style.left = [8, 82, 15, 88, 45, 68][i] + "%";
+    s.style.top = [12, 8, 70, 58, 90, 32][i] + "%";
+    s.style.animation = "float" + (i % 3) + " " + (6 + i) + "s ease-in-out infinite";
+    d.appendChild(s);
+  });
+})();
+
+/* Üks leg: matši favoriit + tema "puhtalt" koefitsient */
+function legOf(m) {
+  const fav = U.favOf(m);
+  const p = U.player(fav.id);
+  return { matchId: m.id, playerId: p.id, playerName: p.name, odds: fav.straight, tour: m.tour };
+}
+
+function makeLegs(count) {
+  const ms = U.D.matches.slice();
+  for (let i = ms.length - 1; i > 0; i--) {
+    const j = randInt(i + 1);
+    [ms[i], ms[j]] = [ms[j], ms[i]];
+  }
+  return ms.slice(0, count).map(legOf);
+}
+
+function LegRow(props) {
+  const l = props.leg;
+  const m = U.match(l.matchId);
+  const opp = U.player(m.p1 === l.playerId ? m.p2 : m.p1);
+  return el(React.Fragment, null,
+    el("div", { className: "fixline" },
+      el(U.ui.PlayerChip, { p: l.playerId, seedless: true }),
+      el("span", { className: "vs" }, "vs " + opp.name),
+      el("span", { className: "kotime" }, m.tour + " · " + m.time)),
+    el("div", { className: "rc-row", style: { marginTop: 4 } },
+      el("span", { style: { fontSize: 11, color: "var(--inkSoft)", fontWeight: 800 } },
+        "Võidab puhtalt (" + U.cleanScore(m) + ")"),
+      el("span", { className: "odds" }, fmt2(l.odds))));
+}
+
+function App() {
+  const [name, setName] = useState(U.getName());
+  const [buyIn, setBuyIn] = useState(5);
+  const [legCount, setLegCount] = useState(3);
+  const [phase, setPhase] = useState("setup");     // setup | spin | ticket
+  const [ticket, setTicket] = useState(null);
+  const [locked, setLocked] = useState(0);
+  const [preview, setPreview] = useState(null);
+  const [saveState, setSaveState] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [shake, setShake] = useState(false);
+  const spinningRef = useRef(false);
+
+  async function runSpin() {
+    if (spinningRef.current) return;
+    spinningRef.current = true;
+    SFX.click();
+    const legs = makeLegs(legCount);
+    const product = round2(legs.reduce((p, l) => p * l.odds, 1));
+    const jackpotOdds = round2(product * BONUS);
+    const potWin = round2(buyIn * jackpotOdds);
+    const t = {
+      game: GAME, name, buyIn,
+      details: { legs, product, bonus: BONUS, jackpotOdds },
+      potentialWin: potWin
+    };
+    setTicket(t); setLocked(0); setSaveState(null);
+    setPhase("spin");
+    await sleep(300);
+    for (let i = 0; i < legs.length; i++) {
+      const dur = i === 0 ? 1000 : 700;
+      const t0 = Date.now();
+      while (Date.now() - t0 < dur) {
+        setPreview(legOf(pick(U.D.matches)));
+        SFX.tick();
+        await sleep(75);
+      }
+      setPreview(null);
+      setLocked(i + 1);
+      SFX.snap(); buzz(35);
+      await sleep(160);
+    }
+    await sleep(400);
+    SFX.win(); buzz(60);
+    Confetti.burst(140);
+    if (jackpotOdds >= 15) {
+      SFX.fanfare();
+      setShake(true); setTimeout(() => setShake(false), 750);
+    }
+    await sleep(600);
+    setPhase("ticket");
+    setSaveState("saving");
+    const res = await U.saveTicket(t);
+    setSaveState(res.ok ? "ok" : "err");
+    if (res.ok) setRefreshKey(k => k + 1);
+    spinningRef.current = false;
+  }
+
+  function describe(t) {
+    const d = t.details || {};
+    const names = (d.legs || []).map(l => l.playerName).join(", ");
+    let sub = "Panus " + (+t.buy_in) + " · kõik puhtalt @ " + fmt2(d.jackpotOdds || 0) + " · 1 mööda → 25%";
+    return { title: (d.legs || []).length + " favoriiti: " + names, sub };
+  }
+
+  const hdr = el("div", { className: "hdr" },
+    el("h1", null, "Puhas Päev"),
+    el("p", null, "USA Lahtised · kõik favoriidid puhtalt"));
+
+  let body = null;
+  if (!name) {
+    body = el(U.ui.NameGate, { onDone: setName });
+  } else if (phase === "setup") {
+    body = el("div", { className: "setup" },
+      el("div", { className: "optlbl" }, "Valikute arv"),
+      el("div", { className: "legpick" },
+        [3, 4, 5].map(n => el("button", {
+          key: n, className: "optbtn" + (legCount === n ? " on" : ""),
+          onClick: () => { SFX.click(); setLegCount(n); }
+        }, n))),
+      el(U.ui.BuyinRow, { value: buyIn, onChange: setBuyIn }),
+      el("button", { className: "spinbtn", onClick: runSpin }, "KEERUTA 🧹"),
+      el("div", { className: "hint" },
+        legCount + " juhuslikku favoriiti — kõik peavad võitma puhtalt (" +
+        "boonus ×" + BONUS + "). Täpselt üks mööda → 25% jackpotist."));
+  } else if (phase === "spin" && ticket) {
+    const slots = [];
+    for (let i = 0; i < ticket.details.legs.length; i++) {
+      if (i < locked) {
+        slots.push(el("div", { className: "slot locked", key: "l" + i },
+          el(LegRow, { leg: ticket.details.legs[i] })));
+      } else if (i === locked && preview) {
+        slots.push(el("div", { className: "slot cycling", key: "c" + i },
+          el("div", { className: "cycrow" }, el(LegRow, { leg: preview }))));
+      } else {
+        slots.push(el("div", { className: "slot empty", key: "e" + i }, "· · ·"));
+      }
+    }
+    body = el("div", null,
+      el("div", { className: "spintitle" }, locked < ticket.details.legs.length ? "Loosin favoriite…" : "Puhas päev valmis!"),
+      slots);
+  } else if (phase === "ticket" && ticket) {
+    const d = ticket.details;
+    body = el(React.Fragment, null,
+      el("div", { className: "receipt" },
+        el("div", { className: "rc-head" },
+          el("h2", null, "🧹 Puhas Päev"),
+          el("p", null, d.legs.length + " favoriiti · panus " + ticket.buyIn + " · " + U.D.meta.day1)),
+        d.legs.map((l, i) => el("div", { className: "rc-leg", key: i }, el(LegRow, { leg: l }))),
+        el("div", { className: "rc-foot" },
+          el("div", { className: "rc-row" },
+            el("span", { className: "rc-lbl" }, "Koefitsient"),
+            el("span", null,
+              el("span", { className: "raw-odds cut" }, fmt2(d.product)),
+              el("span", { className: "boostbadge", style: { margin: "0 8px" } }, "×" + BONUS),
+              el("span", { className: "boosted-odds" }, fmt2(d.jackpotOdds)))),
+          el("div", { className: "rc-row" },
+            el("span", { className: "rc-lbl" }, "Jackpot (kõik puhtalt)"),
+            el("span", { className: "potwin" }, fmt2(ticket.potentialWin))),
+          el("div", { className: "rc-row" },
+            el("span", { className: "rc-lbl" }, "Täpselt 1 mööda"),
+            el("span", { className: "raw-odds", style: { color: "var(--green)" } }, fmt2(round2(ticket.potentialWin * 0.25)))),
+          el("div", { className: "rc-row" },
+            el("span", { className: "rc-lbl" }, "2+ mööda"),
+            el("span", { style: { fontWeight: 900, color: "var(--red)" } }, "kaotatud")),
+          saveState === "saving" ? el("div", { className: "savestate" }, "Salvestan piletit…") :
+            saveState === "ok" ? el("div", { className: "savestate" }, "✓ Pilet salvestatud — arveldatakse päris tulemustega") :
+              saveState === "err" ? el("div", { className: "savestate err" }, "Salvestamine ebaõnnestus — server ei vasta") : null)),
+      el("button", { className: "mainbtn", onClick: runSpin }, "KEERUTA UUESTI 🧹"),
+      el("button", { className: "ghostbtn", onClick: () => { SFX.click(); setPhase("setup"); } }, "Muuda valikuid"));
+  }
+
+  return el(React.Fragment, null,
+    el("div", { className: "wrap" + (shake ? " shake" : "") },
+      el(U.ui.Topbar, {}),
+      hdr, body,
+      name ? el(U.ui.MyTickets, { game: GAME, name, refreshKey, describe }) : null,
+      el(U.ui.Board, { game: GAME, refreshKey }),
+      el("a", { className: "ghostbtn", style: { marginTop: 16 }, href: "/usalahtised" }, "← Tagasi USA Lahtiste juurde")));
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(el(App));
+</script>
+</body>
+</html>
