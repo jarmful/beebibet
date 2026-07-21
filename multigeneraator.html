@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Multi Generaator — beebibet</title>
+<meta name="description" content="Multi Generaator — keeruta endale juhuslik EPL avavooru mitmikpanus! 3–10 valikut, boost kuni +40% ja võimalik võit edetabelisse!" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg0:#08080c; --bg1:#12121c; --panel:rgba(20,22,34,.72);
+    --gold:#ffd54f; --green:#00e676; --red:#ff5c6c;
+    --ink:#f1f2f7; --inkSoft:#9a9fb4; --line:rgba(160,180,255,.16);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body {
+    background:radial-gradient(120% 90% at 50% 0%,#1a2033 0%,var(--bg1) 45%,var(--bg0) 100%);
+    font-family:'Nunito',sans-serif; color:var(--ink); min-height:100vh;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  h1,h2 { font-family:'Fraunces',serif; font-weight:600; }
+  .deco { position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:0; }
+  .deco span { position:absolute; font-size:30px; opacity:.07; }
+  @keyframes float0 { 0%,100%{transform:translateY(0) rotate(-6deg)} 50%{transform:translateY(-18px) rotate(6deg)} }
+  @keyframes float1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-24px) rotate(-8deg)} }
+  @keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+  #confetti { position:fixed; inset:0; pointer-events:none; z-index:60; }
+
+  .wrap { max-width:480px; margin:0 auto; padding:0 12px 40px; position:relative; z-index:2; }
+  .wrap.shake { animation:megashake .7s cubic-bezier(.36,.07,.19,.97); }
+  @keyframes megashake {
+    10%,90%{transform:translate(-2px,1px)} 20%,80%{transform:translate(3px,-2px)}
+    30%,50%,70%{transform:translate(-5px,2px)} 40%,60%{transform:translate(5px,-1px)}
+  }
+  .topbar { display:flex; align-items:center; justify-content:space-between; padding:12px 2px 4px; }
+  .back { font-size:12px; font-weight:800; color:var(--inkSoft); text-decoration:none; letter-spacing:1px; }
+  .iconbtns { display:flex; gap:6px; }
+  .icobtn {
+    width:36px; height:36px; border-radius:12px; border:1px solid var(--line);
+    background:rgba(14,16,28,.6); color:var(--ink); font-size:16px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:transform .12s;
+  }
+  .icobtn:active { transform:scale(.92); }
+  .icobtn.off { opacity:.35; }
+
+  .hdr { text-align:center; padding:2px 0 10px; }
+  .hdr h1 {
+    font-size:34px; letter-spacing:-1px;
+    background:linear-gradient(90deg,var(--green),var(--gold) 60%,#fff6d8);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(0 0 14px rgba(0,230,118,.3));
+  }
+  .hdr p { font-size:10px; letter-spacing:4px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; margin-top:2px; }
+
+  /* ---------- setup ---------- */
+  .setup {
+    background:var(--panel); border:1px solid var(--line); border-radius:20px;
+    padding:16px; margin-top:10px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  }
+  .optlbl { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; margin:14px 0 6px; }
+  .optlbl:first-child { margin-top:0; }
+  .name-input {
+    width:100%; padding:13px 14px; border-radius:14px; border:1px solid var(--line);
+    background:rgba(10,12,22,.7); color:var(--ink); font-family:'Nunito',sans-serif;
+    font-size:16px; font-weight:700; outline:none;
+  }
+  .name-input:focus { border-color:var(--green); box-shadow:0 0 10px rgba(0,230,118,.2); }
+  .stepper { display:flex; align-items:center; gap:10px; }
+  .stepbtn {
+    width:52px; height:52px; border-radius:16px; border:1px solid var(--line); flex-shrink:0;
+    background:rgba(14,16,28,.7); color:var(--ink); font-size:26px; font-weight:900; cursor:pointer;
+    transition:transform .12s; font-family:'Nunito',sans-serif;
+  }
+  .stepbtn:active { transform:scale(.9); }
+  .stepbtn:disabled { opacity:.25; }
+  .stepval { flex:1; text-align:center; }
+  .stepval b { display:block; font-size:32px; font-weight:900; line-height:1; }
+  .stepval small { display:block; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; margin-top:2px; }
+  .boostmax {
+    flex-shrink:0; min-width:92px; text-align:center; padding:8px 10px; border-radius:14px;
+    background:rgba(0,230,118,.1); border:1px solid rgba(0,230,118,.4);
+  }
+  .boostmax b { display:block; font-size:20px; font-weight:900; color:var(--green); text-shadow:0 0 10px rgba(0,230,118,.5); }
+  .boostmax small { font-size:8.5px; letter-spacing:1px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; }
+  .optrow { display:flex; gap:8px; }
+  .optbtn {
+    flex:1; padding:16px 2px; border-radius:14px; border:1px solid var(--line);
+    background:rgba(14,16,28,.7); color:var(--ink); font-family:'Nunito',sans-serif;
+    font-size:20px; font-weight:900; cursor:pointer; transition:all .12s; text-align:center;
+  }
+  .optbtn:active { transform:scale(.95); }
+  .optbtn.on { border-color:var(--gold); color:var(--gold); background:rgba(60,48,10,.4); box-shadow:0 0 12px rgba(255,213,79,.3); }
+  .spinbtn {
+    width:100%; margin-top:18px; height:66px; border:none; border-radius:20px; cursor:pointer;
+    font-family:'Nunito',sans-serif; font-size:22px; font-weight:900; letter-spacing:3px; color:#03140a;
+    background:linear-gradient(135deg,var(--green),#00b357);
+    box-shadow:0 8px 26px rgba(0,230,118,.35), inset 0 -3px 0 rgba(0,0,0,.25);
+    transition:transform .12s, filter .2s;
+  }
+  .spinbtn:active { transform:scale(.96); }
+  .spinbtn:disabled { filter:grayscale(.8) brightness(.55); }
+  .hint { text-align:center; font-size:11px; color:var(--inkSoft); font-weight:700; margin-top:8px; }
+
+  /* ---------- spin / leg slots ---------- */
+  .spinstage { margin-top:10px; }
+  .spintitle { text-align:center; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; margin:8px 0 10px; }
+  .slot {
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:10px 12px; margin-bottom:8px; min-height:64px;
+    display:flex; flex-direction:column; justify-content:center; gap:3px;
+    position:relative; overflow:hidden;
+  }
+  .slot.empty { border-style:dashed; opacity:.4; align-items:center; }
+  .slot.cycling { border-color:rgba(255,213,79,.5); }
+  .slot.cycling .cycrow { filter:blur(.6px); animation:cycflick .07s linear infinite; }
+  @keyframes cycflick { 0%{opacity:.75} 50%{opacity:1} 100%{opacity:.75} }
+  .slot.locked { animation:snapIn .38s cubic-bezier(.2,1.6,.4,1) both; border-color:rgba(0,230,118,.45); }
+  @keyframes snapIn {
+    0% { transform:scale(1.14); filter:brightness(2.2); box-shadow:0 0 30px rgba(0,230,118,.8); }
+    55% { transform:scale(.965); }
+    100% { transform:scale(1); filter:brightness(1); box-shadow:0 0 12px rgba(0,230,118,.18); }
+  }
+  .slotnum {
+    position:absolute; top:6px; right:9px; font-size:9px; font-weight:900;
+    letter-spacing:1px; color:var(--inkSoft); opacity:.7;
+  }
+  .fixline { display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:13px; font-weight:800; }
+  .fixline .vs { color:var(--inkSoft); font-weight:700; font-size:11px; }
+  .kotime { font-size:10px; color:var(--inkSoft); font-weight:700; }
+  .chip {
+    display:inline-block; padding:2px 8px; border-radius:8px; font-size:12.5px; font-weight:900;
+    line-height:1.35; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,.4);
+  }
+  .selline { display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
+  .mkt { font-size:10.5px; color:var(--inkSoft); font-weight:800; }
+  .selname { font-size:13px; font-weight:900; }
+  .odds { margin-left:auto; font-size:15px; font-weight:900; color:var(--gold); text-shadow:0 0 8px rgba(255,213,79,.4); }
+
+  /* ---------- boost reel ---------- */
+  .boostbox {
+    background:var(--panel); border:1px solid var(--line); border-radius:18px;
+    padding:14px 12px; margin-top:12px; text-align:center;
+    animation:riseIn .35s ease both;
+  }
+  @keyframes riseIn { from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none} }
+  .boostreel { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:10px; }
+  .bchip {
+    min-width:52px; padding:10px 6px; border-radius:12px; border:1px solid var(--line);
+    background:rgba(14,16,28,.7); font-size:15px; font-weight:900; color:var(--inkSoft);
+    transition:all .08s;
+  }
+  .bchip.hot {
+    border-color:var(--green); color:var(--green); background:rgba(0,60,30,.5);
+    box-shadow:0 0 14px rgba(0,230,118,.5); transform:scale(1.12);
+  }
+  .bchip.final {
+    border-color:var(--gold); color:var(--gold); background:rgba(60,48,10,.5);
+    box-shadow:0 0 18px rgba(255,213,79,.6); transform:scale(1.18);
+    animation:bpulse .6s ease infinite alternate;
+  }
+  @keyframes bpulse { from{transform:scale(1.12)} to{transform:scale(1.24)} }
+  .boostres { margin-top:12px; font-size:14px; font-weight:900; min-height:20px; }
+  .boostres.max { color:var(--gold); font-size:17px; text-shadow:0 0 12px rgba(255,213,79,.6); }
+  .boostres.some { color:var(--green); }
+  .boostres.none { color:var(--inkSoft); }
+
+  /* ---------- receipt ---------- */
+  .receipt {
+    background:linear-gradient(180deg,rgba(26,28,42,.92),rgba(18,20,32,.92));
+    border:1px solid var(--line); border-radius:18px; margin-top:12px; overflow:hidden;
+    animation:riseIn .4s ease both; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  }
+  .rc-head { text-align:center; padding:14px 14px 10px; border-bottom:1px dashed rgba(160,180,255,.25); }
+  .rc-head h2 { font-size:20px; letter-spacing:.5px; }
+  .rc-head p { font-size:10.5px; letter-spacing:2px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; margin-top:3px; }
+  .rc-leg { padding:10px 14px; border-bottom:1px dashed rgba(160,180,255,.18); }
+  .rc-foot { padding:12px 14px 14px; background:rgba(10,12,22,.5); }
+  .rc-row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; }
+  .rc-row:first-child { margin-top:0; }
+  .rc-lbl { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; }
+  .raw-odds { font-size:17px; font-weight:900; color:var(--gold); }
+  .raw-odds.cut { text-decoration:line-through; color:var(--inkSoft); text-shadow:none; font-size:14px; }
+  .boostbadge {
+    display:inline-block; padding:3px 10px; border-radius:999px; font-size:13px; font-weight:900;
+    background:rgba(0,230,118,.15); border:1px solid var(--green); color:var(--green);
+    animation:badgepulse 1.1s ease infinite alternate;
+  }
+  @keyframes badgepulse {
+    from { box-shadow:0 0 4px rgba(0,230,118,.3); transform:scale(1); }
+    to { box-shadow:0 0 16px rgba(0,230,118,.7); transform:scale(1.07); }
+  }
+  .boosted-odds { font-size:22px; font-weight:900; color:var(--gold); text-shadow:0 0 12px rgba(255,213,79,.5); }
+  .potwin { font-size:26px; font-weight:900; color:var(--green); text-shadow:0 0 14px rgba(0,230,118,.5); }
+  .savestate { text-align:center; font-size:10.5px; font-weight:800; color:var(--inkSoft); padding:0 14px 10px; }
+  .savestate.err { color:var(--red); }
+
+  .mainbtn {
+    width:100%; margin-top:12px; height:56px; border:none; border-radius:18px; cursor:pointer;
+    font-family:'Nunito',sans-serif; font-size:17px; font-weight:900; letter-spacing:1.5px; color:#03140a;
+    background:linear-gradient(135deg,var(--green),#00b357);
+    box-shadow:0 8px 22px rgba(0,230,118,.3), inset 0 -3px 0 rgba(0,0,0,.25);
+    transition:transform .12s;
+  }
+  .mainbtn:active { transform:scale(.96); }
+  .ghostbtn {
+    width:100%; margin-top:8px; height:48px; border-radius:16px; cursor:pointer;
+    font-family:'Nunito',sans-serif; font-size:14px; font-weight:800; color:var(--inkSoft);
+    background:transparent; border:1px solid var(--line); transition:transform .12s;
+    display:flex; align-items:center; justify-content:center; text-decoration:none;
+  }
+  .ghostbtn:active { transform:scale(.96); }
+
+  /* ---------- overlay / edetabel ---------- */
+  .ovl {
+    position:fixed; inset:0; z-index:50; background:rgba(4,5,10,.86);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  }
+  .panel {
+    width:100%; max-width:420px; max-height:82vh; overflow-y:auto;
+    background:linear-gradient(180deg,#181a2a,#101322); border:1px solid var(--line);
+    border-radius:22px; padding:20px 16px;
+  }
+  .board-row {
+    display:flex; align-items:center; gap:8px; padding:9px 10px; border-radius:12px;
+    background:rgba(14,16,28,.6); margin-bottom:6px; font-size:13px;
+  }
+  .board-rank { width:30px; flex-shrink:0; font-weight:900; text-align:center; }
+  .board-name { flex:1; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .board-meta { font-size:10.5px; color:var(--inkSoft); font-weight:800; flex-shrink:0; }
+  .board-amt { font-weight:900; color:var(--gold); flex-shrink:0; min-width:64px; text-align:right; }
+  .board-empty { text-align:center; color:var(--inkSoft); font-size:13px; padding:18px 6px; font-weight:700; }
+  .db-error { text-align:center; color:var(--red); font-size:12.5px; padding:12px 6px; font-weight:700; }
+
+  .toast {
+    position:fixed; left:50%; bottom:26px; transform:translateX(-50%); z-index:70;
+    background:#181a2a; border:1px solid var(--line); color:var(--ink);
+    padding:10px 18px; border-radius:999px; font-size:13px; font-weight:800;
+    box-shadow:0 10px 30px rgba(0,0,0,.5); animation:riseIn .25s ease both; white-space:nowrap;
+  }
+</style>
+</head>
+<body>
+<div class="deco" id="deco"></div>
+<canvas id="confetti"></canvas>
+<div id="app"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+"use strict";
+/* ============================================================
+   Supabase
+   ============================================================ */
+const SUPABASE_URL = "https://thrsacygpqwbnkcppmpk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_-QaY7mGpitakhestu3w1fg_sCGquRvx";
+let sb = null;
+try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (err) { console.error("Supabase init:", err); }
+
+/* ============================================================
+   Taust
+   ============================================================ */
+(function deco() {
+  const d = document.getElementById("deco");
+  ["⚽", "🏟️", "🏆", "⚽", "📋", "🥅"].forEach((t, i) => {
+    const s = document.createElement("span");
+    s.textContent = t;
+    s.style.left = [8, 82, 15, 88, 45, 68][i] + "%";
+    s.style.top = [12, 8, 70, 58, 90, 32][i] + "%";
+    s.style.animation = `float${i % 3} ${6 + i}s ease-in-out infinite`;
+    d.appendChild(s);
+  });
+})();
+
+/* ============================================================
+   EPL avanädala mängud ja koefitsiendid (bet365 stiilis)
+   ============================================================ */
+const FIXTURES = [
+  { id: 1,  home: "Arsenal",        away: "Coventry",       ko: "R 21.08 22:00", h: 1.16, d: 7.50, a: 13.00, over: 1.61, under: 2.30, bttsY: 2.50, bttsN: 1.50 },
+  { id: 2,  home: "Hull",           away: "Man Utd",        ko: "L 22.08 14:30", h: 6.25, d: 4.50, a: 1.44,  over: 1.80, under: 2.00, bttsY: 1.95, bttsN: 1.80 },
+  { id: 3,  home: "Everton",        away: "Crystal Palace", ko: "L 22.08 17:00", h: 2.10, d: 3.40, a: 3.20,  over: 1.90, under: 1.90, bttsY: 1.66, bttsN: 2.10 },
+  { id: 4,  home: "Ipswich",        away: "Sunderland",     ko: "L 22.08 17:00", h: 2.62, d: 3.20, a: 2.55,  over: 2.00, under: 1.80, bttsY: 1.75, bttsN: 2.00 },
+  { id: 5,  home: "Nottm Forest",   away: "Leeds",          ko: "L 22.08 17:00", h: 2.25, d: 3.40, a: 3.10,  over: 1.90, under: 1.90, bttsY: 1.66, bttsN: 2.10 },
+  { id: 6,  home: "Brentford",      away: "Tottenham",      ko: "L 22.08 19:30", h: 2.25, d: 3.50, a: 2.87,  over: 1.61, under: 2.30, bttsY: 1.53, bttsN: 2.37 },
+  { id: 7,  home: "Brighton",       away: "Aston Villa",    ko: "P 23.08 16:00", h: 2.25, d: 3.60, a: 2.87,  over: 1.61, under: 2.30, bttsY: 1.50, bttsN: 2.50 },
+  { id: 8,  home: "Man City",       away: "Bournemouth",    ko: "P 23.08 16:00", h: 1.44, d: 5.00, a: 6.00,  over: 1.40, under: 3.00, bttsY: 1.57, bttsN: 2.25 },
+  { id: 9,  home: "Newcastle",      away: "Liverpool",      ko: "P 23.08 18:30", h: 2.80, d: 3.80, a: 2.15,  over: 1.50, under: 2.62, bttsY: 1.44, bttsN: 2.62 },
+  { id: 10, home: "Fulham",         away: "Chelsea",        ko: "E 24.08 22:00", h: 3.00, d: 3.50, a: 2.15,  over: 1.66, under: 2.20, bttsY: 1.53, bttsN: 2.37 }
+];
+
+const TEAM_COLORS = {
+  "Arsenal": "#EF0107", "Coventry": "#87BEE9", "Hull": "#F5A12D", "Man Utd": "#DA291C",
+  "Everton": "#003399", "Crystal Palace": "#A7A5A6", "Ipswich": "#3A64A3", "Sunderland": "#EB172B",
+  "Nottm Forest": "#DD0000", "Leeds": "#FFFFFF", "Brentford": "#E30613", "Tottenham": "#FFFFFF",
+  "Brighton": "#0057B8", "Aston Villa": "#670E36", "Man City": "#6CABDD", "Bournemouth": "#DA291C",
+  "Newcastle": "#241F20", "Liverpool": "#C8102E", "Fulham": "#FFFFFF", "Chelsea": "#034694"
+};
+
+function chipText(hex) {
+  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55 ? "#14141a" : "#ffffff";
+}
+
+/* Turud: igal turul nimi + valikute loend antud mängu kohta */
+const MARKETS = [
+  { name: "Lõpptulemus", sels: f => [
+    { label: f.home, odds: f.h, team: f.home },
+    { label: "Viik", odds: f.d },
+    { label: f.away, odds: f.a, team: f.away }
+  ]},
+  { name: "Väravaid kokku 2.5", sels: f => [
+    { label: "Üle 2.5", odds: f.over },
+    { label: "Alla 2.5", odds: f.under }
+  ]},
+  { name: "Mõlemad skoorivad", sels: f => [
+    { label: "Jah", odds: f.bttsY },
+    { label: "Ei", odds: f.bttsN }
+  ]}
+];
+
+const MIN_LEGS = 3, MAX_LEGS = 10;
+const BUYINS = [5, 50, 100];
+/* bet365 acca boonuse maksimumid: 3→5% … 10→40% */
+function maxBoost(legCount) { return (legCount - 2) * 5; }
+
+function randInt(n) { return Math.floor(Math.random() * n); }
+function pick(arr) { return arr[randInt(arr.length)]; }
+function round2(x) { return Math.round(x * 100) / 100; }
+function fmt2(x) { return (+x).toFixed(2); }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function buzz(pattern) { if (navigator.vibrate) { try { navigator.vibrate(pattern); } catch (e) {} } }
+
+function makeLeg(fixture) {
+  const market = pick(MARKETS);
+  const sel = pick(market.sels(fixture));
+  return {
+    fixtureId: fixture.id, home: fixture.home, away: fixture.away, ko: fixture.ko,
+    market: market.name, selection: sel.label, team: sel.team || null, odds: sel.odds
+  };
+}
+
+/* Genereeri pilet: igale valikule eri mäng, turg ja valik ühtlaselt juhuslikud */
+function generateTicket(legCount) {
+  const fx = FIXTURES.slice();
+  for (let i = fx.length - 1; i > 0; i--) {
+    const j = randInt(i + 1);
+    [fx[i], fx[j]] = [fx[j], fx[i]];
+  }
+  return fx.slice(0, legCount).map(makeLeg);
+}
+
+function rawOddsOf(legs) { return round2(legs.reduce((p, l) => p * l.odds, 1)); }
+
+/* ============================================================
+   Heliefektid (Web Audio, failideta)
+   ============================================================ */
+const SFX = (() => {
+  let ctx = null;
+  let on = localStorage.getItem("multi_sfx") !== "0";
+  function ac() {
+    if (!on) return null;
+    try {
+      if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === "suspended") ctx.resume();
+      return ctx;
+    } catch (e) { return null; }
+  }
+  function beep(freq, dur, type, gain, slideTo) {
+    const c = ac(); if (!c) return;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type || "sine"; o.frequency.value = freq;
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, c.currentTime + dur);
+    g.gain.setValueAtTime(gain || .08, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001, c.currentTime + dur);
+    o.connect(g); g.connect(c.destination);
+    o.start(); o.stop(c.currentTime + dur);
+  }
+  return {
+    isOn: () => on,
+    toggle() { on = !on; localStorage.setItem("multi_sfx", on ? "1" : "0"); return on; },
+    click() { beep(700, .06, "square", .05); },
+    tick() { beep(1500 + Math.random() * 600, .025, "square", .025); },
+    snap() { beep(420, .09, "square", .09); setTimeout(() => beep(880, .12, "sine", .1), 45); },
+    boostTick() { beep(900 + Math.random() * 500, .03, "square", .04); },
+    boost() { [520, 660, 880].forEach((f, i) => setTimeout(() => beep(f, .16, "sine", .1), i * 90)); },
+    fanfare() { [523, 659, 784, 1047, 1319].forEach((f, i) => setTimeout(() => beep(f, .3, "sine", .12), i * 110)); },
+    dud() { beep(300, .25, "sine", .07, 160); }
+  };
+})();
+
+/* ============================================================
+   Konfetid
+   ============================================================ */
+const Confetti = (() => {
+  const cv = document.getElementById("confetti");
+  const cx = cv.getContext("2d");
+  let parts = [], raf = null;
+  function resize() { cv.width = innerWidth; cv.height = innerHeight; }
+  resize(); addEventListener("resize", resize);
+  const COLORS = ["#ffd54f", "#00e676", "#ff5c6c", "#4de8ff", "#ffffff", "#ff9052"];
+  function burst(n) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, sp = 3 + Math.random() * 8;
+      parts.push({
+        x: cv.width / 2 + (Math.random() - .5) * cv.width * .4,
+        y: cv.height * .35 + (Math.random() - .5) * 60,
+        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 4,
+        w: 5 + Math.random() * 6, h: 3 + Math.random() * 4,
+        rot: Math.random() * Math.PI * 2, vr: (Math.random() - .5) * .3,
+        col: pick(COLORS), life: 90 + Math.random() * 60
+      });
+    }
+    if (!raf) loop();
+  }
+  function loop() {
+    raf = requestAnimationFrame(loop);
+    cx.clearRect(0, 0, cv.width, cv.height);
+    parts = parts.filter(p => p.life > 0 && p.y < cv.height + 20);
+    if (!parts.length) { cancelAnimationFrame(raf); raf = null; return; }
+    for (const p of parts) {
+      p.vy += .18; p.x += p.vx; p.y += p.vy; p.vx *= .985; p.rot += p.vr; p.life--;
+      cx.save();
+      cx.translate(p.x, p.y); cx.rotate(p.rot);
+      cx.globalAlpha = Math.min(1, p.life / 40);
+      cx.fillStyle = p.col;
+      cx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      cx.restore();
+    }
+  }
+  return { burst };
+})();
+
+/* ============================================================
+   Rakendus
+   ============================================================ */
+const { useState, useEffect, useRef } = React;
+const e = React.createElement;
+
+function TeamChip(props) {
+  const col = TEAM_COLORS[props.name] || "#666";
+  return e("span", { className: "chip", style: { background: col, color: chipText(col) } }, props.name);
+}
+
+function SelText(props) {
+  if (props.team) {
+    const col = TEAM_COLORS[props.team] || "#fff";
+    const light = chipText(col) === "#14141a";
+    return e("span", {
+      className: "selname",
+      style: light
+        ? { color: col, textShadow: "0 0 1px rgba(255,255,255,.9), 0 0 6px rgba(255,255,255,.35)" }
+        : { color: col, filter: "brightness(1.6)" }
+    }, props.label);
+  }
+  return e("span", { className: "selname" }, props.label);
+}
+
+function LegRow(props) {
+  const l = props.leg;
+  return e(React.Fragment, null,
+    e("div", { className: "fixline" },
+      e(TeamChip, { name: l.home }), e("span", { className: "vs" }, "–"), e(TeamChip, { name: l.away }),
+      e("span", { className: "kotime" }, l.ko)),
+    e("div", { className: "selline" },
+      e("span", { className: "mkt" }, l.market + ":"),
+      e(SelText, { team: l.team, label: l.selection }),
+      e("span", { className: "odds" }, fmt2(l.odds))));
+}
+
+function App() {
+  const [phase, setPhase] = useState("setup");           // setup | spin | ticket
+  const [name, setName] = useState(() => localStorage.getItem("multi_name") || "");
+  const [legCount, setLegCount] = useState(() => {
+    const v = parseInt(localStorage.getItem("multi_legs"), 10);
+    return v >= MIN_LEGS && v <= MAX_LEGS ? v : 5;
+  });
+  const [buyIn, setBuyIn] = useState(() => {
+    const v = parseInt(localStorage.getItem("multi_buyin"), 10);
+    return BUYINS.includes(v) ? v : 5;
+  });
+  const [sfxOn, setSfxOn] = useState(SFX.isOn());
+
+  const [ticket, setTicket] = useState(null);            // { legs, legCount, buyIn, raw, boost, boosted, win }
+  const [locked, setLocked] = useState(0);
+  const [preview, setPreview] = useState(null);
+  const [boostView, setBoostView] = useState(null);      // { max, hot, done, pct }
+  const [saveState, setSaveState] = useState(null);      // saving | ok | err
+  const [shake, setShake] = useState(false);
+
+  const [boardOpen, setBoardOpen] = useState(false);
+  const [boardRows, setBoardRows] = useState(null);
+  const [boardErr, setBoardErr] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const spinningRef = useRef(false);
+  const toastTimer = useRef(null);
+
+  useEffect(() => { localStorage.setItem("multi_legs", String(legCount)); }, [legCount]);
+  useEffect(() => { localStorage.setItem("multi_buyin", String(buyIn)); }, [buyIn]);
+
+  function showToast(msg, ms) {
+    clearTimeout(toastTimer.current);
+    setToast(msg);
+    toastTimer.current = setTimeout(() => setToast(null), ms || 2400);
+  }
+
+  function withTimeout(p, ms) {
+    return Promise.race([
+      Promise.resolve(p),
+      new Promise((_, rej) => setTimeout(() => rej(new Error("Ajalõpp — server ei vasta")), ms))
+    ]);
+  }
+
+  async function saveTicket(t) {
+    if (!sb) { setSaveState("err"); return; }
+    setSaveState("saving");
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const { error } = await withTimeout(sb.from("multi_tickets").insert({
+          name: t.name, legs: t.legs, leg_count: t.legCount, buy_in: t.buyIn,
+          raw_odds: t.raw, boost_pct: t.boost, boosted_odds: t.boosted, potential_win: t.win
+        }), 15000);
+        if (error) throw error;
+        setSaveState("ok");
+        return;
+      } catch (err) { console.error("Pileti salvestus (katse " + attempt + "):", err); }
+    }
+    setSaveState("err");
+  }
+
+  async function loadBoard(attempt) {
+    attempt = attempt || 1;
+    setBoardErr(null); setBoardRows(null);
+    try {
+      const { data, error } = await withTimeout(sb.from("multi_tickets")
+        .select("name,leg_count,boost_pct,boosted_odds,potential_win")
+        .order("potential_win", { ascending: false })
+        .limit(10), 15000);
+      if (error) throw new Error(error.message + (error.code ? " (" + error.code + ")" : ""));
+      setBoardRows(data || []);
+    } catch (err) {
+      if (attempt < 2) return loadBoard(attempt + 1);
+      setBoardErr(err.message);
+    }
+  }
+  useEffect(() => { if (boardOpen && sb) loadBoard(); }, [boardOpen]);
+
+  /* ---------- keerutus ---------- */
+  async function runSpin() {
+    if (spinningRef.current) return;
+    const nm = name.trim();
+    if (!nm) { showToast("Kirjuta enne oma nimi!"); return; }
+    localStorage.setItem("multi_name", nm);
+    spinningRef.current = true;
+
+    const legs = generateTicket(legCount);
+    const max = maxBoost(legCount);
+    const boostPct = 5 * randInt(max / 5 + 1);   // 0..max, 5% samm, ühtlane
+    const raw = rawOddsOf(legs);
+    const boosted = round2(raw * (1 + boostPct / 100));
+    const win = round2(buyIn * boosted);
+
+    setTicket({ name: nm, legs, legCount, buyIn, raw, boost: boostPct, boosted, win });
+    setLocked(0); setBoostView(null); setSaveState(null);
+    setPhase("spin");
+    SFX.click();
+    await sleep(350);
+
+    /* valikud lukustuvad ükshaaval, enne kiire "slotika" tsükkel */
+    for (let i = 0; i < legs.length; i++) {
+      const dur = i === 0 ? 1050 : 720;
+      const t0 = Date.now();
+      while (Date.now() - t0 < dur) {
+        setPreview(makeLeg(pick(FIXTURES)));
+        SFX.tick();
+        await sleep(70);
+      }
+      setPreview(null);
+      setLocked(i + 1);
+      SFX.snap(); buzz(35);
+      await sleep(150);
+    }
+
+    /* boosti keerutus */
+    await sleep(450);
+    const chips = max / 5 + 1;                    // nt 6 valikut → 5 chippi (0..20%)
+    const target = boostPct / 5;
+    setBoostView({ max, hot: 0, done: false, pct: boostPct });
+    buzz(20);
+    const seq = [];
+    const loops = 3;
+    for (let r = 0; r < loops; r++) for (let i = 0; i < chips; i++) seq.push(i);
+    let i = (target + 1) % chips;
+    while (i !== target) { seq.push(i); i = (i + 1) % chips; }
+    seq.push(target);
+    for (let k = 0; k < seq.length; k++) {
+      const prog = k / (seq.length - 1);
+      setBoostView({ max, hot: seq[k], done: false, pct: boostPct });
+      SFX.boostTick();
+      await sleep(55 + 260 * prog * prog);
+    }
+    setBoostView({ max, hot: target, done: true, pct: boostPct });
+
+    if (boostPct === max) {
+      SFX.fanfare(); buzz([60, 40, 60, 40, 120]);
+      Confetti.burst(240);
+      setShake(true); setTimeout(() => setShake(false), 750);
+      await sleep(1900);
+    } else if (boostPct > 0) {
+      SFX.boost(); buzz(60);
+      Confetti.burst(90);
+      await sleep(1400);
+    } else {
+      SFX.dud();
+      await sleep(1000);
+    }
+
+    setPhase("ticket");
+    spinningRef.current = false;
+    saveTicket({ name: nm, legs, legCount, buyIn, raw, boost: boostPct, boosted, win });
+  }
+
+  /* ---------- vaated ---------- */
+  const topbar = e("div", { className: "topbar" },
+    e("a", { className: "back", href: "/" }, "← AVALEHT"),
+    e("div", { className: "iconbtns" },
+      e("button", { className: "icobtn", title: "Edetabel", onClick: () => { SFX.click(); setBoardOpen(true); } }, "🏆"),
+      e("button", {
+        className: "icobtn" + (sfxOn ? "" : " off"), title: "Heliefektid",
+        onClick: () => { setSfxOn(SFX.toggle()); SFX.click(); }
+      }, "🔊")));
+
+  const hdr = e("div", { className: "hdr" },
+    e("h1", null, "Multi Generaator"),
+    e("p", null, "EPL avavooru mitmikpanus"));
+
+  let body = null;
+
+  if (phase === "setup") {
+    body = e("div", { className: "setup" },
+      e("div", { className: "optlbl" }, "Sinu nimi"),
+      e("input", {
+        className: "name-input", maxLength: 20, placeholder: "Sinu nimi",
+        value: name, onChange: ev => setName(ev.target.value)
+      }),
+      e("div", { className: "optlbl" }, "Valikute arv"),
+      e("div", { className: "stepper" },
+        e("button", {
+          className: "stepbtn", disabled: legCount <= MIN_LEGS,
+          onClick: () => { SFX.click(); setLegCount(c => Math.max(MIN_LEGS, c - 1)); }
+        }, "−"),
+        e("div", { className: "stepval" },
+          e("b", null, legCount),
+          e("small", null, "valikut")),
+        e("button", {
+          className: "stepbtn", disabled: legCount >= MAX_LEGS,
+          onClick: () => { SFX.click(); setLegCount(c => Math.min(MAX_LEGS, c + 1)); }
+        }, "+"),
+        e("div", { className: "boostmax" },
+          e("b", null, "+" + maxBoost(legCount) + "%"),
+          e("small", null, "max boost"))),
+      e("div", { className: "optlbl" }, "Panus"),
+      e("div", { className: "optrow" },
+        BUYINS.map(b => e("button", {
+          key: b, className: "optbtn" + (buyIn === b ? " on" : ""),
+          onClick: () => { SFX.click(); setBuyIn(b); }
+        }, b))),
+      e("button", { className: "spinbtn", disabled: !name.trim(), onClick: runSpin }, "KEERUTA 🎰"),
+      !name.trim() ? e("div", { className: "hint" }, "Kirjuta nimi, et keerutada") :
+        e("div", { className: "hint" }, legCount + " juhuslikku valikut · boost 0–" + maxBoost(legCount) + "%"));
+  }
+
+  if (phase === "spin" && ticket) {
+    const slots = [];
+    for (let i = 0; i < ticket.legCount; i++) {
+      if (i < locked) {
+        slots.push(e("div", { className: "slot locked", key: "l" + i },
+          e("span", { className: "slotnum" }, (i + 1) + "/" + ticket.legCount),
+          e(LegRow, { leg: ticket.legs[i] })));
+      } else if (i === locked && preview) {
+        slots.push(e("div", { className: "slot cycling", key: "c" + i },
+          e("span", { className: "slotnum" }, (i + 1) + "/" + ticket.legCount),
+          e("div", { className: "cycrow" }, e(LegRow, { leg: preview }))));
+      } else {
+        slots.push(e("div", { className: "slot empty", key: "e" + i }, "· · ·"));
+      }
+    }
+    let boostBox = null;
+    if (boostView) {
+      const chips = [];
+      for (let i = 0; i <= boostView.max / 5; i++) {
+        const cls = "bchip" +
+          (boostView.done && i === boostView.hot ? " final" : (!boostView.done && i === boostView.hot ? " hot" : ""));
+        chips.push(e("div", { className: cls, key: i }, i === 0 ? "0%" : "+" + i * 5 + "%"));
+      }
+      let res = null;
+      if (boostView.done) {
+        res = boostView.pct === boostView.max
+          ? e("div", { className: "boostres max" }, "🎉 MAKSIMUM BOOST +" + boostView.pct + "%!")
+          : boostView.pct > 0
+            ? e("div", { className: "boostres some" }, "Boost +" + boostView.pct + "%!")
+            : e("div", { className: "boostres none" }, "Seekord boosti ei tulnud…");
+      } else {
+        res = e("div", { className: "boostres" });
+      }
+      boostBox = e("div", { className: "boostbox" },
+        e("div", { className: "spintitle", style: { margin: 0 } }, "⚡ Boosti keerutus"),
+        e("div", { className: "boostreel" }, chips),
+        res);
+    }
+    body = e("div", { className: "spinstage" },
+      e("div", { className: "spintitle" },
+        locked < ticket.legCount ? "Genereerin piletit…" : boostView && !boostView.done ? "Keerutan boosti…" : "Pilet valmis!"),
+      slots, boostBox);
+  }
+
+  if (phase === "ticket" && ticket) {
+    const t = ticket;
+    body = e(React.Fragment, null,
+      e("div", { className: "receipt" },
+        e("div", { className: "rc-head" },
+          e("h2", null, "🎰 Multi Generaator"),
+          e("p", null, t.legCount + " valikut · panus " + t.buyIn)),
+        t.legs.map((l, i) => e("div", { className: "rc-leg", key: i }, e(LegRow, { leg: l }))),
+        e("div", { className: "rc-foot" },
+          e("div", { className: "rc-row" },
+            e("span", { className: "rc-lbl" }, "Koefitsient"),
+            e("span", null,
+              e("span", { className: "raw-odds" + (t.boost > 0 ? " cut" : "") }, fmt2(t.raw)),
+              t.boost > 0 ? e("span", { style: { marginLeft: 8 } },
+                e("span", { className: "boostbadge" }, "+" + t.boost + "%"),
+                e("span", { className: "boosted-odds", style: { marginLeft: 8 } }, fmt2(t.boosted))) : null)),
+          e("div", { className: "rc-row" },
+            e("span", { className: "rc-lbl" }, "Võimalik võit"),
+            e("span", { className: "potwin" }, fmt2(t.win))),
+          saveState === "saving" ? e("div", { className: "savestate", style: { paddingTop: 8 } }, "Salvestan edetabelisse…") :
+            saveState === "ok" ? e("div", { className: "savestate", style: { paddingTop: 8 } }, "✓ Pilet salvestatud edetabelisse") :
+              saveState === "err" ? e("div", { className: "savestate err", style: { paddingTop: 8 } }, "Salvestamine ebaõnnestus — server ei vasta") : null)),
+      e("button", { className: "mainbtn", onClick: runSpin }, "KEERUTA UUESTI 🎰"),
+      e("button", { className: "ghostbtn", onClick: () => { SFX.click(); setPhase("setup"); } }, "Muuda valikuid"),
+      e("a", { className: "ghostbtn", href: "/" }, "← Tagasi avalehele"));
+  }
+
+  const boardOvl = boardOpen ? e("div", {
+    className: "ovl",
+    onClick: ev => { if (ev.target === ev.currentTarget) setBoardOpen(false); }
+  },
+    e("div", { className: "panel" },
+      e("h2", { style: { marginBottom: 4, textAlign: "center" } }, "🏆 Edetabel"),
+      e("p", { style: { textAlign: "center", fontSize: 11, color: "var(--inkSoft)", fontWeight: 800, marginBottom: 14 } },
+        "suurimad võimalikud võidud"),
+      boardErr ? e("div", null,
+        e("div", { className: "db-error" }, "Laadimine ebaõnnestus: " + boardErr),
+        e("div", { style: { textAlign: "center", marginTop: 10 } },
+          e("button", { className: "ghostbtn", onClick: () => loadBoard() }, "Proovi uuesti 🔄"))) :
+        boardRows == null ? e("div", { className: "board-empty" }, "Laen…") :
+          boardRows.length === 0 ? e("div", { className: "board-empty" }, "Ole esimene! Keeruta endale multi ja pääse edetabelisse.") :
+            boardRows.map((r, i) => e("div", { className: "board-row", key: i },
+              e("span", { className: "board-rank" }, i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1) + "."),
+              e("span", { className: "board-name" }, r.name),
+              e("span", { className: "board-meta" }, r.leg_count + " val · +" + r.boost_pct + "%"),
+              e("span", { className: "board-amt" }, fmt2(+r.potential_win)))),
+      e("button", { className: "ghostbtn", style: { marginTop: 14 }, onClick: () => setBoardOpen(false) }, "Sulge"))) : null;
+
+  return e(React.Fragment, null,
+    e("div", { className: "wrap" + (shake ? " shake" : "") }, topbar, hdr, body),
+    boardOvl,
+    toast ? e("div", { className: "toast" }, toast) : null);
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(e(App));
+</script>
+</body>
+</html>
