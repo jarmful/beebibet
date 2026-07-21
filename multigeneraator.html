@@ -61,12 +61,6 @@
   }
   .optlbl { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; margin:14px 0 6px; }
   .optlbl:first-child { margin-top:0; }
-  .name-input {
-    width:100%; padding:13px 14px; border-radius:14px; border:1px solid var(--line);
-    background:rgba(10,12,22,.7); color:var(--ink); font-family:'Nunito',sans-serif;
-    font-size:16px; font-weight:700; outline:none;
-  }
-  .name-input:focus { border-color:var(--green); box-shadow:0 0 10px rgba(0,230,118,.2); }
   .stepper { display:flex; align-items:center; gap:10px; }
   .stepbtn {
     width:52px; height:52px; border-radius:16px; border:1px solid var(--line); flex-shrink:0;
@@ -473,7 +467,6 @@ function LegRow(props) {
 
 function App() {
   const [phase, setPhase] = useState("setup");           // setup | spin | ticket
-  const [name, setName] = useState(() => localStorage.getItem("multi_name") || "");
   const [legCount, setLegCount] = useState(() => {
     const v = parseInt(localStorage.getItem("multi_legs"), 10);
     return v >= MIN_LEGS && v <= MAX_LEGS ? v : 5;
@@ -521,7 +514,7 @@ function App() {
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
         const { error } = await withTimeout(sb.from("multi_tickets").insert({
-          name: t.name, legs: t.legs, leg_count: t.legCount, buy_in: t.buyIn,
+          legs: t.legs, leg_count: t.legCount, buy_in: t.buyIn,
           raw_odds: t.raw, boost_pct: t.boost, boosted_odds: t.boosted, potential_win: t.win
         }), 15000);
         if (error) throw error;
@@ -537,7 +530,7 @@ function App() {
     setBoardErr(null); setBoardRows(null);
     try {
       const { data, error } = await withTimeout(sb.from("multi_tickets")
-        .select("name,leg_count,boost_pct,boosted_odds,potential_win")
+        .select("leg_count,buy_in,boost_pct,boosted_odds,potential_win")
         .order("potential_win", { ascending: false })
         .limit(10), 15000);
       if (error) throw new Error(error.message + (error.code ? " (" + error.code + ")" : ""));
@@ -552,9 +545,6 @@ function App() {
   /* ---------- keerutus ---------- */
   async function runSpin() {
     if (spinningRef.current) return;
-    const nm = name.trim();
-    if (!nm) { showToast("Kirjuta enne oma nimi!"); return; }
-    localStorage.setItem("multi_name", nm);
     spinningRef.current = true;
 
     const legs = generateTicket(legCount);
@@ -564,7 +554,7 @@ function App() {
     const boosted = round2(raw * (1 + boostPct / 100));
     const win = round2(buyIn * boosted);
 
-    setTicket({ name: nm, legs, legCount, buyIn, raw, boost: boostPct, boosted, win });
+    setTicket({ legs, legCount, buyIn, raw, boost: boostPct, boosted, win });
     setLocked(0); setBoostView(null); setSaveState(null);
     setPhase("spin");
     SFX.click();
@@ -621,7 +611,7 @@ function App() {
 
     setPhase("ticket");
     spinningRef.current = false;
-    saveTicket({ name: nm, legs, legCount, buyIn, raw, boost: boostPct, boosted, win });
+    saveTicket({ legs, legCount, buyIn, raw, boost: boostPct, boosted, win });
   }
 
   /* ---------- vaated ---------- */
@@ -642,11 +632,6 @@ function App() {
 
   if (phase === "setup") {
     body = e("div", { className: "setup" },
-      e("div", { className: "optlbl" }, "Sinu nimi"),
-      e("input", {
-        className: "name-input", maxLength: 20, placeholder: "Sinu nimi",
-        value: name, onChange: ev => setName(ev.target.value)
-      }),
       e("div", { className: "optlbl" }, "Valikute arv"),
       e("div", { className: "stepper" },
         e("button", {
@@ -669,9 +654,8 @@ function App() {
           key: b, className: "optbtn" + (buyIn === b ? " on" : ""),
           onClick: () => { SFX.click(); setBuyIn(b); }
         }, b))),
-      e("button", { className: "spinbtn", disabled: !name.trim(), onClick: runSpin }, "KEERUTA 🎰"),
-      !name.trim() ? e("div", { className: "hint" }, "Kirjuta nimi, et keerutada") :
-        e("div", { className: "hint" }, legCount + " juhuslikku valikut · boost 0–" + maxBoost(legCount) + "%"));
+      e("button", { className: "spinbtn", onClick: runSpin }, "KEERUTA 🎰"),
+      e("div", { className: "hint" }, legCount + " juhuslikku valikut · boost 0–" + maxBoost(legCount) + "%"));
   }
 
   if (phase === "spin" && ticket) {
@@ -761,8 +745,8 @@ function App() {
           boardRows.length === 0 ? e("div", { className: "board-empty" }, "Ole esimene! Keeruta endale multi ja pääse edetabelisse.") :
             boardRows.map((r, i) => e("div", { className: "board-row", key: i },
               e("span", { className: "board-rank" }, i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1) + "."),
-              e("span", { className: "board-name" }, r.name),
-              e("span", { className: "board-meta" }, r.leg_count + " val · +" + r.boost_pct + "%"),
+              e("span", { className: "board-name" }, r.leg_count + " valikut"),
+              e("span", { className: "board-meta" }, "panus " + (+r.buy_in) + " · +" + r.boost_pct + "%"),
               e("span", { className: "board-amt" }, fmt2(+r.potential_win)))),
       e("button", { className: "ghostbtn", style: { marginTop: 14 }, onClick: () => setBoardOpen(false) }, "Sulge"))) : null;
 

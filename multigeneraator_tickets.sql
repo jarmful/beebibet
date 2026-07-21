@@ -6,7 +6,7 @@
 
 create table if not exists public.multi_tickets (
   id uuid primary key default gen_random_uuid(),
-  name text not null,
+  name text default '',
   legs jsonb not null,
   leg_count int not null,
   buy_in numeric not null,
