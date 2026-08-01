@@ -10,8 +10,12 @@ create table if not exists public.tennisrun_leaderboard (
   rally_score integer not null,   -- rounds + 3 boonusringi väljakorjamise korral
   cashed_out boolean not null default false,
   win_amount numeric not null,
+  difficulty text not null default 'keskmine', -- kerge/keskmine/raske/meister
   created_at timestamptz not null default now()
 );
+
+alter table public.tennisrun_leaderboard
+  add column if not exists difficulty text not null default 'keskmine';
 
 alter table public.tennisrun_leaderboard enable row level security;
 

@@ -122,18 +122,19 @@
   .netpost { position:absolute; top:50%; width:7px; height:16px; transform:translateY(-56%); background:#c9d6ea; border-radius:3px; z-index:5; }
 
   .defender {
-    position:absolute; left:50%; top:13.5%; z-index:6; font-size:clamp(26px,9vw,40px);
+    position:absolute; left:50%; top:11.5%; z-index:6; width:clamp(34px,11vw,50px);
     transform:translateX(-50%); transition:transform .45s cubic-bezier(.3,1.4,.5,1);
     filter:drop-shadow(0 4px 6px rgba(0,0,0,.45));
   }
   .defender.diveL { transform:translateX(-50%) translateX(-170%) rotate(-55deg); }
   .defender.diveR { transform:translateX(-50%) translateX(170%) rotate(55deg) scaleX(-1); }
   .server {
-    position:absolute; left:50%; bottom:2.5%; z-index:6; font-size:clamp(30px,10vw,46px);
-    transform:translateX(-50%) scaleX(-1); filter:drop-shadow(0 4px 6px rgba(0,0,0,.45));
+    position:absolute; left:50%; bottom:1.5%; z-index:6; width:clamp(42px,13.5vw,60px);
+    transform:translateX(-50%); filter:drop-shadow(0 4px 6px rgba(0,0,0,.45));
   }
+  .server svg, .defender svg { width:100%; height:auto; display:block; }
   .server.tossing { animation:tossAnim .5s ease-out; }
-  @keyframes tossAnim { 0%{transform:translateX(-50%) scaleX(-1) rotate(0)} 40%{transform:translateX(-50%) scaleX(-1) rotate(-14deg) translateY(-6px)} 100%{transform:translateX(-50%) scaleX(-1) rotate(0)} }
+  @keyframes tossAnim { 0%{transform:translateX(-50%) rotate(0)} 40%{transform:translateX(-50%) rotate(-14deg) translateY(-6px)} 100%{transform:translateX(-50%) rotate(0)} }
 
   .wintag {
     position:absolute; left:50%; bottom:16%; transform:translateX(-50%); z-index:7;
@@ -186,22 +187,37 @@
   .stat .val { font-size:14px; font-weight:900; margin-top:1px; }
   .stat .val.winval { color:var(--gold); text-shadow:0 0 10px rgba(255,213,79,.5); }
 
-  .chips { display:flex; gap:6px; margin-top:12px; flex-wrap:wrap; }
+  .betpanel {
+    background:var(--panel); border:1px solid rgba(120,160,220,.25); border-radius:20px;
+    padding:14px; margin-top:10px;
+  }
+  .betlbl { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; margin:10px 2px 6px; }
+  .betlbl:first-child { margin-top:0; }
+  .diffgrid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .diffcard {
+    padding:10px 11px; border-radius:16px; cursor:pointer; text-align:left;
+    border:1px solid rgba(120,160,220,.3); background:rgba(16,36,70,.6); color:var(--ink);
+    font-family:'Nunito',sans-serif; transition:all .15s;
+  }
+  .diffcard.on {
+    border-color:var(--ball); background:rgba(30,54,96,.9);
+    box-shadow:0 0 14px rgba(216,243,74,.35);
+  }
+  .diffcard .dname { font-weight:900; font-size:14px; }
+  .diffcard .dmult { font-size:12px; font-weight:900; color:var(--gold); margin-top:2px; }
+  .diffcard .dmeta { font-size:10.5px; color:var(--inkSoft); margin-top:3px; line-height:1.35; }
+  .chips {
+    display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .chips::-webkit-scrollbar { display:none; }
   .chip {
-    flex:1; min-width:56px; padding:11px 4px; border-radius:14px; cursor:pointer;
+    flex:0 0 auto; min-width:62px; padding:12px 10px; border-radius:14px; cursor:pointer;
     border:1px solid rgba(120,160,220,.35); background:rgba(16,36,70,.7); color:var(--ink);
     font-family:'Nunito',sans-serif; font-size:14px; font-weight:900; transition:all .15s;
   }
   .chip.on { background:linear-gradient(135deg,var(--ball),#9fd93c); color:#1d2a06; border-color:#eaffb0; box-shadow:0 0 14px rgba(216,243,74,.4); }
   .chip:disabled { opacity:.35; }
-  .custombet { display:flex; align-items:center; gap:8px; margin-top:8px; }
-  .custombet label { font-size:12px; font-weight:800; color:var(--inkSoft); }
-  .custombet input {
-    flex:1; padding:11px 12px; border-radius:14px; border:1px solid rgba(120,160,220,.4);
-    background:rgba(8,20,42,.85); color:var(--ink); font-family:'Nunito',sans-serif;
-    font-size:15px; font-weight:800; text-align:center;
-  }
-  .custombet input:focus { outline:none; border-color:var(--ball); box-shadow:0 0 12px rgba(216,243,74,.3); }
 
   .bigbtn {
     width:100%; margin-top:10px; height:60px; border-radius:20px; border:none; cursor:pointer;
@@ -339,16 +355,28 @@ try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (er
 /* ============================================================
    Mängu häälestus — RTP on siit timmitav
    ============================================================ */
-const BASE_MULT = 1.92;          // 1. ässa kordaja (0.96 * 2 → ~96% RTP 50/50 juures)
-const GROWTH = 2;                // iga järgmine aste kordistub selle teguriga
+const RTP = 0.96;                // esimese astme väljamakse osakaal (~96% RTP)
 const CASHOUT_BONUS = 3;         // väljakorjamise boonusringid edetabelis
 const AUTO_PICK_SECONDS = 5;     // automaatvaliku loendur
-const BETS = [0.2, 0.5, 1, 2, 5];
-const MIN_BET = 0.1, MAX_BET = 100;
+const BETS = [0.2, 0.5, 1, 2, 5, 10, 20, 50, 100];
+const MIN_BET = 0.1;
 const START_SALDO = 100;
 const LADDER_MIN_RUNGS = 12;
 
-const ladderMult = n => BASE_MULT * Math.pow(GROWTH, n - 1);
+// Raskusastmed: p = ässa tõenäosus ringi kohta. Kaitsja pool on alati salajane
+// 50/50; kui p > 0.5, lööb kaitsja vahel ka õigelt poolelt auti, kui p < 0.5,
+// jõuab välkkiire kaitsja vahel ka vabale poolele. Redel: esimene aste
+// RTP/p, iga järgmine kordistub 1/p — nii püsib RTP igal astmel sama.
+const DIFFS = [
+  { id: "kerge",    nimi: "Kerge",    emoji: "🐣", p: 0.70, desc: "Kohmakas kaitsja lööb tihti auti" },
+  { id: "keskmine", nimi: "Keskmine", emoji: "🎾", p: 0.50, desc: "Aus 50/50 duell" },
+  { id: "raske",    nimi: "Raske",    emoji: "🔥", p: 0.35, desc: "Kiire kaitsja katab vahel mõlemad pooled" },
+  { id: "meister",  nimi: "Meister",  emoji: "👑", p: 0.25, desc: "Grand Slami finaal — hiigelkordajad" }
+];
+const DIFF_BY_ID = {};
+DIFFS.forEach(d => { DIFF_BY_ID[d.id] = d; });
+
+const ladderMult = (diff, n) => (RTP / diff.p) * Math.pow(1 / diff.p, n - 1);
 const fmt = n => n.toFixed(2);
 const fmtX = n => "×" + (n >= 1000 ? Math.round(n).toLocaleString("et") : n.toFixed(2));
 
@@ -358,6 +386,13 @@ function secureSide() {
     crypto.getRandomValues(a);
     return (a[0] & 1) === 0 ? "L" : "R";
   } catch (err) { return Math.random() < .5 ? "L" : "R"; }
+}
+function secureFloat() {
+  try {
+    const a = new Uint32Array(1);
+    crypto.getRandomValues(a);
+    return a[0] / 4294967296;
+  } catch (err) { return Math.random(); }
 }
 
 function lsNum(key, def) { const v = parseFloat(localStorage.getItem(key)); return isNaN(v) ? def : v; }
@@ -462,10 +497,47 @@ const { useState, useEffect, useRef } = React;
 
 let seq = 1;
 
+/* Multikas tennisist (SVG): pose "serve" = reket üleval, "ready" = valmisasend */
+function playerEl(pose, shirt) {
+  const skin = "#f2c39b";
+  const racket = (hx, hy, rx, ry, ang) => e("g", { transform: "rotate(" + ang + " " + rx + " " + ry + ")" },
+    e("line", { x1: hx, y1: hy, x2: rx, y2: ry + 8, stroke: "#8a5a2b", strokeWidth: 3.4, strokeLinecap: "round" }),
+    e("ellipse", { cx: rx, cy: ry, rx: 6.5, ry: 8, fill: "rgba(255,255,255,.16)", stroke: "#e8eef7", strokeWidth: 2.1 }),
+    e("line", { x1: rx, y1: ry - 6.5, x2: rx, y2: ry + 6.5, stroke: "#e8eef7", strokeWidth: .8 }),
+    e("line", { x1: rx - 5.5, y1: ry, x2: rx + 5.5, y2: ry, stroke: "#e8eef7", strokeWidth: .8 }));
+  if (pose === "serve") {
+    return e("svg", { viewBox: "0 0 64 84" },
+      racket(46, 20, 51, 9, 14),
+      e("path", { d: "M38 32 Q44 26 46 20", stroke: skin, strokeWidth: 4.6, fill: "none", strokeLinecap: "round" }),
+      e("path", { d: "M26 32 Q19 26 17 17", stroke: skin, strokeWidth: 4.6, fill: "none", strokeLinecap: "round" }),
+      e("line", { x1: 32, y1: 31, x2: 32, y2: 49, stroke: shirt, strokeWidth: 14, strokeLinecap: "round" }),
+      e("circle", { cx: 32, cy: 17, r: 8, fill: skin }),
+      e("path", { d: "M24.5 14.5 A 8 8 0 0 1 39.5 14.5", stroke: "#ff5c6c", strokeWidth: 3.2, fill: "none" }),
+      e("line", { x1: 32, y1: 53, x2: 32, y2: 59, stroke: "#f4f7ff", strokeWidth: 14, strokeLinecap: "round" }),
+      e("line", { x1: 28, y1: 64, x2: 25, y2: 76, stroke: skin, strokeWidth: 4.6, strokeLinecap: "round" }),
+      e("line", { x1: 36, y1: 64, x2: 39, y2: 76, stroke: skin, strokeWidth: 4.6, strokeLinecap: "round" }),
+      e("ellipse", { cx: 24, cy: 79, rx: 4.2, ry: 2.6, fill: "#fff" }),
+      e("ellipse", { cx: 40, cy: 79, rx: 4.2, ry: 2.6, fill: "#fff" }));
+  }
+  return e("svg", { viewBox: "0 0 64 84" },
+    e("line", { x1: 32, y1: 31, x2: 32, y2: 49, stroke: shirt, strokeWidth: 14, strokeLinecap: "round" }),
+    e("path", { d: "M25 33 Q28 42 38 46", stroke: skin, strokeWidth: 4.6, fill: "none", strokeLinecap: "round" }),
+    e("path", { d: "M39 33 Q43 40 42 45", stroke: skin, strokeWidth: 4.6, fill: "none", strokeLinecap: "round" }),
+    racket(41, 46, 44, 58, -18),
+    e("circle", { cx: 32, cy: 17, r: 8, fill: skin }),
+    e("path", { d: "M24.5 14.5 A 8 8 0 0 1 39.5 14.5", stroke: "#2478cc", strokeWidth: 3.2, fill: "none" }),
+    e("line", { x1: 32, y1: 53, x2: 32, y2: 58, stroke: "#f4f7ff", strokeWidth: 14, strokeLinecap: "round" }),
+    e("line", { x1: 27, y1: 63, x2: 21, y2: 74, stroke: skin, strokeWidth: 4.6, strokeLinecap: "round" }),
+    e("line", { x1: 37, y1: 63, x2: 43, y2: 74, stroke: skin, strokeWidth: 4.6, strokeLinecap: "round" }),
+    e("ellipse", { cx: 20, cy: 77, rx: 4.2, ry: 2.6, fill: "#fff" }),
+    e("ellipse", { cx: 44, cy: 77, rx: 4.2, ry: 2.6, fill: "#fff" }));
+}
+
 function App() {
   const [saldo, setSaldo] = useState(() => lsNum("tennisrun_saldo", START_SALDO));
   const [bet, setBet] = useState(() => lsNum("tennisrun_bet", 0.5));
-  const [customBet, setCustomBet] = useState("");
+  const [diffId, setDiffId] = useState(() => DIFF_BY_ID[localStorage.getItem("tennisrun_diff")] ? localStorage.getItem("tennisrun_diff") : "keskmine");
+  const [runDiff, setRunDiff] = useState(null); // jooksva runni raskusaste (külmutatakse stardil)
   const [phase, setPhase] = useState("bet");   // bet | pick | serve | lost | cashed
   const [rounds, setRounds] = useState(0);
   const [history, setHistory] = useState([]);
@@ -486,7 +558,8 @@ function App() {
   const [nameVal, setNameVal] = useState(() => localStorage.getItem("tennisrun_name") || "");
   const [saveState, setSaveState] = useState(null); // null | "saving" | "saved" | "failed"
 
-  const defSideRef = useRef(null);       // ringi salajane kaitsja pool — valitakse ENNE nuppude näitamist
+  const roundRef = useRef(null);         // ringi salajane loos {def, roll} — valitakse ENNE nuppude näitamist
+  const runDiffRef = useRef(null);
   const phaseRef = useRef(phase); phaseRef.current = phase;
   const roundsRef = useRef(rounds); roundsRef.current = rounds;
   const betRef = useRef(bet); betRef.current = bet;
@@ -498,6 +571,7 @@ function App() {
 
   useEffect(() => { localStorage.setItem("tennisrun_saldo", String(saldo)); }, [saldo]);
   useEffect(() => { localStorage.setItem("tennisrun_bet", String(bet)); }, [bet]);
+  useEffect(() => { localStorage.setItem("tennisrun_diff", diffId); }, [diffId]);
   useEffect(() => () => clearInterval(cdTimerRef.current), []);
 
   // Aktiivne redelipulk keritakse vaatevälja
@@ -510,7 +584,7 @@ function App() {
   }, [rounds, phase]);
 
   const sleep = ms => new Promise(r => setTimeout(r, ms));
-  const winAmount = r => +(betRef.current * ladderMult(r)).toFixed(2);
+  const winAmount = r => +(betRef.current * ladderMult(runDiffRef.current || DIFF_BY_ID.keskmine, r)).toFixed(2);
 
   function showToast(msg, dur) {
     setToast(msg);
@@ -536,8 +610,8 @@ function App() {
   /* ---------- ringi elutsükkel ---------- */
 
   function startRound() {
-    // Kaitsja pool loositakse ENNE valikunuppude renderdamist ja hoitakse salajas
-    defSideRef.current = secureSide();
+    // Kaitsja pool + oskuse loos tehakse ENNE valikunuppude renderdamist ja hoitakse salajas
+    roundRef.current = { def: secureSide(), roll: secureFloat() };
     setReveal(null); setDive(null); setBall(null);
     setPhase("pick");
     setCountdown(AUTO_PICK_SECONDS);
@@ -558,9 +632,11 @@ function App() {
   function startRun() {
     if (phaseRef.current !== "bet" || resolvingRef.current) return;
     const b = betRef.current;
-    if (!(b >= MIN_BET) || b > MAX_BET) { showToast("Panus peab olema " + MIN_BET + " – " + MAX_BET); return; }
+    if (!(b >= MIN_BET)) { showToast("Vali panus!"); return; }
     if (saldo < b - 1e-9) { showToast("Saldo ei kata panust!"); return; }
     AudioEngine.playSfx("click");
+    const d = DIFF_BY_ID[diffId] || DIFF_BY_ID.keskmine;
+    runDiffRef.current = d; setRunDiff(d);
     setSaldo(s => +(s - b).toFixed(2));
     setRounds(0); setHistory([]); setLastWin(0); setSaveState(null);
     startRound();
@@ -570,8 +646,22 @@ function App() {
     if (phaseRef.current !== "pick" || resolvingRef.current) return;
     resolvingRef.current = true;
     clearInterval(cdTimerRef.current);
-    const def = defSideRef.current;
-    const ace = side !== def;
+    const { def, roll } = roundRef.current;
+    const p = runDiffRef.current.p;
+    // Tulemus raskusastme järgi: kohmakas kaitsja (p > .5) lööb vahel õigelt
+    // poolelt auti; välkkiire (p < .5) jõuab vahel ka vabale poolele.
+    let ace, kind, diveSide;
+    if (side === def) {
+      const flub = p > 0.5 ? (p - 0.5) / 0.5 : 0;
+      ace = roll < flub;
+      kind = ace ? "flub" : "return";
+      diveSide = def;
+    } else {
+      const reach = p < 0.5 ? (0.5 - p) / 0.5 : 0;
+      ace = roll >= reach;
+      kind = ace ? "ace" : "reach";
+      diveSide = ace ? def : side;
+    }
     setPhase("serve");
 
     // Serv: viska pall üles ja löö
@@ -580,10 +670,10 @@ function App() {
     setBall({ side, stage: "fly" });
     setTimeout(() => setTossing(false), 500);
     await sleep(150);
-    setDive(def);                       // kaitsja sööstab oma salapoolele
+    setDive(diveSide);                  // kaitsja sööstab (või jõuab üllatuslikult kohale)
     await sleep(480);
     AudioEngine.playSfx("bounce");
-    setReveal({ def, pick: side, ace });
+    setReveal({ def, pick: side, ace, kind });
 
     if (ace) {
       AudioEngine.playSfx("ace");
@@ -644,7 +734,8 @@ function App() {
       rounds: runRounds,
       rally_score: runRounds + (cashedOut ? CASHOUT_BONUS : 0),
       cashed_out: cashedOut,
-      win_amount: +amount.toFixed(2)
+      win_amount: +amount.toFixed(2),
+      difficulty: runDiffRef.current ? runDiffRef.current.id : "keskmine"
     };
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
@@ -662,7 +753,7 @@ function App() {
     try {
       const orderCol = tab === "win" ? "win_amount" : "rally_score";
       const { data, error } = await withTimeout(sb.from("tennisrun_leaderboard")
-        .select("name,rounds,rally_score,cashed_out,win_amount,created_at")
+        .select("name,rounds,rally_score,cashed_out,win_amount,difficulty,created_at")
         .order(orderCol, { ascending: false })
         .order("created_at", { ascending: true })
         .limit(10), 15000);
@@ -688,15 +779,17 @@ function App() {
   /* ---------- render ---------- */
 
   const inRun = phase === "pick" || phase === "serve";
+  const selDiff = DIFF_BY_ID[diffId] || DIFF_BY_ID.keskmine;
+  const activeDiff = phase === "bet" ? selDiff : (runDiff || selDiff);
   const curWin = rounds >= 1 ? winAmount(rounds) : 0;
   const nextWin = winAmount(rounds + 1);
 
-  // Redel
+  // Redel (aktiivse raskusastme kordajad)
   const rungCount = Math.max(LADDER_MIN_RUNGS, rounds + 6);
   const rungs = [];
   for (let i = 1; i <= rungCount; i++) {
     const cls = "rung" + (i <= rounds ? " done" : (inRun && i === rounds + 1 ? " next" : ""));
-    rungs.push(e("div", { key: i, className: cls }, fmtX(ladderMult(i))));
+    rungs.push(e("div", { key: i, className: cls }, fmtX(ladderMult(activeDiff, i))));
   }
   const ladderPct = Math.min(100, rounds / rungCount * 100);
 
@@ -717,7 +810,9 @@ function App() {
     ballStyle = { left: "53%", top: "88%" };
   }
 
-  const defEmoji = dive ? "🏃‍♂️" : "🧍‍♂️";
+  const flashText = reveal
+    ? (reveal.kind === "flub" ? "AUTI!" : reveal.kind === "reach" ? "SUPERTÕRJE!" : reveal.ace ? "ÄSS!" : "TAGASILÖÖK!")
+    : "";
 
   const court = e("div", { className: "stadium" },
     e("div", { className: "floodlight", style: { left: "6%", transform: "rotate(16deg)" } }),
@@ -741,39 +836,37 @@ function App() {
       e("div", { className: "netpost", style: { left: "2%" } }),
       e("div", { className: "netpost", style: { right: "2%" } }),
       e("div", { className: "netband" }),
-      e("div", { className: "defender" + (dive === "L" ? " diveL" : dive === "R" ? " diveR" : "") }, defEmoji),
-      e("div", { className: "server" + (tossing ? " tossing" : "") }, "🤾‍♂️"),
+      e("div", { className: "defender" + (dive === "L" ? " diveL" : dive === "R" ? " diveR" : "") }, playerEl("ready", "#ff7043")),
+      e("div", { className: "server" + (tossing ? " tossing" : "") }, playerEl("serve", "#d8f34a")),
       inRun && rounds >= 1 ? e("div", { className: "wintag" }, "💰 " + fmt(curWin)) : null,
       inRun && rounds === 0 ? e("div", { className: "wintag", style: { filter: "saturate(.5)", opacity: .85 } }, "Panus " + fmt(bet)) : null,
       e("div", { className: "ball" + (ball && ball.stage === "fly" ? " spin" : "") + (ball && ball.stage === "back" ? " slowmo" : ""), style: ballStyle }, "🎾"),
-      reveal && reveal.ace ? e("div", { className: "courtflash ace" }, "ÄSS!") : null,
-      reveal && !reveal.ace ? e("div", { className: "courtflash fail" }, "TAGASILÖÖK!") : null,
+      reveal ? e("div", { className: "courtflash " + (reveal.ace ? "ace" : "fail") }, flashText) : null,
       phase === "pick" ? e("div", { className: "cd" + (countdown <= 2 ? " urgent" : "") },
         "Automaatvalik: ", e("b", null, countdown)) : null));
 
   /* ---------- juhtpaneelid ---------- */
 
   let controls = null;
-  if (phase === "bet" || phase === "lost" || phase === "cashed") {
+  if (phase === "bet") {
     const broke = saldo < MIN_BET;
-    controls = e(React.Fragment, null,
+    controls = e("div", { className: "betpanel" },
+      e("div", { className: "betlbl" }, "1 · Vali vastane"),
+      e("div", { className: "diffgrid" },
+        DIFFS.map(d => e("button", {
+          key: d.id, className: "diffcard" + (diffId === d.id ? " on" : ""),
+          onClick: () => { AudioEngine.playSfx("click"); setDiffId(d.id); }
+        },
+          e("div", { className: "dname" }, d.emoji + " " + d.nimi),
+          e("div", { className: "dmult" }, Math.round(d.p * 100) + "% äss · alates " + fmtX(ladderMult(d, 1))),
+          e("div", { className: "dmeta" }, d.desc)))),
+      e("div", { className: "betlbl" }, "2 · Vali panus"),
       e("div", { className: "chips" },
         BETS.map(b => e("button", {
           key: b, className: "chip" + (Math.abs(bet - b) < 1e-9 ? " on" : ""),
           disabled: b > saldo + 1e-9,
-          onClick: () => { AudioEngine.playSfx("click"); setBet(b); setCustomBet(""); }
+          onClick: () => { AudioEngine.playSfx("click"); setBet(b); }
         }, fmt(b)))),
-      e("div", { className: "custombet" },
-        e("label", null, "Muu panus:"),
-        e("input", {
-          type: "number", inputMode: "decimal", min: MIN_BET, max: MAX_BET, step: "0.1",
-          placeholder: "nt 3.50", value: customBet,
-          onChange: ev => {
-            setCustomBet(ev.target.value);
-            const v = parseFloat(ev.target.value);
-            if (!isNaN(v) && v >= MIN_BET) setBet(Math.min(MAX_BET, +v.toFixed(2)));
-          }
-        })),
       broke
         ? e("button", {
             className: "bigbtn", onClick: () => {
@@ -786,7 +879,7 @@ function App() {
             className: "bigbtn", disabled: bet > saldo + 1e-9 || bet < MIN_BET,
             onClick: startRun
           }, "ALUSTA TURNIIRI 🎾 — " + fmt(bet)));
-  } else {
+  } else if (inRun) {
     const canPick = phase === "pick";
     controls = e(React.Fragment, null,
       e("div", { className: "serverow" },
@@ -859,7 +952,7 @@ function App() {
           boardRows.length === 0 ? e("div", { className: "board-empty" }, "Ole esimene edetabelis! Servi ässasid ja salvesta oma ralli.") :
             boardRows.map((r, i) => e("div", { className: "board-row", key: i },
               e("span", { className: "board-rank" }, i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1) + "."),
-              e("span", { className: "board-name" }, r.name),
+              e("span", { className: "board-name" }, (DIFF_BY_ID[r.difficulty] ? DIFF_BY_ID[r.difficulty].emoji + " " : "") + r.name),
               e("span", { className: "board-rally" }, r.rounds, r.cashed_out ? e("small", null, " (+" + (r.rally_score - r.rounds) + ")") : null),
               e("span", { className: "board-amt" }, fmt(+r.win_amount)))),
       e("p", { style: { fontSize: 11, color: "var(--inkSoft)", marginTop: 10, lineHeight: 1.5 } },
@@ -893,7 +986,7 @@ function App() {
       e("div", { className: "ladder", ref: ladderRef }, rungs),
       history.length ? e("div", { className: "hist" }, histEls) : null,
 
-      court,
+      phase === "bet" ? null : court,
 
       e("div", { className: "statrow" },
         e("div", { className: "stat" },
@@ -912,9 +1005,9 @@ function App() {
       controls,
 
       e("p", { className: "capnote" },
-        "Kaitsja valib salaja poole enne igat servi (krüpto-juhuslikult). Servi vabale poolele = ÄSS, kordaja kasvab ",
-        fmtX(BASE_MULT), " → ", fmtX(ladderMult(2)), " → ", fmtX(ladderMult(3)), " → … ",
-        "Vale pool = panus ja võidud kaovad. Korja välja millal iganes alates 1. ässast — edetabelis annab see +" + CASHOUT_BONUS + " boonusringi. ",
+        "Kaitsja valib salaja poole enne igat servi (krüpto-juhuslikult). Äss = kordaja kasvab: ",
+        activeDiff.emoji + " " + activeDiff.nimi + " ", fmtX(ladderMult(activeDiff, 1)), " → ", fmtX(ladderMult(activeDiff, 2)), " → ", fmtX(ladderMult(activeDiff, 3)), " → … ",
+        "Kaotus = panus ja võidud kaovad. Korja välja millal iganes alates 1. ässast — edetabelis annab see +" + CASHOUT_BONUS + " boonusringi. ",
         "Mänguraha, päris raha siin ei liigu.")),
 
     confEls,
