@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
 <title>Dogs of Olympics — beebibet</title>
 <meta name="description" content="Dogs of Olympics — Olümpose koerte slotimäng. Tumble'id, kuldsed maiusekordajad ja Zeus Koera õnnistused!" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐶</text></svg>" />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
 <style>
   :root {
@@ -358,15 +359,28 @@
 <div class="column left"></div>
 <div class="column right"></div>
 <div id="clouds"></div>
-<div id="app"></div>
+<div id="app">
+  <div id="loading" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-weight:800;color:#1d3557;">
+    <div style="font-size:44px;">🐶</div>
+    <div>Laen mängu…</div>
+  </div>
+</div>
 
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/dogs-math.js"></script>
+<!-- Teegid on samas repos (vendor/) — ei sõltu välistest CDN-idest -->
+<script src="/vendor/react-18.min.js"></script>
+<script src="/vendor/react-dom-18.min.js"></script>
+<script src="/vendor/supabase-2.min.js"></script>
+<script src="/dogs-math.js?v=2"></script>
 
 <script>
 "use strict";
+// Kui mõni teek ei laadinud, näita selget veateadet tühja ekraani asemel
+if (!window.React || !window.ReactDOM || !window.DogsMath) {
+  document.getElementById("loading").innerHTML =
+    "<div style='font-size:44px'>🐶</div><div>Laadimine ebaõnnestus</div>" +
+    "<div style='font-weight:600;font-size:13px'>Kontrolli internetiühendust ja tõmba leht uuesti alla.</div>";
+  throw new Error("Teekide laadimine ebaõnnestus");
+}
 /* ============================================================
    Supabase
    ============================================================ */
@@ -1063,14 +1077,15 @@ function App() {
     return false;
   }
 
+  // Ei nulli varasemaid ridu — vahemälus tabel jääb nähtavale, kuni värske saabub
   async function loadBoard(attempt) {
     attempt = attempt || 1;
-    setBoardErr(null); setBoardRows(null);
+    setBoardErr(null);
     try {
       const { data, error } = await withTimeout(sb.from("dogs_leaderboard")
         .select("name,win_amount,win_multiplier")
         .order("win_multiplier", { ascending: false })
-        .limit(10), 15000);
+        .limit(10), 8000);
       if (error) throw new Error(error.message + (error.code ? " (" + error.code + ")" : ""));
       setBoardRows(data || []);
     } catch (err) {
@@ -1078,6 +1093,8 @@ function App() {
       setBoardErr(err.message);
     }
   }
+  // Eellaadi edetabel taustal kohe avamisel — paneel avaneb siis hetkega
+  useEffect(() => { if (sb) loadBoard(); }, []);
   useEffect(() => { if (boardOpen && sb) loadBoard(); }, [boardOpen]);
 
   /* ---------- keerutus ---------- */
