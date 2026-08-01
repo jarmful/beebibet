@@ -35,9 +35,9 @@
   .icobtn:active { transform:scale(.92); }
   .icobtn.off { opacity:.35; }
 
-  .hdr { text-align:center; padding:2px 0 8px; }
+  .hdr { text-align:center; padding:2px 0 6px; }
   .hdr h1 {
-    font-size:34px; letter-spacing:-1px;
+    font-size:30px; letter-spacing:-1px;
     background:linear-gradient(90deg,var(--ball),#8fe0ff 55%,var(--gold));
     -webkit-background-clip:text; background-clip:text; color:transparent;
     filter:drop-shadow(0 0 14px rgba(216,243,74,.3));
@@ -82,7 +82,7 @@
     box-shadow:0 18px 50px rgba(0,0,0,.55), inset 0 2px 0 rgba(160,200,255,.15);
   }
   .crowd {
-    height:34px; border-radius:12px 12px 0 0; margin-bottom:6px; opacity:.9;
+    height:20px; border-radius:12px 12px 0 0; margin-bottom:5px; opacity:.9;
     background:
       radial-gradient(circle 3px at 10px 8px, #ffd7a8 55%, transparent 60%),
       radial-gradient(circle 3px at 26px 14px, #f0b48a 55%, transparent 60%),
@@ -99,7 +99,7 @@
     filter:blur(10px);
   }
   .court {
-    position:relative; width:100%; aspect-ratio:10/11; border-radius:12px; overflow:hidden;
+    position:relative; width:100%; aspect-ratio:10/9; border-radius:12px; overflow:hidden;
     background:linear-gradient(180deg,var(--courtgreen) 0%,var(--courtgreen2) 100%);
   }
   .incourt {
@@ -178,10 +178,10 @@
   .cd.urgent { border-color:var(--hot); color:#ffb0b8; animation:rungPulse .55s ease-in-out infinite; }
 
   /* ---------- Statistika + juhtimine ---------- */
-  .statrow { display:flex; gap:8px; margin-top:10px; }
+  .statrow { display:flex; gap:8px; margin-top:8px; }
   .stat {
     flex:1; background:var(--panel); border:1px solid rgba(120,160,220,.25); border-radius:14px;
-    padding:8px 6px; text-align:center;
+    padding:7px 5px; text-align:center;
   }
   .stat .lbl { font-size:9px; letter-spacing:1.2px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; }
   .stat .val { font-size:14px; font-weight:900; margin-top:1px; }
@@ -229,9 +229,9 @@
   .bigbtn:active { transform:scale(.97); }
   .bigbtn:disabled { filter:grayscale(.7) brightness(.6); }
 
-  .serverow { display:flex; gap:8px; margin-top:12px; }
+  .serverow { display:flex; gap:8px; margin-top:10px; }
   .servebtn {
-    flex:1; height:70px; border-radius:20px; border:none; cursor:pointer;
+    flex:1; height:62px; border-radius:20px; border:none; cursor:pointer;
     font-family:'Nunito',sans-serif; font-size:14.5px; font-weight:900; line-height:1.25; color:#fff;
     background:linear-gradient(160deg,#3c78cf,#2a5aa4);
     border:1px solid rgba(160,200,255,.4);
@@ -246,7 +246,7 @@
     box-shadow:0 8px 22px rgba(122,79,208,.35), inset 0 -3px 0 rgba(0,0,0,.25);
   }
   .collectbtn {
-    width:100%; margin-top:8px; height:56px; border-radius:18px; border:none; cursor:pointer;
+    width:100%; margin-top:8px; height:50px; border-radius:18px; border:none; cursor:pointer;
     font-family:'Nunito',sans-serif; font-size:16.5px; font-weight:900; letter-spacing:.5px; color:#33230a;
     background:linear-gradient(135deg,var(--gold),#ffb340);
     box-shadow:0 8px 24px rgba(255,213,79,.4), inset 0 -3px 0 rgba(0,0,0,.2);
@@ -333,6 +333,17 @@
   }
 
   .capnote { font-size:11px; color:var(--inkSoft); text-align:center; margin-top:12px; line-height:1.5; }
+
+  /* Lühikesed ekraanid (rakendusesisene brauser): mahuta servinupud kindlalt vaatevälja */
+  @media (max-height:720px) {
+    .crowd { display:none; }
+    .court { aspect-ratio:10/8.2; }
+    .topbar { padding-top:8px; }
+    .ladder { padding:4px 2px 6px; }
+    .servebtn { height:56px; }
+    .collectbtn { height:46px; }
+    .hist { padding-bottom:5px; min-height:22px; }
+  }
 </style>
 </head>
 <body>
@@ -896,6 +907,20 @@ function App() {
         " · vale pool = kõik läheb kaduma!"));
   }
 
+  const statRowEl = e("div", { className: "statrow" },
+    e("div", { className: "stat" },
+      e("div", { className: "lbl" }, "Saldo"),
+      e("div", { className: "val" }, fmt(saldo))),
+    e("div", { className: "stat" },
+      e("div", { className: "lbl" }, "Panus"),
+      e("div", { className: "val", style: { color: "var(--ball)" } }, fmt(bet))),
+    e("div", { className: "stat" },
+      e("div", { className: "lbl" }, "Ralli"),
+      e("div", { className: "val" }, rounds)),
+    e("div", { className: "stat" },
+      e("div", { className: "lbl" }, "Võit"),
+      e("div", { className: "val winval" }, fmt(inRun ? curWin : lastWin))));
+
   /* ---------- overlay'd ---------- */
 
   const nameSaveBlock = (runRounds, cashedOut, amount) => (runRounds >= 1 && sb) ? e(React.Fragment, null,
@@ -978,9 +1003,9 @@ function App() {
             className: "icobtn" + (soundOn ? "" : " off"),
             onClick: () => { const v = !soundOn; setSoundOn(v); AudioEngine.setOn(v); if (v) AudioEngine.playSfx("click"); }, title: "Heli"
           }, "🔊"))),
-      e("div", { className: "hdr" },
+      phase === "bet" ? e("div", { className: "hdr" },
         e("h1", null, "Tennis Run"),
-        e("p", null, "tennise crash-mäng")),
+        e("p", null, "tennise crash-mäng")) : null,
 
       e("div", { className: "ladderbar" }, e("div", { style: { width: ladderPct + "%" } })),
       e("div", { className: "ladder", ref: ladderRef }, rungs),
@@ -988,21 +1013,9 @@ function App() {
 
       phase === "bet" ? null : court,
 
-      e("div", { className: "statrow" },
-        e("div", { className: "stat" },
-          e("div", { className: "lbl" }, "Saldo"),
-          e("div", { className: "val" }, fmt(saldo))),
-        e("div", { className: "stat" },
-          e("div", { className: "lbl" }, "Panus"),
-          e("div", { className: "val", style: { color: "var(--ball)" } }, fmt(bet))),
-        e("div", { className: "stat" },
-          e("div", { className: "lbl" }, "Ralli"),
-          e("div", { className: "val" }, rounds)),
-        e("div", { className: "stat" },
-          e("div", { className: "lbl" }, "Võit"),
-          e("div", { className: "val winval" }, fmt(inRun ? curWin : lastWin)))),
-
-      controls,
+      // Mängu ajal on servinupud kohe väljaku all, statistika nende järel
+      phase === "bet" ? statRowEl : controls,
+      phase === "bet" ? controls : statRowEl,
 
       e("p", { className: "capnote" },
         "Kaitsja valib salaja poole enne igat servi (krüpto-juhuslikult). Äss = kordaja kasvab: ",
