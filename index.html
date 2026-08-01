@@ -18,108 +18,185 @@
 <meta name="twitter:image" content="https://beebibet.ee/og-image.png" />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
 <style>
-  :root { --cream:#FBF3E4; --peach:#F7C9B6; --rose:#E8889B; --sage:#A7C4A0; --sky:#9CC3D5; --butter:#F4D06F; --ink:#4A3B47; --inkSoft:#7A6A75; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--cream); font-family:'Nunito',sans-serif; color:var(--ink); -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; flex-direction:column; }
-  h1,h2 { font-family:'Fraunces',serif; font-weight:600; }
-  .deco { position:fixed; inset:0; pointer-events:none; overflow:hidden; }
-  .deco span { position:absolute; font-size:28px; opacity:.15; }
-  @keyframes float0 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px) rotate(8deg)} }
-  @keyframes float1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-22px) rotate(-6deg)} }
-  @keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-  .wrap { max-width:480px; margin:0 auto; padding:0 20px 60px; position:relative; z-index:2; width:100%; }
-  .hdr { text-align:center; padding:48px 0 36px; }
-  .tile { display:block; text-decoration:none; background:#fff; border-radius:28px; padding:32px 28px; box-shadow:0 16px 40px rgba(74,59,71,.1); border:2px solid var(--peach); margin-bottom:16px; transition:transform .15s; }
-  .tile:active { transform:scale(.97); }
-  .tile-icon { font-size:52px; margin-bottom:12px; display:block; }
-  .tile-title { font-family:'Fraunces',serif; font-size:26px; font-weight:600; color:var(--ink); margin:0 0 6px; }
-  .tile-desc { font-size:14px; color:var(--inkSoft); line-height:1.5; margin:0; }
-  .tile-cta { display:inline-block; margin-top:16px; padding:10px 22px; border-radius:999px; font-size:14px; font-weight:800; color:#fff; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body {
+    margin:0; font-family:'Nunito',sans-serif; color:#fff; -webkit-font-smoothing:antialiased;
+    min-height:100vh; min-height:100dvh;
+    background:
+      radial-gradient(120% 90% at 12% 8%, rgba(120,10,25,.9) 0%, rgba(120,10,25,0) 55%),
+      radial-gradient(110% 90% at 38% 42%, rgba(235,110,35,.85) 0%, rgba(235,110,35,0) 60%),
+      radial-gradient(120% 100% at 68% 70%, rgba(150,40,190,.9) 0%, rgba(150,40,190,0) 62%),
+      radial-gradient(130% 110% at 96% 92%, rgba(70,200,235,.95) 0%, rgba(70,200,235,0) 60%),
+      linear-gradient(150deg,#5c1020 0%, #c8501e 34%, #8f2fae 66%, #3aa8d8 100%);
+    background-attachment:fixed;
+  }
+  .wrap { max-width:480px; margin:0 auto; padding:calc(24px + env(safe-area-inset-top)) 18px 40px; width:100%; }
+  .hdr { text-align:center; padding:8px 0 26px; }
+  .hdr h1 { font-family:'Fraunces',serif; font-weight:600; font-size:44px; margin:0; letter-spacing:-1px; color:#fff; text-shadow:0 2px 18px rgba(0,0,0,.35); }
+  .hdr h1 span { color:#ffd9e2; }
+  .hdr p { margin:4px 0 0; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,.85); font-weight:700; text-shadow:0 1px 8px rgba(0,0,0,.3); }
+
+  /* iPhone-style grid: 4 per row */
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:22px 12px; justify-items:center; }
+  .app { display:flex; flex-direction:column; align-items:center; gap:7px; text-decoration:none; width:100%; border:0; background:none; padding:0; cursor:pointer; font-family:inherit; }
+  .app:active .icon { transform:scale(.9); filter:brightness(.85); }
+  .icon {
+    width:100%; max-width:76px; aspect-ratio:1; border-radius:24%;
+    display:flex; align-items:center; justify-content:center; font-size:38px;
+    box-shadow:0 6px 16px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25);
+    transition:transform .12s, filter .12s;
+  }
+  .label {
+    font-size:12px; font-weight:700; color:#fff; text-shadow:0 1px 6px rgba(0,0,0,.55);
+    text-align:center; line-height:1.15; max-width:84px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; width:100%;
+  }
+
+  /* app icon themes (match each game's look) */
+  .ic-zooland { background:linear-gradient(160deg,#14431d,#0b2a12); }
+  .ic-kosmos { background:linear-gradient(160deg,#1a1040,#0a0e24); }
+  .ic-multi { background:linear-gradient(160deg,#141e2e,#08080c); }
+  .ic-bombpot { background:linear-gradient(160deg,#123f24,#071a10); }
+  .ic-ennustus { background:linear-gradient(160deg,#f7a6b8,#e8889b); }
+  .ic-quiz { background:linear-gradient(160deg,#bcdcec,#9cc3d5); }
+  .ic-catch { background:linear-gradient(160deg,#c2d8bc,#a7c4a0); }
+  .ic-wordle { background:linear-gradient(160deg,#f9ddb0,#f4d06f); }
+  .ic-fly { background:linear-gradient(160deg,#8fb8ff,#4a72d8); }
+  .ic-run { background:linear-gradient(160deg,#ffd98a,#f0a848); }
+  .ic-tennis { background:linear-gradient(160deg,#122a52,#071022); }
+  .ic-usopen { background:linear-gradient(160deg,#0b3d91,#001854); }
+
+  /* folder icon: translucent square with mini-grid of app icons */
+  .folder-icon {
+    width:100%; max-width:76px; aspect-ratio:1; border-radius:24%;
+    background:rgba(255,255,255,.28); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    box-shadow:0 6px 16px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.3);
+    display:grid; grid-template-columns:repeat(3,1fr); gap:9%; padding:13%;
+    transition:transform .12s, filter .12s;
+  }
+  .app:active .folder-icon { transform:scale(.9); filter:brightness(.85); }
+  .folder-icon .mini {
+    border-radius:26%; display:flex; align-items:center; justify-content:center;
+    font-size:11px; line-height:1; overflow:hidden;
+  }
+
+  /* folder overlay — like iOS opened folder */
+  .overlay {
+    position:fixed; inset:0; z-index:50; display:none;
+    align-items:center; justify-content:center; flex-direction:column; gap:18px;
+    padding:24px; background:rgba(40,20,50,.45);
+    backdrop-filter:blur(22px) saturate(1.3); -webkit-backdrop-filter:blur(22px) saturate(1.3);
+  }
+  .overlay.open { display:flex; }
+  .folder-title { font-size:22px; font-weight:800; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.4); margin:0; }
+  .folder-panel {
+    width:100%; max-width:360px; border-radius:36px; padding:26px 20px;
+    background:rgba(255,255,255,.32);
+    box-shadow:0 24px 60px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.35);
+    display:grid; grid-template-columns:repeat(3,1fr); gap:22px 14px; justify-items:center;
+    animation:pop .18s ease-out;
+  }
+  @keyframes pop { from { transform:scale(.75); opacity:0; } to { transform:scale(1); opacity:1; } }
+  .folder-panel .icon { max-width:72px; font-size:36px; }
+  .folder-panel .label { color:#fff; max-width:104px; }
 </style>
 </head>
 <body>
-<div class="deco" id="deco"></div>
 <div class="wrap">
   <div class="hdr">
-    <h1 style="font-size:52px;margin:0;letter-spacing:-1px">beebi<span style="color:var(--rose)">bet</span></h1>
-    <p style="margin:6px 0 0;font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--inkSoft);font-weight:700">babyshower mängud</p>
+    <h1>beebi<span>bet</span></h1>
+    <p>babyshower mängud</p>
   </div>
-  <a class="tile" href="/ennustus">
-    <span class="tile-icon">🍼</span>
-    <div class="tile-title">Beebi ennustus</div>
-    <p class="tile-desc">Arva beebi kaal, pikkus, sünnikuupäev, kellaaeg, sünnituse kestus ja nimi. Kes ennustab kõige täpsemini?</p>
-    <span class="tile-cta" style="background:var(--rose)">Mängi →</span>
-  </a>
-  <a class="tile" href="/mang">
-    <span class="tile-icon">🧸</span>
-    <div class="tile-title">BeebiCatch</div>
-    <p class="tile-desc">Püüa korvist beebiasjad ja kogu punkte. Pääse edetabelisse!</p>
-    <span class="tile-cta" style="background:var(--sage)">Mängi →</span>
-  </a>
-  <a class="tile" href="/quiz">
-    <span class="tile-icon">🦉</span>
-    <div class="tile-title">BeebiQuiz</div>
-    <p class="tile-desc">10 juhuslikku küsimust beebi arengu, hoolduse ja keha kohta. Kiirus loeb — kiirema vastuse eest saad rohkem punkte!</p>
-    <span class="tile-cta" style="background:var(--sky)">Mängi →</span>
-  </a>
-  <a class="tile" href="/beebifly">
-    <span class="tile-icon">🚀</span>
-    <div class="tile-title">BeebiFly</div>
-    <p class="tile-desc">Lenda beebiraketivankriga kõrgemale! Stopp õigel hetkel enne läbipõlemist ja kogu rekordkordajaid!</p>
-    <span class="tile-cta" style="background:var(--sky)">Mängi →</span>
-  </a>
-  <a class="tile" href="/beebirun">
-    <span class="tile-icon">🏃</span>
-    <div class="tile-title">BeebiRun</div>
-    <p class="tile-desc">Juhi beebi turvaliselt finišisse! Vali igal etapil õige uks — 5 etappi, 5 valikut, vaid 1 on õige. Vale uks = mäng läbi!</p>
-    <span class="tile-cta" style="background:var(--butter);color:var(--ink)">Mängi →</span>
-  </a>
-  <a class="tile" href="/kosmos" style="background:linear-gradient(160deg,#0a0e24,#1a1040);border-color:#4de8ff">
-    <span class="tile-icon">🪐</span>
-    <div class="tile-title" style="color:#eaf2ff">KosmosBet</div>
-    <p class="tile-desc" style="color:#8f9bc4">Kosmose klastrislott mängurahaga! 7×7 ruudustik, tumble'id, kordajad ja Musta Augu tasuta keerutused. Suurim võit 5000x!</p>
-    <span class="tile-cta" style="background:linear-gradient(90deg,#4de8ff,#ff4dd8);color:#081020">Mängi →</span>
-  </a>
-  <a class="tile" href="/zooland" style="background:linear-gradient(160deg,#0b2a12,#14431d);border-color:#ffd54f">
-    <span class="tile-icon">🦍</span>
-    <div class="tile-title" style="color:#f3f9ec">Zooland</div>
-    <p class="tile-desc" style="color:#a9c9a0">Džungli slotimäng mängurahaga! 6×5 ruudustik, 8+ sümbolit võidab ükskõik kus, tumble'id ja Vikerkaare Papagoi pommikordajad tasuta keerutustes. Suurim võit 21100x!</p>
-    <span class="tile-cta" style="background:linear-gradient(90deg,#ffd54f,#ff9052);color:#2b1c05">Mängi →</span>
-  </a>
-  <a class="tile" href="/bombpot" style="background:linear-gradient(160deg,#071a10,#123f24);border-color:#ff5c6c">
-    <span class="tile-icon">💣</span>
-    <div class="tile-title" style="color:#eef7ee">Bomb Pot</div>
-    <p class="tile-desc" style="color:#8fb49b">Pokkeri all-in simulaator mängurahaga! 10 panust, vali vastaste arv, Hold'em või Omaha ja 1 või 2 lauda. Kogu võidupott ja pääse edetabelisse!</p>
-    <span class="tile-cta" style="background:linear-gradient(90deg,#ff5c6c,#ffd54f);color:#2b0510">Mängi →</span>
-  </a>
-  <a class="tile" href="/multigeneraator" style="background:linear-gradient(160deg,#08080c,#141e2e);border-color:#00e676">
-    <span class="tile-icon">🎰</span>
-    <div class="tile-title" style="color:#f1f2f7">Multi Generaator</div>
-    <p class="tile-desc" style="color:#9a9fb4">Keeruta endale juhuslik EPL avavooru mitmikpanus! Vali 3–10 valikut ja panus, keeruta boost kuni +40% ning pääse suurimate võimalike võitudega edetabelisse!</p>
-    <span class="tile-cta" style="background:linear-gradient(90deg,#00e676,#ffd54f);color:#03140a">Mängi →</span>
-  </a>
-  <a class="tile" href="/tennisrun" style="background:linear-gradient(160deg,#071022,#122a52);border-color:#d8f34a">
-    <span class="tile-icon">🎾</span>
-    <div class="tile-title" style="color:#eef4ff">Tennis Run</div>
-    <p class="tile-desc" style="color:#93a7cc">Tennise crash-mäng mängurahaga! Servi vasakule või paremale mööda kaitsjast — iga äss kahekordistab kordajat. Korja võit välja enne tagasilööki ja teeni edetabelis +3 boonusringi!</p>
-    <span class="tile-cta" style="background:linear-gradient(90deg,#d8f34a,#ffd54f);color:#1d2a06">Mängi →</span>
-  </a>
-  <a class="tile" href="/usalahtised" style="background:linear-gradient(160deg,#001854,#0b3d91);border-color:#ffd400">
-    <span class="tile-icon">🎾</span>
-    <div class="tile-title" style="color:#f2f7ff">USA Lahtised</div>
-    <p class="tile-desc" style="color:#9db8de">US Openi õnnemängud mängurahaga! Kuus mängu — Survivor Spin, Grand Slam Slot, Bagel Jackpot, Seti Rulett, Puhas Päev ja Üllataja Loto. Piletid arveldatakse päris turniiritulemustega!</p>
-    <span class="tile-cta" style="background:linear-gradient(90deg,#ffd400,#2478cc);color:#001330">Mängi →</span>
-  </a>
-  <a class="tile" href="/wordle">
-    <span class="tile-icon">🔤</span>
-    <div class="tile-title">SõnaMäng</div>
-    <p class="tile-desc">Eesti Wordle! Arva 5-tähteline eesti sõna 6 katsega. Roheline = õige koht, kollane = vale koht, hall = pole sõnas.</p>
-    <span class="tile-cta" style="background:var(--rose)">Mängi →</span>
-  </a>
+
+  <div class="grid">
+    <!-- 1. rida -->
+    <a class="app" href="/zooland">
+      <span class="icon ic-zooland">🦍</span>
+      <span class="label">Zooland</span>
+    </a>
+    <a class="app" href="/kosmos">
+      <span class="icon ic-kosmos">🪐</span>
+      <span class="label">KosmosBet</span>
+    </a>
+    <a class="app" href="/multigeneraator">
+      <span class="icon ic-multi">🎰</span>
+      <span class="label">Multi Gen.</span>
+    </a>
+    <a class="app" href="/bombpot">
+      <span class="icon ic-bombpot">💣</span>
+      <span class="label">Bomb Pot</span>
+    </a>
+
+    <!-- 2. rida: Beebi Games kaust -->
+    <button class="app" id="folderBtn" type="button" aria-haspopup="dialog" aria-expanded="false">
+      <span class="folder-icon" aria-hidden="true">
+        <span class="mini ic-ennustus">🍼</span>
+        <span class="mini ic-quiz">🦉</span>
+        <span class="mini ic-catch">🧸</span>
+        <span class="mini ic-wordle">🔤</span>
+        <span class="mini ic-fly">🚀</span>
+        <span class="mini ic-run">🏃</span>
+        <span class="mini ic-tennis">🎾</span>
+        <span class="mini ic-usopen">🇺🇸</span>
+        <span class="mini"></span>
+      </span>
+      <span class="label">Beebi Games</span>
+    </button>
+  </div>
 </div>
+
+<!-- avatud kaust -->
+<div class="overlay" id="folderOverlay" role="dialog" aria-modal="true" aria-label="Beebi Games">
+  <h2 class="folder-title">Beebi Games</h2>
+  <div class="folder-panel" id="folderPanel">
+    <!-- 1. rida -->
+    <a class="app" href="/ennustus">
+      <span class="icon ic-ennustus">🍼</span>
+      <span class="label">Beebi ennustus</span>
+    </a>
+    <a class="app" href="/quiz">
+      <span class="icon ic-quiz">🦉</span>
+      <span class="label">BeebiQuiz</span>
+    </a>
+    <a class="app" href="/mang">
+      <span class="icon ic-catch">🧸</span>
+      <span class="label">BeebiCatch</span>
+    </a>
+    <!-- 2. rida -->
+    <a class="app" href="/wordle">
+      <span class="icon ic-wordle">🔤</span>
+      <span class="label">SõnaMäng</span>
+    </a>
+    <a class="app" href="/beebifly">
+      <span class="icon ic-fly">🚀</span>
+      <span class="label">BeebiFly</span>
+    </a>
+    <a class="app" href="/beebirun">
+      <span class="icon ic-run">🏃</span>
+      <span class="label">BeebiRun</span>
+    </a>
+    <!-- 3. rida -->
+    <a class="app" href="/tennisrun">
+      <span class="icon ic-tennis">🎾</span>
+      <span class="label">Tennis Run</span>
+    </a>
+    <a class="app" href="/usalahtised">
+      <span class="icon ic-usopen">🇺🇸</span>
+      <span class="label">USA Lahtised</span>
+    </a>
+  </div>
+</div>
+
 <script>
-const d=document.getElementById("deco");
-["🍼","👶","⭐","🎈","🌙","☁️"].forEach((e,i)=>{const s=document.createElement("span");s.textContent=e;s.style.left=[8,82,15,88,45,70][i]+"%";s.style.top=[12,8,70,60,90,35][i]+"%";s.style.animation=`float${i%3} ${6+i}s ease-in-out infinite`;d.appendChild(s);});
+const btn = document.getElementById("folderBtn");
+const overlay = document.getElementById("folderOverlay");
+const panel = document.getElementById("folderPanel");
+function openFolder(){ overlay.classList.add("open"); btn.setAttribute("aria-expanded","true"); }
+function closeFolder(){ overlay.classList.remove("open"); btn.setAttribute("aria-expanded","false"); }
+btn.addEventListener("click", openFolder);
+overlay.addEventListener("click", e => { if (!panel.contains(e.target)) closeFolder(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeFolder(); });
 </script>
 </body>
 </html>
