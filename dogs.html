@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Dogs of Olympics — beebibet</title>
+<meta name="description" content="Dogs of Olympics — Olümpose koerte slotimäng. Tumble'id, kuldsed maiusekordajad ja Zeus Koera õnnistused!" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --sky0:#bfe3ff; --sky1:#8ec9f5; --sky2:#5fa8e8;
+    --panel:rgba(255,255,255,.6);
+    --gold:#f4a712; --gold2:#ffd766; --goldDeep:#c77f00;
+    --marble:#fdfbf5; --marble2:#e6dfc9;
+    --ink:#1d3557; --inkSoft:#46689c;
+    --pink:#ff8fab; --mint:#7ed6a5;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body {
+    background:linear-gradient(180deg,var(--sky0) 0%,var(--sky1) 48%,var(--sky2) 100%);
+    font-family:'Nunito',sans-serif; color:var(--ink); min-height:100vh; min-height:100dvh;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  h1,h2 { font-family:'Fraunces',serif; font-weight:600; }
+
+  /* ---------- Olümpose taust: päike, pilved, marmorsambad ---------- */
+  #sparkles { position:fixed; inset:0; z-index:0; pointer-events:none; }
+  .sun {
+    position:fixed; top:-90px; right:-90px; width:260px; height:260px; border-radius:50%; z-index:0;
+    background:radial-gradient(circle,rgba(255,235,160,.95) 0%,rgba(255,215,102,.5) 45%,rgba(255,215,102,0) 70%);
+    pointer-events:none; animation:sunPulse 8s ease-in-out infinite;
+  }
+  @keyframes sunPulse { 0%,100%{opacity:.8} 50%{opacity:1} }
+  .cloud {
+    position:fixed; z-index:1; pointer-events:none; filter:blur(1px); opacity:.9;
+    background:#fff; border-radius:999px; box-shadow:28px -8px 0 6px #fff, -26px -6px 0 2px #fff, 0 0 24px rgba(255,255,255,.8);
+    animation:cloudDrift linear infinite;
+  }
+  @keyframes cloudDrift { from { transform:translateX(-16vw); } to { transform:translateX(116vw); } }
+  .column {
+    position:fixed; top:12vh; width:44px; height:88vh; z-index:0; pointer-events:none; opacity:.5;
+    background:
+      linear-gradient(90deg,rgba(120,110,80,.25) 0 3px,transparent 3px),
+      repeating-linear-gradient(90deg,#f6f0dd 0 7px,#dcd3b6 7px 11px),
+      linear-gradient(180deg,#fffbe9,#e2d9bd);
+    border-top:10px solid #efe7cd; border-bottom:12px solid #efe7cd;
+    box-shadow:0 0 24px rgba(60,90,140,.25), inset 0 0 12px rgba(120,110,80,.25);
+  }
+  .column.left { left:-14px; } .column.right { right:-14px; }
+
+  .wrap { max-width:480px; margin:0 auto; padding:0 12px 14px; position:relative; z-index:2; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; padding:10px 2px 2px; }
+  .back { font-size:12px; font-weight:800; color:var(--inkSoft); text-decoration:none; letter-spacing:1px; }
+  .iconbtns { display:flex; gap:6px; }
+  .icobtn {
+    width:36px; height:36px; border-radius:12px; border:1px solid rgba(244,167,18,.5);
+    background:rgba(255,255,255,.75); color:var(--ink); font-size:16px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:transform .12s;
+    box-shadow:0 2px 8px rgba(60,90,140,.18);
+  }
+  .icobtn:active { transform:scale(.92); }
+  .icobtn.off { opacity:.35; }
+  .icobtn.turbo-on { border-color:var(--gold); box-shadow:0 0 12px rgba(244,167,18,.55); }
+
+  /* ---------- Päis + Zeus Koer ---------- */
+  .hero { display:flex; align-items:flex-end; justify-content:space-between; gap:6px; padding:0 2px; }
+  .hero-txt { padding-bottom:8px; min-width:0; }
+  .hero-txt h1 {
+    font-size:clamp(22px,7vw,30px); letter-spacing:-.5px; line-height:1.05; white-space:nowrap;
+    background:linear-gradient(90deg,var(--goldDeep),var(--gold) 40%,#ffea9e 60%,var(--gold));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(0 1px 6px rgba(255,215,102,.6));
+  }
+  .hero-txt .sub { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; margin-top:3px; white-space:nowrap; }
+  .fsline {
+    display:inline-flex; align-items:center; gap:8px; margin-top:3px;
+    background:linear-gradient(90deg,rgba(255,215,102,.5),rgba(255,143,171,.35));
+    border:1px solid var(--gold); border-radius:999px; padding:2px 10px;
+    font-size:11.5px; font-weight:900; color:var(--ink); white-space:nowrap;
+    box-shadow:0 0 14px rgba(255,215,102,.5);
+  }
+  .fsline b { color:var(--goldDeep); }
+
+  /* Zeus Koer — pilvetroonil golden retriiver */
+  .zeus { position:relative; width:104px; flex:0 0 auto; margin-bottom:-6px; z-index:3; transition:transform .2s; }
+  .zeus svg { width:100%; height:auto; display:block; filter:drop-shadow(0 4px 10px rgba(40,80,140,.3)); }
+  .z-tail { transform-origin:97px 96px; animation:wag 1s ease-in-out infinite; }
+  @keyframes wag { 0%,100%{transform:rotate(8deg)} 50%{transform:rotate(-16deg)} }
+  .zeus.bark .z-tail, .zeus.zap .z-tail { animation-duration:.35s; }
+  .z-earL { transform-origin:50px 32px; animation:earTw 7s ease-in-out infinite; }
+  .z-earR { transform-origin:90px 32px; animation:earTw 9s ease-in-out infinite 3s; }
+  @keyframes earTw { 0%,90%,100%{transform:rotate(0)} 93%{transform:rotate(-9deg)} 96%{transform:rotate(4deg)} }
+  .z-headg { transform-origin:70px 52px; }
+  .zeus.bark .z-headg, .zeus.zap .z-headg { animation:barkBob .5s ease-in-out; }
+  @keyframes barkBob { 0%,100%{transform:rotate(0)} 30%{transform:rotate(-8deg) translateY(-2px)} 60%{transform:rotate(4deg)} }
+  .z-tongue { opacity:0; }
+  .zeus.bark .z-tongue, .zeus.zap .z-tongue { opacity:1; }
+  .z-boltg { transform-origin:34px 80px; animation:boltFloat 3s ease-in-out infinite; }
+  @keyframes boltFloat { 0%,100%{transform:rotate(0)} 50%{transform:rotate(-6deg) translateY(-2px)} }
+  .zeus.zap .z-boltg { animation:boltZap .8s cubic-bezier(.3,1.6,.5,1); }
+  @keyframes boltZap {
+    0%{transform:rotate(0)} 35%{transform:rotate(-38deg) translate(-4px,-14px) scale(1.25)}
+    70%{transform:rotate(-30deg) translate(-3px,-11px) scale(1.35)} 100%{transform:rotate(0)}
+  }
+  .zeus.zap .z-bolt { filter:drop-shadow(0 0 10px #fff173) brightness(1.6); }
+  .zeus.bark, .zeus.zap { transform:scale(1.07); }
+  .zbubble {
+    position:absolute; top:-4px; left:-30px; background:#fff; color:var(--ink);
+    font-size:11px; font-weight:900; padding:3px 9px; border-radius:999px;
+    border:2px solid var(--gold); box-shadow:0 2px 10px rgba(60,90,140,.3);
+    animation:bubblePop .3s cubic-bezier(.3,1.8,.5,1); white-space:nowrap; z-index:4;
+  }
+  @keyframes bubblePop { from{transform:scale(0)} to{transform:scale(1)} }
+
+  /* ---------- Marmorraam + ruudustik ---------- */
+  .board-outer {
+    position:relative; border-radius:20px; padding:8px;
+    background:linear-gradient(160deg,#fffdf6,var(--marble) 40%,var(--marble2));
+    border:2px solid var(--gold2);
+    box-shadow:0 14px 40px rgba(40,80,140,.35), inset 0 2px 0 rgba(255,255,255,.9), inset 0 -3px 0 rgba(150,130,80,.3);
+  }
+  .board-outer::before {
+    content:""; position:absolute; inset:3px; border-radius:16px; pointer-events:none;
+    background:repeating-linear-gradient(90deg,rgba(150,130,80,.07) 0 3px,transparent 3px 24px);
+  }
+  .board-outer.shake { animation:boardShake .5s ease-in-out; }
+  @keyframes boardShake {
+    0%,100%{transform:translate(0,0)} 20%{transform:translate(-5px,2px)} 40%{transform:translate(5px,-2px)}
+    60%{transform:translate(-4px,-2px)} 80%{transform:translate(3px,2px)}
+  }
+  .board {
+    position:relative; width:100%; aspect-ratio:6/5; overflow:hidden; border-radius:13px;
+    background:linear-gradient(180deg,#d6ecff,#a9d3f4);
+  }
+  .board.zapflash::after {
+    content:""; position:absolute; inset:0; z-index:30; pointer-events:none;
+    background:radial-gradient(circle,rgba(255,244,180,.95),rgba(255,244,180,0) 75%);
+    animation:zapFlash .55s ease-out forwards;
+  }
+  @keyframes zapFlash { 0%{opacity:0} 15%{opacity:1} 100%{opacity:0} }
+  .cellbg { position:absolute; width:16.6667%; height:20%; }
+  .cellbg::after { content:""; position:absolute; inset:2px; border-radius:9px; background:rgba(255,255,255,.4); border:1px solid rgba(255,255,255,.55); }
+
+  .tile {
+    position:absolute; width:16.6667%; height:20%; z-index:4;
+    display:flex; align-items:center; justify-content:center;
+    font-size:clamp(24px,8.6vw,42px); user-select:none; pointer-events:none;
+    transition-property:top; transition-timing-function:cubic-bezier(.45,.02,.6,1.2);
+    text-shadow:0 2px 4px rgba(40,80,140,.25);
+  }
+  .tile.win {
+    animation:winHit .42s cubic-bezier(.3,1.9,.4,1) forwards, winGlow 1s ease-in-out .42s infinite;
+    z-index:6;
+  }
+  @keyframes winHit {
+    0%   { transform:scale(1); filter:brightness(1); }
+    55%  { transform:scale(1.45); filter:brightness(1.6) drop-shadow(0 0 22px rgba(255,225,120,1)); }
+    100% { transform:scale(1.25); filter:brightness(1.35) drop-shadow(0 0 14px rgba(255,225,120,.95)); }
+  }
+  @keyframes winGlow {
+    0%,100% { transform:scale(1.25); filter:brightness(1.35) drop-shadow(0 0 14px rgba(255,225,120,.95)); }
+    50%     { transform:scale(1.32); filter:brightness(1.6) drop-shadow(0 0 20px rgba(255,225,120,1)); }
+  }
+  .board.hold .tile:not(.win):not(.die) { opacity:.45; filter:brightness(.8) saturate(.7); transition:opacity .25s,filter .25s; }
+  .tile.die { animation:dieAnim .3s ease-in forwards; z-index:6; }
+  @keyframes dieAnim { 0%{transform:scale(1.28);opacity:1} 100%{transform:scale(0);opacity:0} }
+  .board.turbo .tile.win { animation-duration:.2s,.5s; animation-delay:0s,.2s; }
+  .board.turbo .tile.die { animation-duration:.13s; }
+
+  .tile.scat { filter:drop-shadow(0 0 12px var(--gold)); animation:scatFloat 2.4s ease-in-out infinite; }
+  @keyframes scatFloat { 0%,100%{transform:scale(1) rotate(-5deg)} 50%{transform:scale(1.12) rotate(5deg)} }
+
+  /* Kuldne maius (kordaja) */
+  .tile.orb { z-index:5; }
+  .tile.orb .orbdisc {
+    position:absolute; inset:8%; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fff6cf,#ffd766 45%,#f4a712 80%,#c77f00);
+    animation:orbThrob 1.5s ease-in-out infinite;
+    box-shadow:0 0 16px rgba(255,215,102,.95), 0 0 30px rgba(255,180,60,.55), inset 0 -3px 6px rgba(160,100,0,.4);
+  }
+  @keyframes orbThrob { 0%,100%{transform:scale(1)} 50%{transform:scale(1.07)} }
+  .tile.orb .oico { position:relative; z-index:2; font-size:.6em; filter:drop-shadow(0 1px 3px rgba(120,70,0,.6)); }
+  .tile.orb .oval {
+    position:absolute; bottom:3%; left:50%; transform:translateX(-50%); z-index:3;
+    font-size:clamp(10px,3.4vw,15px); font-weight:900; color:#fff;
+    background:rgba(120,70,0,.88); border:1px solid #ffe9a8;
+    border-radius:999px; padding:0 6px; text-shadow:0 0 6px rgba(255,215,102,.9); white-space:nowrap;
+  }
+  .tile.orb.deton .orbdisc { animation:detonFlash .45s ease-in-out infinite; }
+  @keyframes detonFlash { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.8) saturate(1.4)} }
+  .tile.hiddenb { opacity:0; }
+  .tile.blessin { animation:blessIn .55s cubic-bezier(.3,1.8,.4,1) forwards; z-index:7; }
+  @keyframes blessIn {
+    0%{opacity:0; transform:scale(0) rotate(-120deg)}
+    60%{opacity:1; transform:scale(1.35) rotate(10deg); filter:brightness(1.8) drop-shadow(0 0 24px #fff173)}
+    100%{opacity:1; transform:scale(1) rotate(0); filter:none}
+  }
+
+  .flyer {
+    position:absolute; z-index:20; pointer-events:none;
+    font-size:15px; font-weight:900; color:#fff;
+    background:rgba(150,90,0,.94); border:1px solid var(--gold2); border-radius:999px; padding:3px 10px;
+    text-shadow:0 0 8px rgba(255,215,102,1); box-shadow:0 0 14px rgba(255,190,80,.8);
+    transition:left .7s cubic-bezier(.5,-.2,.6,1), top .7s cubic-bezier(.5,-.2,.6,1), opacity .7s;
+    transform:translate(-50%,-50%);
+  }
+
+  .particle {
+    position:absolute; width:7px; height:7px; border-radius:50%; z-index:8; pointer-events:none;
+    animation:partFly .6s ease-out forwards;
+  }
+  .particle.emojip {
+    width:auto; height:auto; border-radius:0; background:none !important; box-shadow:none !important;
+    font-size:14px; animation:emojiFly .8s ease-out forwards;
+  }
+  @keyframes partFly {
+    0% { transform:translate(0,0) scale(1); opacity:1; }
+    100% { transform:translate(var(--dx),var(--dy)) scale(.2); opacity:0; }
+  }
+  @keyframes emojiFly {
+    0% { transform:translate(0,0) rotate(0deg); opacity:1; }
+    100% { transform:translate(var(--dx),var(--dy)) rotate(240deg); opacity:0; }
+  }
+
+  .statrow { display:flex; gap:7px; margin-top:9px; }
+  .stat {
+    flex:1; background:var(--panel); border:1px solid rgba(255,255,255,.8); border-radius:13px;
+    padding:7px 5px; text-align:center; box-shadow:0 2px 10px rgba(60,90,140,.15);
+  }
+  .stat .lbl { font-size:9px; letter-spacing:1.2px; text-transform:uppercase; color:var(--inkSoft); font-weight:800; }
+  .stat .val { font-size:14px; font-weight:900; margin-top:1px; }
+  .stat .val.winval { color:var(--goldDeep); text-shadow:0 0 10px rgba(255,215,102,.7); }
+
+  .controls { display:flex; align-items:center; gap:9px; margin-top:10px; }
+  .betbox { display:flex; align-items:center; gap:4px; }
+  .stepbtn {
+    width:44px; height:44px; border-radius:14px; border:1px solid rgba(244,167,18,.5);
+    background:rgba(255,255,255,.8); color:var(--ink); font-size:20px; font-weight:900; cursor:pointer;
+    box-shadow:0 2px 8px rgba(60,90,140,.15);
+  }
+  .stepbtn:disabled { opacity:.3; }
+  .betval { min-width:44px; text-align:center; font-size:16px; font-weight:900; color:var(--goldDeep); }
+  .spinbtn {
+    flex:1; height:60px; border-radius:20px; border:none; cursor:pointer;
+    font-family:'Nunito',sans-serif; font-size:19px; font-weight:900; letter-spacing:1px; color:#3a2604;
+    background:linear-gradient(135deg,var(--gold2),var(--gold));
+    box-shadow:0 8px 24px rgba(244,167,18,.5), inset 0 -3px 0 rgba(140,90,0,.3), inset 0 2px 0 rgba(255,255,255,.6);
+    transition:transform .12s, filter .2s;
+  }
+  .spinbtn:active { transform:scale(.96); }
+  .spinbtn:disabled { filter:grayscale(.6) brightness(.85); }
+
+  .subrow { display:flex; gap:8px; margin-top:8px; }
+  .antebtn {
+    flex:1; padding:10px 8px; border-radius:15px; cursor:pointer;
+    border:1px solid rgba(244,167,18,.45); background:rgba(255,255,255,.6); color:var(--inkSoft);
+    font-family:'Nunito',sans-serif; font-size:12.5px; font-weight:900; transition:all .15s;
+  }
+  .antebtn.on {
+    color:#3a2604; background:linear-gradient(135deg,#ffe9a8,var(--gold2));
+    border-color:var(--gold); box-shadow:0 0 14px rgba(255,215,102,.7);
+  }
+  .antebtn:disabled { opacity:.35; cursor:default; }
+
+  .ovl {
+    position:fixed; inset:0; z-index:60; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:14px; padding:24px; text-align:center;
+    background:rgba(216,238,255,.95); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    animation:ovlIn .25s ease-out; overflow:hidden;
+  }
+  @keyframes ovlIn { from{opacity:0} to{opacity:1} }
+  .ovl h2 { font-size:29px; color:var(--ink); }
+  .ovl .bigico { font-size:64px; animation:scatFloat 2.4s ease-in-out infinite; }
+  .ovl .bigico.party { animation:partyBeat .55s ease-in-out infinite; }
+  @keyframes partyBeat {
+    0%,100% { transform:scale(1) rotate(0deg); }
+    25% { transform:scale(1.22) rotate(-7deg); }
+    50% { transform:scale(1) rotate(0deg); }
+    75% { transform:scale(1.22) rotate(7deg); }
+  }
+  .olympbtn {
+    padding:15px 36px; border-radius:999px; border:none; cursor:pointer;
+    font-family:'Nunito',sans-serif; font-size:17px; font-weight:900; color:#3a2604;
+    background:linear-gradient(135deg,var(--gold2),var(--gold));
+    box-shadow:0 8px 26px rgba(244,167,18,.5); transition:transform .12s;
+  }
+  .olympbtn:active { transform:scale(.95); }
+  .olympbtn.mint { background:linear-gradient(135deg,#b8f0d2,var(--mint)); box-shadow:0 8px 26px rgba(126,214,165,.5); }
+  .olympbtn.ghost { background:transparent; color:var(--inkSoft); box-shadow:none; border:1px solid rgba(70,104,156,.4); }
+
+  .winTitle {
+    font-family:'Fraunces',serif; font-size:44px; font-weight:600; line-height:1.1;
+    background:linear-gradient(90deg,var(--goldDeep),var(--gold),#fff3c4,var(--gold));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(0 0 20px rgba(255,215,102,.8));
+    animation:winTitleIn .5s cubic-bezier(.2,2,.4,1);
+  }
+  .winTitle.rainbow { background:linear-gradient(90deg,var(--pink),var(--gold),var(--mint),#43c9ff); -webkit-background-clip:text; background-clip:text; }
+  @keyframes winTitleIn { 0%{transform:scale(.2)} 70%{transform:scale(1.15)} 100%{transform:scale(1)} }
+  .winAmt { font-size:36px; font-weight:900; color:var(--goldDeep); text-shadow:0 0 18px rgba(255,215,102,.9); }
+
+  .conf {
+    position:absolute; top:-24px; z-index:1; pointer-events:none; font-size:16px;
+    animation:confFall linear forwards;
+  }
+  @keyframes confFall {
+    0% { transform:translateY(0) rotate(0deg); opacity:1; }
+    100% { transform:translateY(110vh) rotate(540deg); opacity:.7; }
+  }
+
+  .toast {
+    position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:80;
+    background:rgba(255,255,255,.97); border:1px solid var(--gold); color:var(--ink);
+    padding:10px 22px; border-radius:999px; font-weight:900; font-size:14px;
+    box-shadow:0 0 22px rgba(255,190,80,.5); animation:ovlIn .2s ease-out; white-space:nowrap;
+  }
+
+  .panel {
+    width:100%; max-width:400px; background:rgba(255,255,255,.98);
+    border:1px solid rgba(244,167,18,.5); border-radius:22px; padding:22px;
+    max-height:80vh; overflow-y:auto; box-shadow:0 20px 50px rgba(40,80,140,.35);
+  }
+  .board-row { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:12px; margin-bottom:6px; background:rgba(191,227,255,.45); }
+  .board-rank { font-size:16px; min-width:26px; }
+  .board-name { flex:1; font-weight:700; font-size:14px; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .board-mult { font-weight:900; font-size:14px; color:var(--goldDeep); }
+  .board-amt { font-size:11px; color:var(--inkSoft); min-width:52px; text-align:right; }
+  .board-empty { color:var(--inkSoft); font-size:13px; padding:14px 0; }
+  .db-error { background:rgba(255,180,160,.35); border:1px solid rgba(220,90,60,.5); border-radius:12px; padding:10px; font-size:11px; color:#a33c22; margin-top:8px; word-break:break-all; }
+
+  .name-input {
+    width:220px; padding:13px 16px; border-radius:14px; border:1px solid rgba(244,167,18,.6);
+    font-size:16px; font-family:'Nunito',sans-serif; font-weight:800; color:var(--ink);
+    background:#fff; text-align:center;
+  }
+  .name-input:focus { outline:none; border-color:var(--gold); box-shadow:0 0 12px rgba(255,215,102,.6); }
+
+  .capnote { font-size:10px; color:var(--inkSoft); text-align:center; margin-top:8px; line-height:1.45; }
+
+  /* Kõik peab mahtuma ühele telefoniekraanile (360×640+) ilma kerimata */
+  @media (max-height:700px) {
+    .capnote { display:none; }
+    .board-outer { width:min(100%, calc((100dvh - 305px) * 1.18)); margin-left:auto; margin-right:auto; }
+    .zeus { width:88px; }
+  }
+  @media (max-height:600px) {
+    .board-outer { width:min(100%, calc((100dvh - 285px) * 1.18)); }
+    .zeus { width:74px; }
+    .spinbtn { height:52px; }
+    .hero-txt .sub { display:none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="sparkles"></canvas>
+<div class="sun"></div>
+<div class="column left"></div>
+<div class="column right"></div>
+<div id="clouds"></div>
+<div id="app"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/dogs-math.js"></script>
+
+<script>
+"use strict";
+/* ============================================================
+   Supabase
+   ============================================================ */
+const SUPABASE_URL = "https://thrsacygpqwbnkcppmpk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_-QaY7mGpitakhestu3w1fg_sCGquRvx";
+let sb = null;
+try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (err) { console.error("Supabase init:", err); }
+
+/* ============================================================
+   Taust: triivivad pilved + kuldsed sädemed
+   ============================================================ */
+(function olympusDeco() {
+  const host = document.getElementById("clouds");
+  const defs = [
+    [8, 60, 26, 65], [26, 90, 34, 95], [46, 70, 22, 48],
+    [64, 110, 40, 120], [82, 80, 30, 75]
+  ];
+  defs.forEach(([top, w, h, dur], i) => {
+    const d = document.createElement("div");
+    d.className = "cloud";
+    d.style.cssText = `top:${top}%;left:0;width:${w}px;height:${h * .4}px;animation-duration:${dur}s;animation-delay:${-dur * (i * .23 % 1)}s;opacity:${.55 + (i % 3) * .15}`;
+    host.appendChild(d);
+  });
+
+  const cv = document.getElementById("sparkles");
+  const cx = cv.getContext("2d");
+  let sparks = [];
+  function resize() {
+    cv.width = innerWidth; cv.height = innerHeight;
+    sparks = Array.from({ length: 20 }, () => ({
+      x: Math.random() * cv.width, y: Math.random() * cv.height,
+      a: Math.random() * Math.PI * 2, s: .1 + Math.random() * .2,
+      p: Math.random() * Math.PI * 2, tw: .4 + Math.random() * 1.1
+    }));
+  }
+  resize(); addEventListener("resize", resize);
+  (function loop(t) {
+    cx.clearRect(0, 0, cv.width, cv.height);
+    for (const f of sparks) {
+      f.a += (Math.random() - .5) * .1;
+      f.x += Math.cos(f.a) * f.s; f.y += Math.sin(f.a) * f.s * .6 - .06;
+      if (f.x < -10) f.x = cv.width + 10; if (f.x > cv.width + 10) f.x = -10;
+      if (f.y < -10) f.y = cv.height + 10; if (f.y > cv.height + 10) f.y = -10;
+      const glow = .25 + .75 * Math.abs(Math.sin(t / 1000 * f.tw + f.p));
+      cx.globalAlpha = glow * .8;
+      cx.fillStyle = "#ffdf80";
+      cx.shadowColor = "#ffdf80"; cx.shadowBlur = 8;
+      cx.beginPath(); cx.arc(f.x, f.y, 1.6, 0, 7); cx.fill();
+      cx.shadowBlur = 0;
+    }
+    requestAnimationFrame(loop);
+  })(0);
+})();
+
+/* ============================================================
+   Helimootor (Web Audio, failideta — Olümpose harf + koerad)
+   ============================================================ */
+const AudioEngine = (() => {
+  let ctx = null, master = null, musicBus = null, sfxBus = null, delaySend = null;
+  let musicOn = localStorage.getItem("dogs_music") !== "0";
+  let sfxOn = localStorage.getItem("dogs_sfx") !== "0";
+  let musicStarted = false, bonusMode = false;
+  let noiseBuf = null;
+  const timers = [];
+
+  function ensure() {
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      ctx = new AC();
+      master = ctx.createGain(); master.gain.value = .9; master.connect(ctx.destination);
+      musicBus = ctx.createGain(); musicBus.gain.value = musicOn ? .3 : 0; musicBus.connect(master);
+      sfxBus = ctx.createGain(); sfxBus.gain.value = sfxOn ? .75 : 0; sfxBus.connect(master);
+    }
+    if (ctx.state === "suspended") ctx.resume();
+    return true;
+  }
+
+  function getNoise() {
+    if (!noiseBuf) {
+      noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    return noiseBuf;
+  }
+
+  // Müravälgatus (tuul, kõu, plaksud)
+  function burst(opts) {
+    const t = ctx.currentTime + (opts.delay || 0);
+    const src = ctx.createBufferSource(); src.buffer = getNoise(); src.loop = true;
+    const f = ctx.createBiquadFilter();
+    f.type = opts.ftype || "bandpass"; f.frequency.setValueAtTime(opts.freq || 1200, t);
+    if (opts.fslide) f.frequency.exponentialRampToValueAtTime(opts.fslide, t + opts.dur);
+    f.Q.value = opts.q != null ? opts.q : 1;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(opts.vol != null ? opts.vol : .2, t + .01);
+    g.gain.exponentialRampToValueAtTime(.001, t + opts.dur);
+    src.connect(f); f.connect(g); g.connect(opts.bus || sfxBus);
+    src.start(t); src.stop(t + opts.dur + .05);
+  }
+
+  function tone(freq, dur, opts) {
+    opts = opts || {};
+    const t = ctx.currentTime + (opts.delay || 0);
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = opts.type || "sine";
+    o.frequency.setValueAtTime(freq, t);
+    if (opts.slide) o.frequency.exponentialRampToValueAtTime(opts.slide, t + dur * (opts.slideT || 1));
+    if (opts.slide2) o.frequency.exponentialRampToValueAtTime(opts.slide2, t + dur);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(opts.vol != null ? opts.vol : .25, t + (opts.att || .012));
+    g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g); g.connect(opts.bus || sfxBus);
+    if (opts.alsoDelay && delaySend) g.connect(delaySend);
+    o.start(t); o.stop(t + dur + .05);
+  }
+
+  // Harfinäpe: kolmnurk + oktav, pehme
+  function pluck(freq, opts) {
+    opts = opts || {};
+    tone(freq, opts.dur || .4, { type: "triangle", vol: opts.vol != null ? opts.vol : .12, bus: opts.bus, delay: opts.delay, alsoDelay: opts.alsoDelay, att: .004 });
+    tone(freq * 2, (opts.dur || .4) * .5, { type: "sine", vol: (opts.vol != null ? opts.vol : .12) * .35, bus: opts.bus, delay: opts.delay, att: .004 });
+  }
+
+  // Õnnelik "auh!" — kaks kiiret langevat haugatust
+  function woof(vol, delay, bus) {
+    vol = vol != null ? vol : .3;
+    const b = bus || sfxBus;
+    tone(300, .13, { type: "sawtooth", slide: 130, vol: vol * .8, att: .008, delay: delay || 0, bus: b });
+    tone(600, .1, { type: "square", slide: 240, vol: vol * .28, att: .008, delay: delay || 0, bus: b });
+    burst({ freq: 700, ftype: "lowpass", dur: .1, vol: vol * .5, delay: delay || 0, bus: b });
+  }
+
+  // Linnusiristus
+  function chirp(base, n, vol, bus, delay) {
+    for (let i = 0; i < n; i++) {
+      tone(base + Math.random() * 300, .09, {
+        type: "sine", slide: base * 1.9 + Math.random() * 400,
+        vol: vol, bus: bus, delay: (delay || 0) + i * .11, att: .005
+      });
+    }
+  }
+
+  // C-duur pentatoonika — helge Olümpose harf
+  const LYRA = [261.6, 293.7, 329.6, 392, 440, 523.3, 587.3, 659.3];
+
+  function startMusic() {
+    if (musicStarted || !ensure()) return;
+    musicStarted = true;
+
+    // Mäetuule padi: pehme filtreeritud müra, aeglane LFO
+    const wind = ctx.createBufferSource(); wind.buffer = getNoise(); wind.loop = true;
+    const wf = ctx.createBiquadFilter(); wf.type = "lowpass"; wf.frequency.value = 520; wf.Q.value = .6;
+    const wg = ctx.createGain(); wg.gain.value = 0;
+    wg.gain.linearRampToValueAtTime(.04, ctx.currentTime + 4);
+    wind.connect(wf); wf.connect(wg); wg.connect(musicBus); wind.start();
+    const wlfo = ctx.createOscillator(), wlfoG = ctx.createGain();
+    wlfo.frequency.value = .06; wlfoG.gain.value = .02;
+    wlfo.connect(wlfoG); wlfoG.connect(wg.gain); wlfo.start();
+    const wlfo2 = ctx.createOscillator(), wlfo2G = ctx.createGain();
+    wlfo2.frequency.value = .09; wlfo2G.gain.value = 200;
+    wlfo2.connect(wlfo2G); wlfo2G.connect(wf.frequency); wlfo2.start();
+
+    // Õrn kaja harfile
+    delaySend = ctx.createGain(); delaySend.gain.value = .5;
+    const dl = ctx.createDelay(1); dl.delayTime.value = .44;
+    const fb = ctx.createGain(); fb.gain.value = .32;
+    const dg = ctx.createGain(); dg.gain.value = .4;
+    delaySend.connect(dl); dl.connect(fb); fb.connect(dl); dl.connect(dg); dg.connect(musicBus);
+
+    // Aeglane harfimuster (pentatooniline, juhuslikult varieeruv)
+    let step = 0;
+    timers.push(setInterval(() => {
+      if (!musicOn) return;
+      step++;
+      if (Math.random() < .55) {
+        const note = LYRA[Math.floor(Math.random() * 5) + (step % 8 === 0 ? 3 : 0)];
+        pluck(note, { vol: .09, bus: musicBus, alsoDelay: true });
+      }
+    }, 360));
+
+    // Pehme südamelöögipulss (+ energilisem kiht boonuses)
+    timers.push(setInterval(() => {
+      if (!musicOn) return;
+      const t = ctx.currentTime;
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine"; o.frequency.setValueAtTime(88, t);
+      o.frequency.exponentialRampToValueAtTime(50, t + .22);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(.22, t + .012);
+      g.gain.exponentialRampToValueAtTime(.001, t + .3);
+      o.connect(g); g.connect(musicBus); o.start(t); o.stop(t + .35);
+      burst({ freq: 3400, dur: .05, vol: .02, q: .8, bus: musicBus, delay: .34 });
+      if (bonusMode) {
+        burst({ freq: 3000, dur: .05, vol: .05, q: 1, bus: musicBus, delay: .17 });
+        pluck(LYRA[5], { vol: .06, bus: musicBus, delay: .5 });
+      }
+    }, 680));
+
+    // Juhuslikud linnumotiivid Olümpose aedadest
+    (function birdLoop() {
+      timers.push(setTimeout(() => {
+        if (musicOn && ctx) chirp(1800 + Math.random() * 900, 2 + (Math.random() * 3 | 0), .03, musicBus);
+        birdLoop();
+      }, 4000 + Math.random() * 7000));
+    })();
+  }
+
+  function playSfx(name, param) {
+    if (!sfxOn || !ensure()) return;
+    switch (name) {
+      case "spin": // pilvevihin
+        burst({ freq: 380, ftype: "bandpass", q: 1.2, fslide: 1900, dur: .38, vol: .2 });
+        tone(180, .34, { type: "sine", slide: 340, vol: .14 });
+        break;
+      case "tick": // pehme klõps
+        tone(720 + Math.random() * 200, .05, { type: "sine", vol: .06 });
+        tone(1500, .03, { type: "sine", vol: .04 });
+        break;
+      case "win": { // tõusev harfikaskaad — kõrgem igal järjestikusel tumble'il
+        const lvl = Math.min(param || 0, 8);
+        const notes = 3 + Math.min(lvl, 5);
+        const lift = Math.pow(1.12, lvl);
+        for (let i = 0; i < notes; i++)
+          pluck(LYRA[i % 8] * Math.pow(2, Math.floor(i / 8)) * lift, { vol: .16, delay: i * .07, dur: .3 });
+        break;
+      }
+      case "pop": // sümbolite õnnelik plõks
+        tone(500, .07, { type: "sine", slide: 900, vol: .1 });
+        burst({ freq: 1900, dur: .05, vol: .06, q: 1.4 });
+        break;
+      case "scatter": // käpajälje maagia
+        [880, 1174.7, 1568].forEach((f, i) => tone(f, .18, { type: "sine", vol: .14, delay: i * .09 }));
+        tone(2093, .3, { type: "triangle", vol: .05, delay: .28 });
+        break;
+      case "orbLand": // kuldse maiuse sädin
+        tone(1568, .12, { type: "sine", vol: .1 });
+        tone(2093, .16, { type: "sine", vol: .08, delay: .06 });
+        tone(2637, .2, { type: "triangle", vol: .05, delay: .12 });
+        break;
+      case "bark": // Zeus Koera rõõmus auh-auh
+        woof(.32, 0);
+        woof(.28, .19);
+        break;
+      case "zap": // kondivälk: glissando + kõu + auh
+        for (let i = 0; i < 8; i++)
+          tone(330 * Math.pow(1.26, i), .12, { type: "triangle", vol: .13, delay: i * .055 });
+        burst({ freq: 420, ftype: "lowpass", dur: .5, vol: .38, delay: .46 });
+        tone(95, .5, { type: "sine", slide: 42, vol: .4, delay: .46 });
+        woof(.3, .62);
+        break;
+      case "bonus": // Olümpose fanfaar
+        [392, 523.3, 659.3, 784].forEach((f, i) => {
+          tone(f, .34, { type: "sawtooth", vol: .1, delay: i * .14, att: .02 });
+          tone(f, .34, { type: "triangle", vol: .12, delay: i * .14 });
+        });
+        pluck(1046.5, { vol: .18, delay: .58, dur: .6 });
+        woof(.26, .75);
+        chirp(2100, 3, .05, sfxBus, .9);
+        tone(65, .5, { type: "sine", slide: 48, vol: .26, delay: .3 });
+        break;
+      case "bigwin": // fanfaar + kellad
+        for (let i = 0; i < 5; i++)
+          burst({ freq: 300, ftype: "bandpass", q: 1.4, dur: .1, vol: .14, delay: i * .16 });
+        [523.3, 659.3, 784, 1046.5, 784, 1046.5, 1318.5, 1568].forEach((f, i) => {
+          pluck(f, { vol: .2, delay: i * .13, dur: .5 });
+          tone(f * 1.01, .5, { type: "sine", vol: .05, delay: i * .13 });
+        });
+        woof(.24, 1.1);
+        break;
+      case "maxwin":
+        for (let i = 0; i < 12; i++)
+          burst({ freq: 260 + i * 30, ftype: "bandpass", q: 1.4, dur: .12, vol: .16, delay: i * .12 });
+        [392, 523.3, 659.3, 784, 1046.5, 1318.5, 1568, 2093].forEach((f, i) => pluck(f, { vol: .22, delay: i * .16, dur: .6 }));
+        woof(.3, 1.4); woof(.3, 1.62);
+        break;
+      case "click":
+        tone(520, .06, { type: "sine", vol: .12 });
+        break;
+    }
+  }
+
+  function setMusic(on) {
+    musicOn = on; localStorage.setItem("dogs_music", on ? "1" : "0");
+    if (ensure()) {
+      if (on && !musicStarted) startMusic();
+      if (musicBus) musicBus.gain.linearRampToValueAtTime(on ? .3 : 0, ctx.currentTime + .3);
+    }
+  }
+  function setSfx(on) {
+    sfxOn = on; localStorage.setItem("dogs_sfx", on ? "1" : "0");
+    if (ctx && sfxBus) sfxBus.gain.value = on ? .75 : 0;
+  }
+  function setBonusMode(on) { bonusMode = on; }
+  function userStart() { if (ensure() && musicOn) startMusic(); }
+
+  return { playSfx, setMusic, setSfx, setBonusMode, userStart, get musicOn() { return musicOn; }, get sfxOn() { return sfxOn; } };
+})();
+addEventListener("pointerdown", () => AudioEngine.userStart(), { passive: true });
+
+/* ============================================================
+   React UI
+   ============================================================ */
+const e = React.createElement;
+const { useState, useEffect, useRef, useMemo } = React;
+const M = window.DogsMath;
+
+const BETS = [1, 2, 5, 10];
+const START_SALDO = 100;     // sessiooni algsaldo; tulemuse kordaja = tulemus / START_SALDO
+const CW = 100 / 6, CH = 100 / 5;
+const fmt = n => n.toFixed(2);
+const fmtX = n => (n >= 100 ? Math.round(n) : n >= 10 ? +n.toFixed(1) : +n.toFixed(2)) + "x";
+
+function lsNum(key, def) { const v = parseFloat(localStorage.getItem(key)); return isNaN(v) ? def : v; }
+
+// Kui algsaldo suurus on muutunud, alusta puhta sessiooniga
+if (localStorage.getItem("dogs_saldover") !== String(START_SALDO)) {
+  localStorage.setItem("dogs_saldover", String(START_SALDO));
+  localStorage.setItem("dogs_saldo", String(START_SALDO));
+  localStorage.setItem("dogs_result", "0");
+}
+
+let tileSeq = 1;
+
+/* ---------- Zeus Koer — kuldne retriiver pilvetroonil ---------- */
+function ZeusKoer({ mode }) {
+  return e("div", { className: "zeus" + (mode ? " " + mode : "") },
+    mode === "bark" || mode === "zap" ? e("div", { className: "zbubble" }, mode === "zap" ? "AUH-AUH! ⚡" : "AUH!") : null,
+    e("svg", { viewBox: "0 0 140 130", "aria-label": "Zeus Koer" },
+      // pilvetroon
+      e("ellipse", { cx: 70, cy: 117, rx: 54, ry: 13, fill: "#fff", opacity: .95 }),
+      e("ellipse", { cx: 27, cy: 111, rx: 20, ry: 9, fill: "#fff", opacity: .8 }),
+      e("ellipse", { cx: 112, cy: 111, rx: 22, ry: 10, fill: "#fff", opacity: .8 }),
+      // liputav saba
+      e("g", { className: "z-tail" },
+        e("path", { d: "M96 100 C114 96 122 80 116 64 C124 78 122 100 104 108 Z", fill: "#d99a2b" })),
+      // keha
+      e("path", { d: "M44 114 C38 82 52 66 70 66 C88 66 102 82 96 114 Z", fill: "#eab54e" }),
+      e("ellipse", { cx: 70, cy: 100, rx: 15, ry: 18, fill: "#f8dfa4" }),
+      // esikäpad
+      e("rect", { x: 56, y: 100, width: 11, height: 16, rx: 5.5, fill: "#e2a83c" }),
+      e("rect", { x: 73, y: 100, width: 11, height: 16, rx: 5.5, fill: "#e2a83c" }),
+      // pea
+      e("g", { className: "z-headg" },
+        e("path", { className: "z-earL", d: "M48 30 C40 38 40 54 48 60 C54 56 56 40 54 30 Z", fill: "#c98f2f" }),
+        e("path", { className: "z-earR", d: "M92 30 C100 38 100 54 92 60 C86 56 84 40 86 30 Z", fill: "#c98f2f" }),
+        e("circle", { cx: 70, cy: 46, r: 23, fill: "#f0bd58" }),
+        e("ellipse", { cx: 70, cy: 55, rx: 13, ry: 10, fill: "#fae7b4" }),
+        e("ellipse", { cx: 70, cy: 50.5, rx: 4.5, ry: 3.5, fill: "#5b4029" }),
+        // rõõmsad silmad
+        e("path", { d: "M57 41 q4 -5 8 0", stroke: "#5b4029", strokeWidth: 2.4, fill: "none", strokeLinecap: "round" }),
+        e("path", { d: "M75 41 q4 -5 8 0", stroke: "#5b4029", strokeWidth: 2.4, fill: "none", strokeLinecap: "round" }),
+        // naeratus + keel (haugub)
+        e("path", { d: "M63 57.5 Q70 63 77 57.5", stroke: "#5b4029", strokeWidth: 2, fill: "none", strokeLinecap: "round" }),
+        e("path", { className: "z-tongue", d: "M67 60 q3 8 7 1 q-2 6 -7 3 Z", fill: "#ff8fab" }),
+        // loorberipärg
+        [[-38, 52, 26], [-24, 56, 22], [-10, 59, 19], [4, 60, 19], [18, 58, 22], [32, 54, 26]].map(([ang, r, y], i) =>
+          e("ellipse", {
+            key: i, cx: 70 + Math.sin(ang * Math.PI / 180) * 24, cy: y - 30,
+            rx: 6, ry: 2.8, fill: i % 2 ? "#7cb342" : "#8fce53",
+            transform: "rotate(" + (ang * .8) + " " + (70 + Math.sin(ang * Math.PI / 180) * 24) + " " + (y - 30) + ")"
+          }))),
+      // kondivälk tõstetud käpas
+      e("g", { className: "z-boltg" },
+        e("circle", { cx: 40, cy: 84, r: 8, fill: "#eab54e" }),
+        e("g", { className: "z-bolt" },
+          e("rect", { x: 22, y: 70, width: 30, height: 8, rx: 4, fill: "#ffe9a8", stroke: "#f4a712", strokeWidth: 1.6, transform: "rotate(-32 37 74)" }),
+          e("circle", { cx: 25, cy: 82, r: 5.5, fill: "#ffe9a8", stroke: "#f4a712", strokeWidth: 1.6 }),
+          e("circle", { cx: 29, cy: 88, r: 5.5, fill: "#ffe9a8", stroke: "#f4a712", strokeWidth: 1.6 }),
+          e("circle", { cx: 45, cy: 60, r: 5.5, fill: "#ffe9a8", stroke: "#f4a712", strokeWidth: 1.6 }),
+          e("circle", { cx: 51, cy: 65, r: 5.5, fill: "#ffe9a8", stroke: "#f4a712", strokeWidth: 1.6 }),
+          e("polygon", { points: "40,58 32,72 38,72 30,88 44,70 38,70 46,58", fill: "#ffd93b", stroke: "#f4a712", strokeWidth: 1, opacity: .95 })))));
+}
+
+function App() {
+  // Sessioonimudel (nagu Zoolandis/KosmosBetis): mängid START_SALDO läbi —
+  // panused tulevad saldost, võidud kogunevad eraldi tulemuseks.
+  // Tulemus / START_SALDO = edetabeli kordaja.
+  const [saldo, setSaldo] = useState(() => lsNum("dogs_saldo", START_SALDO));
+  const [result, setResult] = useState(() => lsNum("dogs_result", 0));
+  const [betIdx, setBetIdx] = useState(() => Math.min(BETS.length - 1, Math.max(0, lsNum("dogs_betidx", 0) | 0)));
+  const [ante, setAnte] = useState(() => localStorage.getItem("dogs_ante") === "1");
+  const [lastWin, setLastWin] = useState(0);
+  const [winDisplay, setWinDisplay] = useState(0);
+  const [spinning, setSpinning] = useState(false);
+  const [turbo, setTurbo] = useState(() => localStorage.getItem("dogs_turbo") === "1");
+  const [musicOn, setMusicOnState] = useState(AudioEngine.musicOn);
+  const [sfxOn, setSfxOnState] = useState(AudioEngine.sfxOn);
+  const [tiles, setTiles] = useState([]);        // {id, sym, mult, col, row, y, phase, delay, hidden}
+  const [particles, setParticles] = useState([]);
+  const [flyers, setFlyers] = useState([]);      // maiusekordajate lendajad
+  const [holding, setHolding] = useState(false);
+  const [detonating, setDetonating] = useState(false);
+  const [zapFlash, setZapFlash] = useState(false);
+  const [shaking, setShaking] = useState(false);
+  const [zeusMode, setZeusMode] = useState(null); // null | "bark" | "zap"
+  const [fs, setFs] = useState(null);            // {remaining, win, mult}
+  const [overlay, setOverlay] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [boardOpen, setBoardOpen] = useState(false);
+  const [boardRows, setBoardRows] = useState(null);
+  const [boardErr, setBoardErr] = useState(null);
+  const [nameVal, setNameVal] = useState(() => localStorage.getItem("dogs_name") || "");
+
+  const rngRef = useRef(M.makeRng(M.randomSeed()));
+  const turboRef = useRef(turbo); turboRef.current = turbo;
+  const saldoRef = useRef(saldo); saldoRef.current = saldo;
+  const resultRef = useRef(result); resultRef.current = result;
+  const spinningRef = useRef(false);
+  const overlayResolve = useRef(null);
+  const winCounterRef = useRef(null);
+  const zeusTimerRef = useRef(null);
+  const nameValRef = useRef(nameVal); nameValRef.current = nameVal;
+
+  // Rahulik avavaade: juhuslik ruudustik enne esimest keerutust
+  useEffect(() => {
+    const g = M.generateGrid(rngRef.current, 0, false);
+    setTiles(buildTiles(g.grid, g.orbMult, true, []));
+    const t = setTimeout(() => setTiles(ts => ts.map(x => ({ ...x, y: x.row }))), 40);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => { localStorage.setItem("dogs_saldo", String(saldo)); }, [saldo]);
+  useEffect(() => { localStorage.setItem("dogs_result", String(result)); }, [result]);
+  useEffect(() => { localStorage.setItem("dogs_betidx", String(betIdx)); }, [betIdx]);
+  useEffect(() => { localStorage.setItem("dogs_ante", ante ? "1" : "0"); }, [ante]);
+  useEffect(() => { localStorage.setItem("dogs_turbo", turbo ? "1" : "0"); }, [turbo]);
+
+  const T = ms => Math.round(ms / (turboRef.current ? 3 : 1));
+  const HOLD = () => (turboRef.current ? 240 : 650);
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  /* ---------- abifunktsioonid ---------- */
+
+  function showToast(msg, dur) {
+    setToast(msg);
+    setTimeout(() => setToast(t => (t === msg ? null : t)), dur || 1800);
+  }
+
+  function zeus(mode, dur) {
+    clearTimeout(zeusTimerRef.current);
+    setZeusMode(mode);
+    zeusTimerRef.current = setTimeout(() => setZeusMode(null), dur || 1100);
+  }
+
+  function shake() {
+    setShaking(true);
+    setTimeout(() => setShaking(false), 520);
+  }
+
+  function waitOverlay(o) {
+    return new Promise(res => { overlayResolve.current = res; setOverlay(o); });
+  }
+  function resolveOverlay() {
+    setOverlay(null);
+    if (overlayResolve.current) { const r = overlayResolve.current; overlayResolve.current = null; r(); }
+  }
+  async function timedOverlay(o, ms) {
+    let done = false;
+    await Promise.race([
+      waitOverlay(o),
+      sleep(ms).then(() => { if (!done) resolveOverlay(); })
+    ]);
+    done = true;
+  }
+
+  function countUpWin(from, to, dur) {
+    clearInterval(winCounterRef.current);
+    const steps = Math.max(1, Math.round(dur / 40));
+    let i = 0;
+    winCounterRef.current = setInterval(() => {
+      i++;
+      setWinDisplay(from + (to - from) * (i / steps));
+      if (i >= steps) clearInterval(winCounterRef.current);
+    }, 40);
+  }
+
+  /* ---------- ruudustiku animatsioonid ---------- */
+
+  function buildTiles(grid, orbMult, dropIn, blessCells) {
+    const blessSet = new Set(blessCells || []);
+    const arr = [];
+    for (let c = 0; c < M.CELLS; c++) {
+      const row = (c / M.COLS) | 0, col = c % M.COLS;
+      arr.push({
+        id: tileSeq++, sym: grid[c], mult: orbMult ? orbMult[c] : 0, col, row,
+        y: dropIn ? row - 7 : row, phase: "idle",
+        delay: dropIn ? col * 45 : 0,
+        hidden: blessSet.has(c)
+      });
+    }
+    return arr;
+  }
+
+  async function animateDrop(grid, orbMult, blessCells) {
+    setTiles(buildTiles(grid, orbMult, true, blessCells));
+    await sleep(30);
+    setTiles(ts => ts.map(t => ({ ...t, y: t.row })));
+    for (let i = 0; i < 4; i++) setTimeout(() => AudioEngine.playSfx("tick"), T(110) * (i + 1));
+    await sleep(T(420) + M.COLS * 45 / (turboRef.current ? 3 : 1));
+  }
+
+  function spawnParticles(cells, color) {
+    const ps = [];
+    for (const c of cells) {
+      const row = (c / M.COLS) | 0, col = c % M.COLS;
+      for (let i = 0; i < 4; i++) {
+        const ang = Math.random() * Math.PI * 2, dist = 26 + Math.random() * 48;
+        ps.push({
+          id: tileSeq++, x: (col + .5) * CW, y: (row + .5) * CH,
+          dx: Math.cos(ang) * dist, dy: Math.sin(ang) * dist, color, kind: "dot"
+        });
+      }
+      for (let i = 0; i < 2; i++) {
+        const ang = -Math.PI / 2 + (Math.random() - .5) * 2;
+        ps.push({
+          id: tileSeq++, x: (col + .5) * CW, y: (row + .5) * CH,
+          dx: Math.cos(ang) * (20 + Math.random() * 40), dy: 30 + Math.random() * 40, kind: "emoji"
+        });
+      }
+    }
+    setParticles(p => [...p, ...ps]);
+    setTimeout(() => setParticles(p => p.filter(x => !ps.includes(x))), 850);
+  }
+
+  // Mängib ühe keerutuse tulemuse sammhaaval maha.
+  // onMult: kutsutakse kui püsikordaja uueneb (tasuta spinnid).
+  // Tagastab kuvatud võidusumma (winSoFar + selle keerutuse võit).
+  async function animateSpin(res, bet, winSoFar, onMult) {
+    await animateDrop(res.initialGrid, res.initialOrbs, res.blessCells);
+
+    // Zeus Koera õnnistus: bark + kondivälk + maiused sähvatavad kohale
+    if (res.blessCells.length) {
+      zeus("zap", 1300);
+      AudioEngine.playSfx("bark");
+      await sleep(T(350));
+      setZapFlash(true); shake();
+      AudioEngine.playSfx("zap");
+      const blessSet = new Set(res.blessCells);
+      setTiles(ts => ts.map(t => blessSet.has(t.row * M.COLS + t.col) ? { ...t, hidden: false, phase: "blessin" } : t));
+      await sleep(T(650));
+      setZapFlash(false);
+      setTiles(ts => ts.map(t => t.phase === "blessin" ? { ...t, phase: "idle" } : t));
+    }
+
+    if (res.scatterCount > 0) AudioEngine.playSfx("scatter");
+    if (res.initialOrbs.some(m => m > 0) && !res.blessCells.length) AudioEngine.playSfx("orbLand");
+
+    let acc = winSoFar || 0;
+    let tileGrid = null;
+    setTiles(ts => { tileGrid = ts.slice().sort((a, b) => (a.row * M.COLS + a.col) - (b.row * M.COLS + b.col)); return ts; });
+    await sleep(20);
+
+    let stepIdx = 0;
+    for (const step of res.steps) {
+      const winCells = new Set();
+      let maxLvl = 0;
+      for (const w of step.wins) {
+        w.cells.forEach(c => winCells.add(c));
+        maxLvl = Math.max(maxLvl, Math.floor(Math.log2(w.pay + 1)) + (w.count >= 12 ? 2 : 0));
+      }
+
+      // 1) hetkeline paus — las pilk jõuab kohale
+      await sleep(T(160));
+
+      // 2) võidusümbolite vedrupop + sära; teised tuhmuvad
+      setHolding(true);
+      setTiles(ts => ts.map(t => winCells.has(t.row * M.COLS + t.col) && t.phase === "idle" ? { ...t, phase: "win" } : t));
+      AudioEngine.playSfx("win", maxLvl + stepIdx); // kaskaadidega tõusev helin
+      countUpWin(acc, acc + step.stepWin, HOLD());
+      acc += step.stepWin;
+
+      // 3) hoia — mängija registreerib tabamuse
+      await sleep(HOLD());
+      setHolding(false);
+
+      // 4) purse: sümbolid popivad rõõmsa plõksuga
+      AudioEngine.playSfx("pop");
+      for (const w of step.wins) spawnParticles(w.cells, M.SYMBOLS[w.sym].color);
+      setTiles(ts => ts.map(t => winCells.has(t.row * M.COLS + t.col) ? { ...t, phase: "die" } : t));
+      await sleep(T(300));
+
+      // 5) tumble: ellujäänud kukuvad, uued tulevad ülevalt
+      const survivors = [];
+      const newTiles = [];
+      for (let col = 0; col < M.COLS; col++) {
+        let write = M.ROWS - 1;
+        for (let row = M.ROWS - 1; row >= 0; row--) {
+          const c = row * M.COLS + col;
+          if (!step.removed[c]) {
+            const t = tileGrid[c];
+            survivors.push({ ...t, row: write, y: write, phase: "idle", delay: 0 });
+            write--;
+          }
+        }
+        const removedCount = write + 1;
+        for (let row = removedCount - 1; row >= 0; row--) {
+          const c = row * M.COLS + col;
+          newTiles.push({
+            id: tileSeq++, sym: step.gridAfter[c], mult: step.orbAfter[c], col, row,
+            y: row - removedCount - 1, phase: "idle", delay: 0
+          });
+        }
+      }
+      const all = [...survivors, ...newTiles];
+      setTiles(all);
+      await sleep(30);
+      setTiles(ts => ts.map(t => ({ ...t, y: t.row })));
+      AudioEngine.playSfx("tick");
+      if (step.newOrbCells.length) setTimeout(() => AudioEngine.playSfx("orbLand"), T(220));
+      await sleep(T(400));
+
+      tileGrid = new Array(M.CELLS);
+      for (const t of all) tileGrid[t.row * M.COLS + t.col] = { ...t, y: t.row };
+      stepIdx++;
+    }
+
+    // Maiusekordajad: ahela lõpus Zeus haugub ja lööb kondivälguga
+    if (res.appliedMult > 0 && res.tumbleWin > 0) {
+      setDetonating(true);
+      zeus("zap", 1400);
+      AudioEngine.playSfx("zap");
+      shake();
+      if (onMult && res.newTotalMult > 0) onMult(res.newTotalMult);
+      const fls = res.orbCells.map(b => ({
+        id: tileSeq++, mult: "×" + b.mult,
+        x: (b.cell % M.COLS + .5) * CW, y: (((b.cell / M.COLS) | 0) + .5) * CH
+      }));
+      if (!fls.length) fls.push({ id: tileSeq++, mult: "×" + res.appliedMult, x: 50, y: 10 });
+      setFlyers(fls);
+      await sleep(60);
+      setFlyers(f => f.map(x => ({ ...x, x: 50, y: 118, fade: true })));
+      countUpWin(acc, acc - res.tumbleWin + res.tumbleWin * res.appliedMult, T(950));
+      acc = acc - res.tumbleWin + res.tumbleWin * res.appliedMult;
+      await sleep(T(1000));
+      setFlyers([]);
+      setDetonating(false);
+    }
+
+    // Scatteri otsemakse
+    if (res.scatterPay > 0) {
+      countUpWin(acc, acc + res.scatterPay, T(500));
+      acc += res.scatterPay;
+      await sleep(T(550));
+    }
+
+    // Ülempiir (5000x): kuva täpne lõppsumma
+    const capTotal = (winSoFar || 0) + res.win;
+    if (acc !== capTotal) { setWinDisplay(capTotal); acc = capTotal; }
+    return acc;
+  }
+
+  /* ---------- suured võidud & edetabel ---------- */
+
+  async function celebrate(win, bet, capped) {
+    const x = win / bet;
+    if (capped || x >= M.MAX_WIN_X) {
+      AudioEngine.playSfx("maxwin");
+      await timedOverlay({ kind: "bigwin", title: "MAX VÕIT!", cls: "rainbow", amt: win, ico: "👑", party: true }, 5000);
+    } else if (x >= 500) {
+      AudioEngine.playSfx("maxwin");
+      await timedOverlay({ kind: "bigwin", title: "DOGGO VÕIT!", cls: "rainbow", amt: win, ico: "🦮", party: true }, 3800);
+    } else if (x >= 100) {
+      AudioEngine.playSfx("bigwin");
+      await timedOverlay({ kind: "bigwin", title: "SUUR VÕIT!", cls: "", amt: win, ico: "🐕", party: true }, 3000);
+    } else if (x >= 20) {
+      AudioEngine.playSfx("bigwin");
+      await timedOverlay({ kind: "bigwin", title: "Kena võit!", cls: "", amt: win, ico: "🦴" }, 2400);
+    }
+  }
+
+  function withTimeout(p, ms) {
+    return Promise.race([
+      Promise.resolve(p),
+      new Promise((_, rej) => setTimeout(() => rej(new Error("Ajalõpp — server ei vasta")), ms))
+    ]);
+  }
+
+  async function submitScore(win, mult) {
+    const name = nameValRef.current.trim();
+    if (!name || !sb) return false;
+    localStorage.setItem("dogs_name", name);
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const { error } = await withTimeout(sb.from("dogs_leaderboard").insert({
+          name, win_amount: +win.toFixed(2), win_multiplier: +mult.toFixed(2)
+        }), 15000);
+        if (error) throw error;
+        return true;
+      } catch (err) { console.error("Edetabeli salvestus (katse " + attempt + "):", err); }
+    }
+    return false;
+  }
+
+  async function loadBoard(attempt) {
+    attempt = attempt || 1;
+    setBoardErr(null); setBoardRows(null);
+    try {
+      const { data, error } = await withTimeout(sb.from("dogs_leaderboard")
+        .select("name,win_amount,win_multiplier")
+        .order("win_multiplier", { ascending: false })
+        .limit(10), 15000);
+      if (error) throw new Error(error.message + (error.code ? " (" + error.code + ")" : ""));
+      setBoardRows(data || []);
+    } catch (err) {
+      if (attempt < 2) return loadBoard(attempt + 1);
+      setBoardErr(err.message);
+    }
+  }
+  useEffect(() => { if (boardOpen && sb) loadBoard(); }, [boardOpen]);
+
+  /* ---------- keerutus ---------- */
+
+  async function doSpin() {
+    if (spinningRef.current) return;
+    const bet = BETS[betIdx];
+    const cost = ante ? +(1.25 * bet).toFixed(2) : bet;
+    if (saldoRef.current < cost - 1e-9) {
+      if (saldoRef.current < BETS[0] - 1e-9) setOverlay({ kind: "gameover", amt: resultRef.current });
+      else showToast("Saldo ei kata panust — vähenda panust!");
+      return;
+    }
+
+    spinningRef.current = true; setSpinning(true);
+    setSaldo(s => +(s - cost).toFixed(2));
+    setLastWin(0); setWinDisplay(0);
+    AudioEngine.playSfx("spin");
+
+    const rng = rngRef.current;
+    const bet0 = bet;
+    const cap = M.MAX_WIN_X * bet0;
+    const spinRes = M.playSpin(rng, bet0, { ante, capRemaining: cap });
+
+    await animateSpin(spinRes, bet0, 0, null);
+    let roundWin = spinRes.win;
+
+    if (!spinRes.capped && spinRes.scatterCount >= 4) {
+      roundWin = await runBonus(spinRes.scatterCount, bet0, spinRes.win, rng);
+    } else {
+      setLastWin(spinRes.win); setWinDisplay(spinRes.win);
+      await celebrate(spinRes.win, bet0, spinRes.capped);
+    }
+
+    // Võit läheb tulemusse, mitte tagasi saldosse
+    const finalResult = +(resultRef.current + roundWin).toFixed(2);
+    if (roundWin > 0) setResult(finalResult);
+
+    spinningRef.current = false; setSpinning(false);
+    if (saldoRef.current < BETS[0] - 1e-9) {
+      await sleep(400);
+      setOverlay({ kind: "gameover", amt: finalResult });
+    }
+  }
+
+  async function runBonus(scatters, bet, baseWin, rng) {
+    AudioEngine.playSfx("bonus");
+    zeus("bark", 1500);
+    await waitOverlay({ kind: "bonusIntro", spins: M.FS_START, scatters });
+    AudioEngine.setBonusMode(true);
+
+    const cap = M.MAX_WIN_X * bet;
+    let remaining = M.FS_START, total = baseWin, fsWin = baseWin, capped = false;
+    let totalMult = 0;
+    setFs({ remaining, win: fsWin, mult: totalMult });
+
+    while (remaining > 0 && total < cap) {
+      remaining--;
+      setFs({ remaining, win: fsWin, mult: totalMult });
+      AudioEngine.playSfx("spin");
+      const r = M.playSpin(rng, bet, { freeSpin: true, totalMult, capRemaining: cap - total });
+      await animateSpin(r, bet, fsWin, m => {
+        totalMult = m;
+        setFs({ remaining, win: fsWin, mult: m });
+      });
+      totalMult = r.newTotalMult;
+      fsWin += r.win; total += r.win;
+      setFs({ remaining, win: fsWin, mult: totalMult });
+      setWinDisplay(fsWin);
+      if (r.capped) { capped = true; break; }
+      if (r.scatterCount >= 3) {
+        remaining += M.FS_RETRIGGER;
+        AudioEngine.playSfx("bonus");
+        zeus("bark", 1200);
+        showToast("🐾 +" + M.FS_RETRIGGER + " tasuta spinni!");
+        setFs({ remaining, win: fsWin, mult: totalMult });
+        await sleep(T(900));
+      }
+      await sleep(T(280));
+    }
+
+    AudioEngine.setBonusMode(false);
+    setFs(null);
+    setLastWin(total); setWinDisplay(total);
+    AudioEngine.playSfx("bigwin");
+    await waitOverlay({ kind: "bonusEnd", amt: total, capped, mult: totalMult });
+    await celebrate(total, bet, capped);
+    return total;
+  }
+
+  function newSession() {
+    AudioEngine.playSfx("click");
+    setSaldo(START_SALDO); setResult(0); setLastWin(0); setWinDisplay(0);
+    setOverlay(null);
+  }
+
+  /* ---------- render ---------- */
+
+  const bet = BETS[betIdx];
+  const dropSecs = turbo ? .13 : .38;
+
+  const cellBgs = [];
+  for (let c = 0; c < M.CELLS; c++) {
+    cellBgs.push(e("div", {
+      key: "bg" + c, className: "cellbg",
+      style: { left: (c % M.COLS) * CW + "%", top: ((c / M.COLS) | 0) * CH + "%" }
+    }));
+  }
+
+  const tileEls = tiles.map(t => {
+    const isOrb = t.sym === M.ORB;
+    const cls = "tile"
+      + (t.phase === "win" ? " win" : t.phase === "die" ? " die" : t.phase === "blessin" ? " blessin" : "")
+      + (t.sym === M.SCATTER ? " scat" : "")
+      + (isOrb ? " orb" + (detonating ? " deton" : "") : "")
+      + (t.hidden ? " hiddenb" : "");
+    return e("div", {
+      key: t.id, className: cls,
+      style: {
+        left: t.col * CW + "%", top: t.y * CH + "%",
+        transitionDuration: dropSecs + "s", transitionDelay: (t.delay || 0) + "ms"
+      }
+    },
+      isOrb ? e("div", { className: "orbdisc" }) : null,
+      isOrb ? e("span", { className: "oico" }, "✨") : M.SYMBOLS[t.sym].emoji,
+      isOrb ? e("span", { className: "oval" }, "×" + t.mult) : null);
+  });
+
+  const particleEls = particles.map(p => p.kind === "emoji"
+    ? e("div", {
+        key: p.id, className: "particle emojip",
+        style: { left: p.x + "%", top: p.y + "%", "--dx": p.dx + "px", "--dy": p.dy + "px" }
+      }, Math.random() < .5 ? "⭐" : "🦴")
+    : e("div", {
+        key: p.id, className: "particle",
+        style: { left: p.x + "%", top: p.y + "%", background: p.color, "--dx": p.dx + "px", "--dy": p.dy + "px", boxShadow: "0 0 6px " + p.color }
+      }));
+
+  const flyerEls = flyers.map(f => e("div", {
+    key: f.id, className: "flyer",
+    style: { left: f.x + "%", top: f.y + "%", opacity: f.fade ? 0 : 1 }
+  }, f.mult));
+
+  // Konfetisadu suurte võitude puhul
+  const confetti = useMemo(() => {
+    if (!overlay || overlay.kind !== "bigwin" && overlay.kind !== "bonusEnd") return null;
+    const glyphs = ["🎉", "⭐", "🦴", "🎾", "✨", "🐾"];
+    return Array.from({ length: 34 }, (_, i) => e("span", {
+      key: i, className: "conf",
+      style: {
+        left: Math.random() * 100 + "%",
+        animationDuration: (2.2 + Math.random() * 2.4) + "s",
+        animationDelay: Math.random() * 1.4 + "s",
+        fontSize: (12 + Math.random() * 14) + "px"
+      }
+    }, glyphs[(Math.random() * glyphs.length) | 0]));
+  }, [overlay]);
+
+  let ovl = null;
+  if (overlay) {
+    if (overlay.kind === "bonusIntro") {
+      ovl = e("div", { className: "ovl" },
+        e("div", { className: "bigico" }, "🐾"),
+        e("h2", { style: { color: "var(--goldDeep)" } }, "TASUTA SPINNID!"),
+        e("p", { style: { fontSize: 15 } }, overlay.scatters + " käpajälge = ", e("b", { style: { color: "var(--goldDeep)" } }, overlay.spins + " tasuta spinni")),
+        e("p", { style: { fontSize: 12, color: "var(--inkSoft)", lineHeight: 1.5, maxWidth: 320 } },
+          "Kuldsed maiused liituvad püsivasse kogukordajasse, mis rakendub igale võiduahelale! 3+ käpajälge annab +" + M.FS_RETRIGGER + " spinni juurde."),
+        e("button", { className: "olympbtn", onClick: () => { AudioEngine.playSfx("click"); resolveOverlay(); } }, "Alusta! 🐶"));
+    } else if (overlay.kind === "bonusEnd") {
+      ovl = e("div", { className: "ovl" },
+        confetti,
+        e("div", { className: "bigico party" }, overlay.capped ? "👑" : "🏆"),
+        e("h2", null, "Boonus läbi!"),
+        e("div", { className: "winAmt" }, fmt(overlay.amt)),
+        e("p", { style: { fontSize: 13, color: "var(--inkSoft)" } },
+          fmtX(overlay.amt / bet) + " panusest" + (overlay.mult > 0 ? " · kogukordaja ×" + overlay.mult : "")),
+        e("button", { className: "olympbtn", onClick: () => { AudioEngine.playSfx("click"); resolveOverlay(); } }, "Jätka"));
+    } else if (overlay.kind === "bigwin") {
+      ovl = e("div", { className: "ovl", onClick: resolveOverlay },
+        confetti,
+        e("div", { className: "bigico" + (overlay.party ? " party" : "") }, overlay.ico),
+        e("div", { className: "winTitle " + overlay.cls }, overlay.title),
+        e("div", { className: "winAmt" }, fmt(overlay.amt)));
+    } else if (overlay.kind === "gameover") {
+      const mult = overlay.amt / START_SALDO;
+      ovl = e("div", { className: "ovl" },
+        e("div", { className: "bigico" }, "🐕"),
+        e("h2", null, "Zeus Koer annab uue võimaluse!"),
+        e("p", { style: { fontSize: 13, color: "var(--inkSoft)" } }, START_SALDO + " saldot mängitud. Sinu tulemus:"),
+        e("div", { className: "winAmt" }, fmt(overlay.amt)),
+        e("p", { style: { fontSize: 13, color: "var(--inkSoft)" } },
+          overlay.amt > 0 ? fmtX(mult) + " · kirjuta nimi ja salvesta edetabelisse" : "Zeus Koer täidab su saldo uuesti — proovi veel!"),
+        overlay.amt > 0 && sb ? e("input", {
+          className: "name-input", maxLength: 20, placeholder: "Sinu nimi",
+          value: nameVal, onChange: ev => setNameVal(ev.target.value)
+        }) : null,
+        overlay.amt > 0 && sb ? e("button", {
+          className: "olympbtn mint",
+          onClick: () => {
+            AudioEngine.playSfx("click");
+            const amt = overlay.amt;
+            // Sulge kohe — salvestus käib taustal, tulemus tuleb toastina
+            newSession();
+            setBoardOpen(true);
+            submitScore(amt, amt / START_SALDO).then(ok => {
+              showToast(ok ? "🏆 Tulemus salvestatud!" : "Salvestamine ebaõnnestus — server ei vasta", ok ? 2200 : 3200);
+              if (ok) loadBoard();
+            });
+          }
+        }, "Salvesta ja uus mäng 🏆") : null,
+        e("button", { className: overlay.amt > 0 ? "olympbtn ghost" : "olympbtn", onClick: newSession },
+          overlay.amt > 0 ? "Uus mäng ilma salvestamata" : "Uus võimalus 🦴"));
+    }
+  }
+
+  const boardOvl = boardOpen ? e("div", { className: "ovl", onClick: ev => { if (ev.target === ev.currentTarget) setBoardOpen(false); } },
+    e("div", { className: "panel" },
+      e("h2", { style: { marginBottom: 14 } }, "🏆 Edetabel"),
+      boardErr ? e("div", null,
+        e("div", { className: "db-error" }, "Laadimine ebaõnnestus: " + boardErr),
+        e("div", { style: { textAlign: "center", marginTop: 10 } },
+          e("button", { className: "olympbtn ghost", onClick: () => loadBoard() }, "Proovi uuesti 🔄"))) :
+        boardRows == null ? e("div", { className: "board-empty" }, "Laen…") :
+          boardRows.length === 0 ? e("div", { className: "board-empty" }, "Ole esimene edetabelis! Mängi oma " + START_SALDO + " saldot läbi ja salvesta tulemus.") :
+            boardRows.map((r, i) => e("div", { className: "board-row", key: i },
+              e("span", { className: "board-rank" }, i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1) + "."),
+              e("span", { className: "board-name" }, r.name),
+              e("span", { className: "board-mult" }, fmtX(+r.win_multiplier)),
+              e("span", { className: "board-amt" }, fmt(+r.win_amount)))),
+      e("div", { style: { textAlign: "center", marginTop: 14 } },
+        e("button", { className: "olympbtn ghost", onClick: () => setBoardOpen(false) }, "Sulge")))) : null;
+
+  return e(React.Fragment, null,
+    e("div", { className: "wrap" },
+      e("div", { className: "topbar" },
+        e("a", { className: "back", href: "/" }, "← AVALEHT"),
+        e("div", { className: "iconbtns" },
+          e("button", { className: "icobtn", onClick: () => { AudioEngine.playSfx("click"); setBoardOpen(true); }, title: "Edetabel" }, "🏆"),
+          e("button", {
+            className: "icobtn" + (musicOn ? "" : " off"),
+            onClick: () => { const v = !musicOn; setMusicOnState(v); AudioEngine.setMusic(v); }, title: "Muusika"
+          }, "🎵"),
+          e("button", {
+            className: "icobtn" + (sfxOn ? "" : " off"),
+            onClick: () => { const v = !sfxOn; setSfxOnState(v); AudioEngine.setSfx(v); AudioEngine.playSfx("click"); }, title: "Heliefektid"
+          }, "🔊"),
+          e("button", {
+            className: "icobtn" + (turbo ? " turbo-on" : ""),
+            onClick: () => { AudioEngine.playSfx("click"); setTurbo(t => !t); }, title: "Turbo"
+          }, "⚡"))),
+
+      e("div", { className: "hero" },
+        e("div", { className: "hero-txt" },
+          e("h1", null, "Dogs of Olympics"),
+          fs
+            ? e("div", { className: "fsline" },
+                e("span", null, "🐾 ", e("b", null, fs.remaining)),
+                e("span", null, "Kordaja ", e("b", null, "×" + (fs.mult || 0))),
+                e("span", null, e("b", null, fmt(fs.win || 0))))
+            : e("div", { className: "sub" }, "olümpose koerte slott")),
+        e(ZeusKoer, { mode: zeusMode })),
+
+      e("div", { className: "board-outer" + (shaking ? " shake" : "") },
+        e("div", { className: "board" + (turbo ? " turbo" : "") + (holding ? " hold" : "") + (zapFlash ? " zapflash" : "") },
+          cellBgs, tileEls, particleEls),
+        flyerEls),
+
+      e("div", { className: "statrow" },
+        e("div", { className: "stat" },
+          e("div", { className: "lbl" }, "Saldo"),
+          e("div", { className: "val" }, fmt(saldo))),
+        e("div", { className: "stat" },
+          e("div", { className: "lbl" }, "Panus"),
+          e("div", { className: "val", style: { color: "var(--inkSoft)" } }, fmt(ante ? +(bet * 1.25).toFixed(2) : bet))),
+        e("div", { className: "stat" },
+          e("div", { className: "lbl" }, "Võit"),
+          e("div", { className: "val winval" }, fmt(winDisplay))),
+        e("div", { className: "stat" },
+          e("div", { className: "lbl" }, "Tulemus"),
+          e("div", { className: "val", style: { color: "#2a9d8f" } }, fmt(result)))),
+
+      e("div", { className: "controls" },
+        e("div", { className: "betbox" },
+          e("button", {
+            className: "stepbtn", disabled: spinning || betIdx === 0,
+            onClick: () => { AudioEngine.playSfx("click"); setBetIdx(i => Math.max(0, i - 1)); }
+          }, "−"),
+          e("div", { className: "betval" }, bet),
+          e("button", {
+            className: "stepbtn", disabled: spinning || betIdx === BETS.length - 1,
+            onClick: () => { AudioEngine.playSfx("click"); setBetIdx(i => Math.min(BETS.length - 1, i + 1)); }
+          }, "+")),
+        e("button", { className: "spinbtn", disabled: spinning, onClick: doSpin },
+          spinning ? "..." : "KEERUTA 🦴")),
+
+      e("div", { className: "subrow" },
+        e("button", {
+          className: "antebtn" + (ante ? " on" : ""), disabled: spinning,
+          onClick: () => { AudioEngine.playSfx("click"); setAnte(a => !a); },
+          title: "Panus maksab 1.25x, tasuta spinnide tõenäosus kahekordistub"
+        }, "🐾 Zeusi soosing — 2x boonusešanss" + (ante ? " ✓" : ""))),
+
+      e("p", { className: "capnote" },
+        "Mängid " + START_SALDO + " saldot läbi — panused tulevad saldost, võidud kogunevad tulemuseks ja tulemus läheb edetabelisse. ",
+        "Mänguraha, päris raha siin ei liigu. 8+ sama sümbolit ükskõik kus võidab. Max võit " + M.MAX_WIN_X + "x panus.")),
+
+    toast ? e("div", { className: "toast" }, toast) : null,
+    ovl, boardOvl);
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(e(App));
+</script>
+</body>
+</html>
