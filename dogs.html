@@ -1061,21 +1061,73 @@ function App() {
     ]);
   }
 
+  /* Salvestusjärjekord: tulemus läheb kõigepealt localStorage'i ja
+     saadetakse serverisse taustal seni, kuni õnnestub — Supabase'i
+     ajutine tõrge (nt 521 / ajalõpp) ei kaota enam ühtegi tulemust.
+     Iga real on kliendi-uuid, nii et kordussaatmine ei tekita duplikaate. */
+  function genId() {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      return (c === "x" ? r : (r & 3 | 8)).toString(16);
+    });
+  }
+  function loadQueue() {
+    try { return JSON.parse(localStorage.getItem("dogs_pending") || "[]"); }
+    catch (e) { return []; }
+  }
+  function saveQueue(q) { localStorage.setItem("dogs_pending", JSON.stringify(q)); }
+
+  const flushingRef = useRef(false);
+  async function flushPending() {
+    if (flushingRef.current || !sb) return false;
+    flushingRef.current = true;
+    try {
+      let q = loadQueue();
+      for (const row of q.slice()) {
+        try {
+          const { error } = await withTimeout(sb.from("dogs_leaderboard").insert({
+            id: row.id, name: row.name, win_amount: row.win_amount, win_multiplier: row.win_multiplier
+          }), 10000);
+          // 23505 = rida on juba olemas (eelmine katse jõudis pärale) — loeb õnnestunuks
+          if (error && error.code !== "23505") throw error;
+          q = q.filter(r => r.id !== row.id);
+          saveQueue(q);
+        } catch (err) { console.error("Edetabeli salvestus:", err); }
+      }
+      return loadQueue().length === 0;
+    } finally { flushingRef.current = false; }
+  }
+
   async function submitScore(win, mult) {
     const name = nameValRef.current.trim();
     if (!name || !sb) return false;
     localStorage.setItem("dogs_name", name);
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      try {
-        const { error } = await withTimeout(sb.from("dogs_leaderboard").insert({
-          name, win_amount: +win.toFixed(2), win_multiplier: +mult.toFixed(2)
-        }), 15000);
-        if (error) throw error;
-        return true;
-      } catch (err) { console.error("Edetabeli salvestus (katse " + attempt + "):", err); }
+    const q = loadQueue();
+    q.push({ id: genId(), name, win_amount: +win.toFixed(2), win_multiplier: +mult.toFixed(2) });
+    saveQueue(q);
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (await flushPending()) return true;
+      await sleep(2500 * (attempt + 1));
     }
     return false;
   }
+
+  // Saatmata tulemused lähevad teele niipea, kui server jälle vastab:
+  // proovi lehe avamisel, võrgu taastumisel ja iga 30 s tagant.
+  useEffect(() => {
+    if (!sb) return;
+    function retryPending() {
+      if (!loadQueue().length) return;
+      flushPending().then(ok => {
+        if (ok) { showToast("🏆 Tulemus salvestatud!"); loadBoard(); }
+      });
+    }
+    retryPending();
+    const iv = setInterval(retryPending, 30000);
+    addEventListener("online", retryPending);
+    return () => { clearInterval(iv); removeEventListener("online", retryPending); };
+  }, []);
 
   // Ei nulli varasemaid ridu — vahemälus tabel jääb nähtavale, kuni värske saabub
   async function loadBoard(attempt) {
@@ -1300,7 +1352,7 @@ function App() {
             newSession();
             setBoardOpen(true);
             submitScore(amt, amt / START_SALDO).then(ok => {
-              showToast(ok ? "🏆 Tulemus salvestatud!" : "Salvestamine ebaõnnestus — server ei vasta", ok ? 2200 : 3200);
+              showToast(ok ? "🏆 Tulemus salvestatud!" : "⏳ Server aeglane — salvestan taustal, tulemus ei kao", ok ? 2200 : 3600);
               if (ok) loadBoard();
             });
           }
