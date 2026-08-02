@@ -1,12 +1,13 @@
-# Hoiab tasuta Supabase projekti ärkvel: free tier paneb projekti ~7 päeva
-# jõudeoleku järel pausile, mis lülitab kõigi mängude edetabelid välja.
-# See workflow "puudutab" REST API-t iga 3 päeva tagant, nii et projekt
-# püsib aktiivne kuude kaupa (100+ päeva) ilma käsitsi äratamiseta.
+# Hoiab tasuta Supabase projekti ärkvel ja REST API "sooja":
+# free tier paneb projekti ~7 päeva jõudeoleku järel pausile ning
+# pikema vaikuse järel vastab REST vahel 521-ga (origin down), mis
+# paistis mängudes "server ei vasta" ajalõppudena. Ping iga 4 tunni
+# tagant hoiab mõlemad mured eemal.
 name: Supabase keep-alive
 
 on:
   schedule:
-    - cron: "17 6 */3 * *"
+    - cron: "17 */4 * * *"
   workflow_dispatch:
 
 jobs:
@@ -22,6 +23,14 @@ jobs:
             -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
           echo "HTTP $code"
           cat /tmp/resp.json || true
+          if [ "$code" != "200" ]; then
+            # Üks kordus — esimene päring võib külma serveri puhul luhtuda
+            sleep 20
+            code=$(curl -sS -m 30 -o /tmp/resp.json -w "%{http_code}" \
+              "https://thrsacygpqwbnkcppmpk.supabase.co/rest/v1/kosmos_leaderboard?select=id&limit=1" \
+              -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
+            echo "HTTP $code (kordus)"
+          fi
           if [ "$code" != "200" ]; then
             echo "::error::Supabase ei vastanud 200-ga — projekt võib olla pausil. Ärata see dashboardist: https://supabase.com/dashboard/project/thrsacygpqwbnkcppmpk"
             exit 1
