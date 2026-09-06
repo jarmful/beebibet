@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>The World — beebibet</title>
+<meta name="description" content="The World — FM-lite political simulation. Play as Shehbaz Sharif and try to keep power in Pakistan." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://beebibet.ee/theworld" />
+<meta property="og:title" content="The World — beebibet" />
+<meta property="og:description" content="FM-lite political simulation. Pakistan. One inbox. Keep power." />
+<meta property="og:image" content="https://beebibet.ee/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:#0c1118; --panel:#151c27; --panel2:#1c2636; --line:#2a3548;
+    --ink:#e8eef8; --muted:#8b9bb3; --accent:#3d8bfd; --good:#3ecf8e;
+    --warn:#f0b429; --bad:#f07178; --hot:#ff6b4a;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body { min-height:100%; }
+  body {
+    font-family:'Nunito',sans-serif; color:var(--ink); background:var(--bg);
+    -webkit-font-smoothing:antialiased; min-height:100vh; min-height:100dvh;
+  }
+  h1,h2,h3 { font-family:'Fraunces',serif; font-weight:600; }
+  .wrap { max-width:480px; margin:0 auto; padding:calc(12px + env(safe-area-inset-top)) 14px calc(28px + env(safe-area-inset-bottom)); }
+  .back { display:inline-block; font-size:12px; font-weight:700; color:var(--muted); text-decoration:none; letter-spacing:.5px; margin-bottom:10px; }
+  .back:hover { color:var(--ink); }
+  .screen { display:none; }
+  .screen.active { display:block; }
+  .panel {
+    background:var(--panel); border:1px solid var(--line); border-radius:18px;
+    padding:18px 16px; box-shadow:0 12px 40px rgba(0,0,0,.35);
+  }
+  .btn {
+    display:block; width:100%; padding:13px 16px; border-radius:12px; border:1px solid var(--line);
+    background:var(--panel2); color:var(--ink); font-family:'Nunito',sans-serif;
+    font-size:14px; font-weight:700; cursor:pointer; text-align:left; line-height:1.35;
+    transition:transform .12s, border-color .12s, background .12s;
+  }
+  .btn:active { transform:scale(.98); }
+  .btn:hover { border-color:var(--accent); }
+  .btn-primary {
+    background:linear-gradient(160deg,#2a6adf,#1a4fb8); border-color:#3d8bfd;
+    text-align:center; font-weight:800; letter-spacing:.2px;
+  }
+  .btn-ghost { background:transparent; text-align:center; color:var(--muted); }
+  .btn-danger { border-color:#6b2a32; color:#ffb4b8; }
+  .gate-title { font-size:34px; letter-spacing:-.5px; margin-bottom:4px; }
+  .gate-sub { color:var(--muted); font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:22px; }
+  .gate-emoji { font-size:48px; margin-bottom:10px; }
+  .pw {
+    width:100%; padding:14px 16px; border-radius:12px; border:1px solid var(--line);
+    background:#0a0f16; color:var(--ink); font-family:'Nunito',sans-serif; font-size:16px; font-weight:700;
+    margin-bottom:12px; text-align:center; letter-spacing:1px;
+  }
+  .pw:focus { outline:none; border-color:var(--accent); }
+  .err { color:var(--bad); font-size:13px; font-weight:700; text-align:center; min-height:18px; margin-bottom:8px; }
+  .muted { color:var(--muted); font-size:13px; line-height:1.5; }
+  .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:12px; }
+  .who { font-size:15px; font-weight:800; }
+  .who small { display:block; color:var(--muted); font-weight:700; font-size:11px; letter-spacing:.8px; text-transform:uppercase; margin-top:2px; }
+  .week-pill {
+    flex-shrink:0; background:var(--panel2); border:1px solid var(--line); border-radius:999px;
+    padding:6px 12px; font-size:12px; font-weight:800; color:var(--accent);
+  }
+  .pressures {
+    display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;
+  }
+  .p-card {
+    background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:10px 11px;
+  }
+  .p-name { font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:3px; }
+  .p-label { font-size:13px; font-weight:800; line-height:1.25; }
+  .p-label.cool { color:var(--good); }
+  .p-label.ok { color:#9ec5ff; }
+  .p-label.hot { color:var(--warn); }
+  .p-label.boil { color:var(--hot); }
+  .p-label.crit { color:var(--bad); }
+  .relations {
+    display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;
+  }
+  .rel {
+    font-size:11px; font-weight:800; padding:5px 9px; border-radius:999px;
+    background:#0a0f16; border:1px solid var(--line); color:var(--muted);
+  }
+  .ticker {
+    background:#0a0f16; border:1px solid var(--line); border-radius:12px;
+    padding:10px 12px; margin-bottom:14px; overflow:hidden;
+  }
+  .ticker-label { font-size:10px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent); margin-bottom:4px; }
+  .ticker-text { font-size:13px; font-weight:700; color:var(--ink); line-height:1.4; }
+  .inbox-head { font-size:12px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .brief {
+    background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:14px; margin-bottom:12px; font-size:14px; font-weight:700; line-height:1.45;
+  }
+  .opts { display:flex; flex-direction:column; gap:8px; }
+  .opts .btn { font-size:13.5px; }
+  .menu-row { display:flex; gap:8px; margin-top:14px; }
+  .menu-row .btn { flex:1; text-align:center; padding:10px; font-size:12px; }
+  .result-title { font-size:22px; margin-bottom:8px; }
+  .drift {
+    display:flex; flex-wrap:wrap; gap:6px; margin:12px 0;
+  }
+  .chip {
+    font-size:12px; font-weight:800; padding:6px 10px; border-radius:999px;
+    background:var(--panel2); border:1px solid var(--line);
+  }
+  .chip.up { border-color:#3a6b4a; color:var(--good); }
+  .chip.down { border-color:#6b3a3a; color:#ffb4b8; }
+  .chip.flat { color:var(--muted); }
+  .teach {
+    font-size:13px; color:var(--muted); font-style:italic; line-height:1.45;
+    border-left:3px solid var(--accent); padding-left:12px; margin:10px 0 16px;
+  }
+  .epi-title { font-size:26px; margin:8px 0 10px; }
+  .epi-body { font-size:14px; line-height:1.55; color:#c5d0e0; margin-bottom:18px; }
+  .stats { font-size:12px; color:var(--muted); margin-bottom:16px; font-weight:700; }
+  .hub-playful {
+    text-align:center; padding:8px 0 4px;
+  }
+  .hub-playful .gate-emoji { filter:drop-shadow(0 8px 20px rgba(61,139,253,.35)); }
+  @keyframes fadein { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+  .pop { animation:fadein .25s ease both; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/">← beebibet</a>
+
+  <!-- PASSWORD -->
+  <div class="screen active" id="screenGate">
+    <div class="panel pop hub-playful">
+      <div class="gate-emoji">🌍</div>
+      <h1 class="gate-title">The World</h1>
+      <p class="gate-sub">FM-lite · keep power</p>
+      <p class="muted" style="margin-bottom:16px">One country. One inbox. Weekly until you lose.</p>
+      <input class="pw" id="pwInput" type="password" placeholder="country password" autocomplete="off" maxlength="32" />
+      <div class="err" id="pwErr"></div>
+      <button class="btn btn-primary" id="pwBtn">Enter</button>
+    </div>
+  </div>
+
+  <!-- MENU -->
+  <div class="screen" id="screenMenu">
+    <div class="panel pop hub-playful">
+      <div class="gate-emoji">🇵🇰</div>
+      <h1 class="gate-title" style="font-size:28px">Pakistan</h1>
+      <p class="muted" style="margin-bottom:6px">Play as <strong style="color:var(--ink)">Shehbaz Sharif</strong></p>
+      <p class="muted" style="margin-bottom:18px">Sitting PM. IMF in town. Street hot. The file never sleeps.</p>
+      <button class="btn btn-primary" id="continueBtn" style="margin-bottom:8px;display:none">Continue</button>
+      <button class="btn btn-primary" id="newGameBtn">New Game</button>
+      <button class="btn btn-ghost" id="lockBtn" style="margin-top:8px">Lock / change country</button>
+    </div>
+  </div>
+
+  <!-- PLAY -->
+  <div class="screen" id="screenPlay">
+    <div class="topbar">
+      <div class="who">Shehbaz Sharif · PM<small>Pakistan</small></div>
+      <div class="week-pill" id="weekPill">Week 1</div>
+    </div>
+    <div class="pressures" id="pressures"></div>
+    <div class="relations" id="relations"></div>
+    <div class="ticker">
+      <div class="ticker-label">News ticker</div>
+      <div class="ticker-text" id="tickerText"></div>
+    </div>
+    <div class="inbox-head">Inbox</div>
+    <div class="brief" id="brief"></div>
+    <div class="opts" id="opts"></div>
+    <div class="menu-row">
+      <button class="btn btn-ghost" id="saveQuitBtn">Save & quit</button>
+      <button class="btn btn-ghost btn-danger" id="abandonBtn">New Game</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="screenResult">
+    <div class="panel pop">
+      <div class="inbox-head">Decision</div>
+      <h2 class="result-title" id="resultTitle"></h2>
+      <p class="muted" id="resultBody" style="margin-bottom:4px"></p>
+      <div class="drift" id="resultDrift"></div>
+      <div class="teach" id="resultTeach"></div>
+      <button class="btn btn-primary" id="nextWeekBtn">Next week →</button>
+    </div>
+  </div>
+
+  <!-- EPILOGUE -->
+  <div class="screen" id="screenEnd">
+    <div class="panel pop">
+      <div class="inbox-head" id="endTag">Exit</div>
+      <h2 class="epi-title" id="endTitle"></h2>
+      <p class="epi-body" id="endBody"></p>
+      <div class="stats" id="endStats"></div>
+      <button class="btn btn-primary" id="endNewBtn">New Game</button>
+      <button class="btn btn-ghost" id="endMenuBtn" style="margin-top:8px">Back to menu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+const SAVE_KEY = 'theworld_v1';
+const UNLOCK_KEY = 'theworld_unlock_v1';
+const CRITICAL = 85;
+const PASSWORD = 'pakistan';
+
+const LABEL = {
+  establishment: [
+    [0,'quiet'],[20,'watchful'],[40,'tense'],[55,'leaning in'],[70,'alarmed'],[85,'the call']
+  ],
+  street: [
+    [0,'calm'],[20,'restless'],[40,'hot'],[55,'boiling'],[70,'on fire'],[85,'uncontrollable']
+  ],
+  coalition: [
+    [0,'solid'],[20,'ok'],[40,'fraying'],[55,'haggling'],[70,'cracking'],[85,'gone']
+  ],
+  economy: [
+    [0,'breathing'],[20,'tight'],[35,'on an IMF leash'],[50,'strained'],[65,'bleeding'],[85,'rupee free-fall']
+  ]
+};
+
+function pressureLabel(key, v){
+  const rows = LABEL[key];
+  let name = rows[0][1];
+  for (const [t,n] of rows) if (v >= t) name = n;
+  let cls = 'cool';
+  if (v >= 85) cls = 'crit';
+  else if (v >= 70) cls = 'boil';
+  else if (v >= 45) cls = 'hot';
+  else if (v >= 25) cls = 'ok';
+  return { name, cls };
+}
+
+function driftPhrase(key, delta){
+  const map = {
+    establishment: { neg:'Establishment cooler', pos:'Establishment colder', zero:'Establishment steady' },
+    street: { neg:'Street cooler', pos:'Street hotter', zero:'Street steady' },
+    coalition: { neg:'Coalition happier', pos:'Coalition sour', zero:'Coalition steady' },
+    economy: { neg:'Economy calmer', pos:'Economy worse', zero:'Economy steady' }
+  };
+  // Special sample phrases for economy/establishment when annoyed
+  if (key === 'economy' && delta > 0) return 'Economy IMF annoyed';
+  if (key === 'establishment' && delta > 0 && delta < 8) return 'Establishment unimpressed';
+  if (key === 'establishment' && delta >= 8) return 'Establishment furious';
+  if (key === 'street' && delta < 0) return 'Street cooler';
+  if (key === 'street' && delta > 0) return 'Street hotter';
+  if (key === 'coalition' && delta > 0) return 'Coalition sour';
+  if (key === 'coalition' && delta < 0) return 'Coalition steadier';
+  if (key === 'economy' && delta < 0) return 'Economy breathing';
+  const m = map[key];
+  if (delta > 0) return m.pos;
+  if (delta < 0) return m.neg;
+  return m.zero;
+}
+
+const REL_START = [
+  { id:'india', label:'India ✕' },
+  { id:'china', label:'China ✓' },
+  { id:'afg', label:'Afghanistan ~' },
+  { id:'saudi', label:'Saudi $' },
+  { id:'us', label:'US ~' }
+];
+
+const TICKER_POOL = [
+  'IMF in town · PTI rally weekend · Rupee soft',
+  'CPEC review · Karachi heatwave · Cabinet leak',
+  'Wheat stocks thin · DG ISPR silent · Remittances dip',
+  'Lahore lockdown rumor · Saudi envoy lunch · Dollar open',
+  'Flood rehab audit · Opposition walkout · Power cuts',
+  'FBR raids · Border skirmish chatter · Gold up',
+  'Supreme Court calendar · LNG tanker delayed · Twitter storm',
+  'Punjab by-poll nerves · China bank note · Petrol queue',
+  'Balochistan curfew · Gulf visas slow · Bond yield spike',
+  'Army corps commanders meet · Subsidy bill · Hashtag trending'
+];
+
+/* 12 unique weeks */
+const WEEKS = [
+  {
+    id:'w1_imf',
+    tickers:['IMF in town · PTI rally weekend · Rupee soft','Fund staff in Islamabad · Rupee soft · Generals watch'],
+    brief:'IMF wants energy subsidies cut. Allies fear riots.',
+    options:[
+      { t:'Cut hard', d:{street:14,economy:-12,establishment:-4,coalition:6},
+        title:'Hard cut', body:'Subsidies slash overnight. Markets clap. Streets swear.', teach:'Pain now buys the Fund. The street invoices later.' },
+      { t:'Cut half + cash aid', d:{street:6,economy:-6,establishment:-2,coalition:2},
+        title:'Half cut', body:'A compromise. IMF shrugs. Crowds still gather.', teach:'Half-measures please nobody — but they keep the lights on.' },
+      { t:'Delay a month', d:{street:-8,economy:8,establishment:6},
+        title:'Delay', body:'You buy quiet. The Fund marks the calendar in red.', teach:'In Pakistan, delay buys peace today and a bill tomorrow.' },
+      { t:'Call Saudi for money', d:{economy:-5,establishment:2,street:-2,coalition:-1},
+        title:'Gulf dial', body:'Riyadh listens. A deposit may come — with strings you pretend not to see.', teach:'Saudi money is never free. It just invoices quietly.' },
+      { t:'Let the army handle the street', d:{street:-10,establishment:10,coalition:4,economy:2},
+        title:'Outsourced order', body:'Barricades rise. You keep the chair — and lose a piece of it.', teach:'When the street is handled for you, so is the next decision.' }
+    ]
+  },
+  {
+    id:'w2_pti',
+    tickers:['PTI long march talk · Courts packed · Rupee soft','Imran video drops · Police overtime · Hashtag war'],
+    brief:'PTI plans a long march on Islamabad. Police want a free hand.',
+    options:[
+      { t:'Ban the march', d:{street:12,establishment:-4,coalition:2,economy:1},
+        title:'Banned', body:'Order on paper. Fury on the ring road.', teach:'Bans convert rallies into myths.' },
+      { t:'Negotiate a route', d:{street:-4,establishment:3,coalition:-2,economy:0},
+        title:'Managed protest', body:'They march. You survive the photos.', teach:'Managed chaos is still chaos — just on a schedule.' },
+      { t:'Offer early polls rumor', d:{coalition:10,street:-6,establishment:5,economy:2},
+        title:'Poll bait', body:'Allies panic. The street cools for a week.', teach:'Election talk is a weapon. Aim carefully.' },
+      { t:'Arrest mid-tier organizers', d:{street:8,establishment:-6,coalition:1,economy:0},
+        title:'Selective pressure', body:'Some vans fill. Headlines write themselves.', teach:'Mid-tier arrests rarely stop a movement. They feed it.' },
+      { t:'Ignore and govern', d:{street:5,establishment:4,coalition:-3,economy:-2},
+        title:'Look busy', body:'Cabinet photos. The march still comes.', teach:'Silence is a decision. The street hears it.' }
+    ]
+  },
+  {
+    id:'w3_flood',
+    tickers:['Monsoon damage map · UN flash appeal · Diesel short','Sindh camps overflow · Donors ask questions · Generals tour'],
+    brief:'Flood camps overflow. Donors want a transparent rehab board.',
+    options:[
+      { t:'Independent board', d:{establishment:6,street:-8,coalition:4,economy:-3},
+        title:'Transparent board', body:'Donors smile. The old networks do not.', teach:'Transparency spends political capital you thought was free.' },
+      { t:'Army-led relief', d:{establishment:-8,street:-6,coalition:2,economy:1},
+        title:'Uniform logistics', body:'Tents go up fast. Credit goes elsewhere.', teach:'Competence has a logo. Sometimes it is not yours.' },
+      { t:'Provincial cash dump', d:{street:-5,economy:7,coalition:-4,establishment:2},
+        title:'Cash drop', body:'Queues shorten. The deficit does not.', teach:'Cash calms cameras. Ledgers remember.' },
+      { t:'Blame climate only', d:{street:6,establishment:1,coalition:3,economy:0},
+        title:'Speech', body:'A good speech. Wet shoes still wet.', teach:'Climate is real. So is governance.' },
+      { t:'Tax flood surcharge', d:{economy:-4,street:9,coalition:5,establishment:0},
+        title:'Surcharge', body:'Revenue line moves. Tempers do too.', teach:'New taxes in a disaster need a story — or a riot plan.' }
+    ]
+  },
+  {
+    id:'w4_corps',
+    tickers:['Corps commanders photo · Defense budget whisper · Media careful','Rawalpindi lunch canceled · File on appointments · Dollar flat'],
+    brief:'The establishment wants say on key civilian appointments.',
+    options:[
+      { t:'Accept the list', d:{establishment:-12,coalition:6,street:2,economy:0},
+        title:'Accepted', body:'Names clear. Your cabinet looks less like yours.', teach:'Shared appointments are how power is rented.' },
+      { t:'Negotiate half', d:{establishment:-4,coalition:2,street:1,economy:0},
+        title:'Split list', body:'A deal. Nobody loves it. Everyone signs.', teach:'Half a veto is still a veto.' },
+      { t:'Publicly refuse', d:{establishment:14,street:-5,coalition:-3,economy:2},
+        title:'Public no', body:'Headline bravery. Corridor consequences.', teach:'Public defiance is priced in advance.' },
+      { t:'Delay quietly', d:{establishment:7,coalition:1,street:0,economy:1},
+        title:'Quiet delay', body:'Files move slowly. Patience is not infinite.', teach:'Delay with uniforms is a shorter fuse.' },
+      { t:'Offer budget sweetener', d:{establishment:-6,economy:6,coalition:2,street:1},
+        title:'Budget nod', body:'Money talks. Appointments still linger.', teach:'Buying time with budgets spends tomorrow\'s room.' }
+    ]
+  },
+  {
+    id:'w5_coalition',
+    tickers:['Ally presser · Ministry horse-trade · Tea at the house','Junior partner leak · No-confidence math · Gallup dip'],
+    brief:'A coalition partner wants two ministries — or walks.',
+    options:[
+      { t:'Give both ministries', d:{coalition:-12,establishment:3,street:1,economy:2},
+        title:'Paid in portfolios', body:'They stay. Your agenda shrinks.', teach:'Coalitions eat ministries for breakfast.' },
+      { t:'Give one + cash project', d:{coalition:-6,economy:5,street:-1,establishment:1},
+        title:'Mixed deal', body:'One seal, one check. Peace for a fortnight.', teach:'Projects are ministries with worse optics.' },
+      { t:'Call their bluff', d:{coalition:12,establishment:2,street:2,economy:0},
+        title:'Bluff called', body:'They might stay. They might not. Math time.', teach:'Bluffs work until the vote count is real.' },
+      { t:'Bring a smaller party in', d:{coalition:-4,establishment:4,street:2,economy:1},
+        title:'New arithmetic', body:'A new face at the table. Old ones notice.', teach:'Replacement partners arrive expensive.' },
+      { t:'Promise elections timeline', d:{coalition:8,street:-4,establishment:5,economy:1},
+        title:'Timeline dangling', body:'Everyone hears a date. Nobody trusts it.', teach:'Dates without a calendar are just theater.' }
+    ]
+  },
+  {
+    id:'w6_cpec',
+    tickers:['Beijing note verbale · Power plant idle · Debt clock','CPEC review week · Yuan talk · Port photo-op'],
+    brief:'China wants overdue CPEC power dues cleared — now.',
+    options:[
+      { t:'Pay from reserves', d:{economy:10,establishment:-3,street:2,coalition:1},
+        title:'Paid', body:'Beijing nods. Reserves wince.', teach:'Paying friends with thin reserves is still paying.' },
+      { t:'Restructure ask', d:{economy:4,establishment:2,street:0,coalition:0},
+        title:'Restructure', body:'Talks open. Clocks still tick.', teach:'Restructuring is delay with better stationery.' },
+      { t:'Offer new project instead', d:{economy:3,establishment:1,street:1,coalition:2},
+        title:'New ribbon', body:'Another MoU. Old invoices remain.', teach:'New projects do not erase old dues.' },
+      { t:'Ask Saudi to bridge', d:{economy:-2,establishment:2,street:0,coalition:1},
+        title:'Triangle finance', body:'Gulf may bridge. China still watches.', teach:'Three-way money means three sets of expectations.' },
+      { t:'Public tough talk', d:{street:-3,establishment:6,economy:6,coalition:2},
+        title:'Tough on TV', body:'Applause at home. Chilly cables abroad.', teach:'Cameras love sovereignty. Ledgers do not.' }
+    ]
+  },
+  {
+    id:'w7_india',
+    tickers:['LoC flare report · Hashtag nationalism · Markets twitch','Diplomatic spat · Cricket rumor · Briefing leak'],
+    brief:'A border flare-up. Hawks want a hard line. Markets want calm.',
+    options:[
+      { t:'Hard statement', d:{street:-6,establishment:-4,economy:4,coalition:-2},
+        title:'Hard line', body:'Domestic cheer. Risk premium up.', teach:'Tough talk is cheap until insurance rates move.' },
+      { t:'Quiet backchannel', d:{establishment:-2,economy:-3,street:4,coalition:1},
+        title:'Backchannel', body:'No headline. A useful silence.', teach:'Quiet channels keep you in the chair longer.' },
+      { t:'UN letter only', d:{street:2,establishment:1,economy:1,coalition:0},
+        title:'Letter', body:'A document. The LoC does not read.', teach:'Letters are for archives. Borders need phones.' },
+      { t:'Rally the street', d:{street:-8,establishment:5,economy:3,coalition:-1},
+        title:'Rally', body:'Flags out. Policy room shrinks.', teach:'Nationalism is easy fuel. Hard to put back.' },
+      { t:'Defer to GHQ tone', d:{establishment:-8,street:1,economy:0,coalition:2},
+        title:'Aligned tone', body:'One voice. Not entirely yours.', teach:'Borrowed toughness still has a lender.' }
+    ]
+  },
+  {
+    id:'w8_wheat',
+    tickers:['Atta price spike · Tractor protest · Import tender','Godown audit · Subsidy fight · Urban queues'],
+    brief:'Flour prices spike. Traders hoard. Provinces blame the center.',
+    options:[
+      { t:'Emergency imports', d:{economy:7,street:-8,coalition:-2,establishment:0},
+        title:'Ships ordered', body:'Prices may ease. Dollars leave.', teach:'Imported calm is still an import bill.' },
+      { t:'Crack down on hoarders', d:{street:-5,establishment:2,coalition:3,economy:1},
+        title:'Raids', body:'Some godowns open. Optics first.', teach:'Raids are theater unless supply follows.' },
+      { t:'Raise support price', d:{street:-3,economy:8,coalition:-4,establishment:1},
+        title:'Support price', body:'Farmers nod. Urban wallets do not.', teach:'Support prices are a transfer — pick who pays.' },
+      { t:'Blame provinces on TV', d:{coalition:8,street:4,establishment:1,economy:0},
+        title:'Blame game', body:'Federal vs provincial. Bread still costly.', teach:'Blame does not mill wheat.' },
+      { t:'Quiet subsidy top-up', d:{economy:6,street:-6,establishment:3,coalition:-1},
+        title:'Quiet top-up', body:'Queues shorten. IMF notices the line item.', teach:'Hidden subsidies are still subsidies.' }
+    ]
+  },
+  {
+    id:'w9_court',
+    tickers:['Bench formed · Suo motu rumor · Lawyers on roads','Chamber leak · Ordinance draft · Anchors shout'],
+    brief:'A judicial calendar threatens a sensitive case. Advisors want an ordinance.',
+    options:[
+      { t:'Issue ordinance', d:{establishment:4,street:5,coalition:3,economy:0},
+        title:'Ordinance', body:'Speed. Blowback scheduled for next week.', teach:'Ordinances skip debate. Debate finds you anyway.' },
+      { t:'Wait for the bench', d:{establishment:2,street:-2,coalition:1,economy:0},
+        title:'Wait', body:'Process. Anxiety in the corridors.', teach:'Waiting on courts is a strategy — until it is not.' },
+      { t:'Negotiate a delay quietly', d:{establishment:-3,street:1,coalition:2,economy:0},
+        title:'Quiet delay', body:'A date moves. Trust does too.', teach:'Quiet delays are loud in the wrong rooms.' },
+      { t:'Public respect speech', d:{street:-3,establishment:3,coalition:-1,economy:0},
+        title:'Speech', body:'Institutional tone. Case still listed.', teach:'Respect speeches do not adjourn dockets.' },
+      { t:'Coalition legal war room', d:{coalition:-5,establishment:2,street:2,economy:1},
+        title:'War room', body:'Lawyers assemble. Optics harden.', teach:'Legal war rooms look like panic with stationery.' }
+    ]
+  },
+  {
+    id:'w10_baloch',
+    tickers:['Quetta blast report · Internet cut map · Rights groups','Convoy attack · Development ribbon · Briefing closed'],
+    brief:'Security incident in Balochistan. Locals want connectivity back. Security wants a blackout.',
+    options:[
+      { t:'Full blackout', d:{street:8,establishment:-8,coalition:2,economy:2},
+        title:'Blackout', body:'Control today. Anger compounded.', teach:'Connectivity cuts buy hours, not legitimacy.' },
+      { t:'Targeted shutdown', d:{street:3,establishment:-4,coalition:1,economy:1},
+        title:'Targeted cut', body:'A narrower net. Still felt.', teach:'Targeted still means someone\'s family is offline.' },
+      { t:'Keep net + surge troops', d:{establishment:-6,street:2,economy:3,coalition:1},
+        title:'Surge', body:'Presence up. Bills and risks up.', teach:'Force without a political track is a treadmill.' },
+      { t:'Development package announce', d:{street:-4,economy:5,establishment:2,coalition:-2},
+        title:'Package', body:'Promises travel faster than roads.', teach:'Packages are speeches until the asphalt exists.' },
+      { t:'Invite tribal jirga', d:{street:-5,establishment:3,coalition:0,economy:0},
+        title:'Jirga', body:'Talks begin. Spoilers do not RSVP.', teach:'Jirgas work when spoilers fear exclusion.' }
+    ]
+  },
+  {
+    id:'w11_remit',
+    tickers:['Remittance dip · Gulf labor news · SBP statement','Hundi whisper · Dollar kerb premium · Expat WhatsApp'],
+    brief:'Remittances dip. SBP wants incentives. Cabinet wants a feel-good scheme.',
+    options:[
+      { t:'Bank bonus for remitters', d:{economy:-5,street:-2,coalition:1,establishment:0},
+        title:'Bonus', body:'Official channels thicken a little.', teach:'Incentives beat lectures to the diaspora.' },
+      { t:'Crack down on hundi', d:{economy:3,street:4,establishment:-2,coalition:1},
+        title:'Crackdown', body:'Some networks flinch. Premiums jump.', teach:'Crushing informal flows without formal capacity backfires.' },
+      { t:'TV patriotism appeal', d:{street:2,economy:2,coalition:0,establishment:1},
+        title:'Appeal', body:'A speech. Wallets unmoved.', teach:'Patriotism does not wire dollars.' },
+      { t:'Ask UAE for labor quota', d:{economy:-3,establishment:1,street:-1,coalition:0},
+        title:'Quota ask', body:'A request filed. Months, not days.', teach:'Labor diplomacy is slow oxygen.' },
+      { t:'Ignore — focus IMF file', d:{economy:4,street:3,establishment:-1,coalition:2},
+        title:'Focus Fund', body:'One fire tended. Another smokes.', teach:'You can only hold so many hoses.' }
+    ]
+  },
+  {
+    id:'w12_noconf',
+    tickers:['No-confidence math · Lobby dinners · Gallup leak','Speaker calendar · Ally silence · Anchors smell blood'],
+    brief:'No-confidence whispers hit critical mass. You need numbers — or an exit narrative.',
+    options:[
+      { t:'Buy the swing votes', d:{coalition:-10,economy:6,establishment:4,street:2},
+        title:'Arithmetic', body:'Numbers appear. Reputation invoices.', teach:'Bought stability is leased, not owned.' },
+      { t:'Pre-emptive cabinet shuffle', d:{coalition:-4,establishment:2,street:1,economy:1},
+        title:'Shuffle', body:'New faces. Same math problem.', teach:'Shuffles are perfume on a numbers problem.' },
+      { t:'Threaten early elections', d:{coalition:8,street:-5,establishment:6,economy:2},
+        title:'Early polls threat', body:'Fear works — until someone accepts.', teach:'Threats of elections only work if you might lose them.' },
+      { t:'Ask establishment to freeze it', d:{establishment:10,coalition:-3,street:3,economy:0},
+        title:'The ask', body:'You request a freeze. They price it.', teach:'Asking for a freeze teaches who owns winter.' },
+      { t:'Prepare orderly exit deal', d:{establishment:-2,coalition:5,street:-2,economy:0},
+        title:'Exit craft', body:'Not gone yet — but the story is written.', teach:'Orderly exits are rare. Drafting one is wisdom.' }
+    ]
+  }
+];
+
+const CRISES = [
+  {
+    id:'c_street',
+    when: s => s.p.street >= 65,
+    tickers:['Teargas inventory · Ring road blocked · Live streams'],
+    brief:'CRISIS: Downtown on fire. Cabinet wants a decision in an hour.',
+    options:[
+      { t:'Full curfew', d:{street:-12,establishment:6,coalition:3,economy:4},
+        title:'Curfew', body:'Streets empty. Tomorrow\'s anger denser.', teach:'Curfews pause footage. They do not pause politics.' },
+      { t:'Talks with organizers', d:{street:-6,establishment:5,coalition:-2,economy:1},
+        title:'Talks', body:'A table. Cameras outside.', teach:'Talking under fire is courage or surrender — decide which story.' },
+      { t:'Partial rollback of last pain', d:{street:-10,economy:8,coalition:-1,establishment:2},
+        title:'Rollback', body:'A concession. Precedent set.', teach:'Rollbacks teach the street what works.' },
+      { t:'Hand security lead to army', d:{street:-14,establishment:12,coalition:4,economy:2},
+        title:'Security lead', body:'Calm returns wearing a different uniform.', teach:'Outsourced calm has a political interest rate.' },
+      { t:'Ride it out on TV', d:{street:8,establishment:3,coalition:2,economy:2},
+        title:'TV night', body:'You speak. The fire does not watch.', teach:'Broadcasts do not extinguish tires.' }
+    ]
+  },
+  {
+    id:'c_est',
+    when: s => s.p.establishment >= 65,
+    tickers:['Silent corridors · Schedule cleared · Phones muted'],
+    brief:'CRISIS: A message arrives — “align, or be aligned.”',
+    options:[
+      { t:'Full alignment', d:{establishment:-15,coalition:6,street:3,economy:1},
+        title:'Aligned', body:'You keep the title. Policy is elsewhere.', teach:'Alignment is survival with a shorter leash.' },
+      { t:'Conditional alignment', d:{establishment:-6,coalition:3,street:1,economy:0},
+        title:'Conditions', body:'A bargain. Respect is provisional.', teach:'Conditions are allowed until they are not.' },
+      { t:'Leak and rally civilians', d:{establishment:12,street:-8,coalition:4,economy:2},
+        title:'Leak', body:'The public hears. So do they.', teach:'Leaking up is the riskiest press release.' },
+      { t:'Offer resignation timing', d:{establishment:-4,coalition:8,street:2,economy:1},
+        title:'Timed exit', body:'Not today — but the end is sketched.', teach:'Offering timing can buy weeks or end them.' },
+      { t:'Play dumb, delay 48h', d:{establishment:8,coalition:1,street:0,economy:0},
+        title:'48 hours', body:'You bought two days. Interest accrues.', teach:'With the establishment, delay is not neutral.' }
+    ]
+  },
+  {
+    id:'c_coal',
+    when: s => s.p.coalition >= 65,
+    tickers:['Partner walkout · Empty benches · Speaker phone'],
+    brief:'CRISIS: Your largest partner walks. Confidence math breaks.',
+    options:[
+      { t:'Emergency sweetener deal', d:{coalition:-14,economy:7,establishment:3,street:1},
+        title:'Sweetener', body:'They return — expensive and loud.', teach:'Emergency deals set the new floor price of loyalty.' },
+      { t:'Minority government gamble', d:{coalition:6,establishment:5,street:3,economy:2},
+        title:'Minority', body:'Every bill is a hostage situation.', teach:'Minority rule is a weekly referendum.' },
+      { t:'Invite opposition talks', d:{coalition:-5,street:-3,establishment:6,economy:1},
+        title:'Cross aisle', body:'Historic optics. Historic distrust.', teach:'Opposition talks are either genius or a funeral notice.' },
+      { t:'Dissolve and go to polls', d:{coalition:0,establishment:4,street:-2,economy:3},
+        title:'Dissolve', body:'The campaign starts whether you are ready or not.', teach:'Choosing elections is still choosing an ending.' },
+      { t:'Ask for a technocrat bridge', d:{establishment:8,coalition:4,street:2,economy:-2},
+        title:'Technocrats', body:'Experts arrive. Politics does not leave.', teach:'Technocrats govern until politics remembers how.' }
+    ]
+  },
+  {
+    id:'c_econ',
+    when: s => s.p.economy >= 65,
+    tickers:['Kerb premium screams · SBP emergency · Petrol lines'],
+    brief:'CRISIS: Reserves critical. IMF board is watching the next tweet.',
+    options:[
+      { t:'Shock package now', d:{economy:-14,street:12,coalition:6,establishment:2},
+        title:'Shock', body:'Fund smiles. Cities do not.', teach:'Shock therapy is honest — and politically radioactive.' },
+      { t:'Capital controls', d:{economy:-6,establishment:4,street:5,coalition:3},
+        title:'Controls', body:'Bleeding slows. Investment freezes.', teach:'Controls buy time that markets charge interest on.' },
+      { t:'Friend deposits blitz', d:{economy:-8,establishment:2,street:1,coalition:1},
+        title:'Friends', body:'Deposits may land. Terms always do.', teach:'Friendly deposits are geopolitics in a wire transfer.' },
+      { t:'Float and pray', d:{economy:8,street:6,coalition:4,establishment:3},
+        title:'Float', body:'Truth in pricing. Pain in kitchens.', teach:'Floating reveals the bill you already owed.' },
+      { t:'Blame prior regime hard', d:{economy:3,street:2,coalition:-2,establishment:1},
+        title:'Blame', body:'A narrative. Empty tanks remain empty.', teach:'Blame is not a reserves policy.' }
+    ]
+  }
+];
+
+const EPILOGUES = {
+  street: {
+    tag:'Street exit',
+    title:'The street took the chair',
+    body:'Crowds did not ask for a press conference. Barricades became a verdict. You leave under sirens and slogans — still PM on paper for a few hours, then not.'
+  },
+  establishment: {
+    tag:'Corridor exit',
+    title:'The call came',
+    body:'No tanks on TV. Just a schedule change, a silent motorcade, and a statement about “facilitating transition.” The file closes on your name.'
+  },
+  coalition: {
+    tag:'Floor exit',
+    title:'The numbers left',
+    body:'Empty benches. A vote that was always coming. Partners who smiled in the morning counted against you by night. Democracy, Pakistani arithmetic edition.'
+  },
+  economy: {
+    tag:'Ledger exit',
+    title:'The rupee decided',
+    body:'Markets moved faster than cabinet. Shelves and kerb rates wrote the epilogue. You can argue policy; you cannot argue an empty till.'
+  },
+  survival_short: {
+    tag:'Still standing',
+    title:'Another week borrowed',
+    body:'You are still here. That is the whole victory condition in this job. The inbox will refill. It always does.'
+  },
+  recycle_note: {
+    tag:'Long game',
+    title:'Same country, new week',
+    body:'Twelve weeks in, the files rhyme. New tickers, old pressures. Power in Pakistan is not a score — it is a streak.'
+  }
+};
+
+function clamp(n){ return Math.max(0, Math.min(100, Math.round(n))); }
+
+function freshState(){
+  return {
+    week: 1,
+    cycle: 0,
+    p: { establishment: 38, street: 52, coalition: 28, economy: 46 },
+    relations: REL_START.map(r => ({...r})),
+    lastCrisis: null,
+    history: []
+  };
+}
+
+function save(state){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }catch(e){} }
+function load(){ try{ const r=localStorage.getItem(SAVE_KEY); return r?JSON.parse(r):null; }catch(e){ return null; } }
+function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+function isUnlocked(){ try{ return localStorage.getItem(UNLOCK_KEY)==='1'; }catch(e){ return false; } }
+function setUnlocked(){ try{ localStorage.setItem(UNLOCK_KEY,'1'); }catch(e){} }
+function clearUnlock(){ try{ localStorage.removeItem(UNLOCK_KEY); }catch(e){} }
+
+let state = null;
+let pendingChoice = null;
+let usedCrisis = {};
+
+function $(id){ return document.getElementById(id); }
+function show(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+function pickTicker(weekDef, weekNum){
+  const arr = weekDef.tickers || TICKER_POOL;
+  return arr[(weekNum + (state.cycle||0)*3) % arr.length];
+}
+
+function baseWeekIndex(weekNum){
+  return (weekNum - 1) % WEEKS.length;
+}
+
+function getEventForState(s){
+  // Crisis amplifiers when hot, not same crisis twice in a row, prefer unused in cycle
+  const crises = CRISES.filter(c => c.when(s) && c.id !== s.lastCrisis);
+  if (crises.length){
+    // Prefer one not used this cycle
+    const fresh = crises.filter(c => !usedCrisis[c.id]);
+    const pool = fresh.length ? fresh : crises;
+    return { type:'crisis', def: pool[s.week % pool.length] };
+  }
+  const def = WEEKS[baseWeekIndex(s.week)];
+  return { type:'week', def };
+}
+
+function renderPressures(){
+  const keys = [
+    ['establishment','Establishment'],
+    ['street','Street'],
+    ['coalition','Coalition'],
+    ['economy','Economy']
+  ];
+  $('pressures').innerHTML = keys.map(([k,label]) => {
+    const {name, cls} = pressureLabel(k, state.p[k]);
+    return `<div class="p-card"><div class="p-name">${label}</div><div class="p-label ${cls}">${name}</div></div>`;
+  }).join('');
+}
+
+function renderRelations(){
+  $('relations').innerHTML = state.relations.map(r => `<span class="rel">${r.label}</span>`).join('');
+}
+
+function renderPlay(){
+  const ev = getEventForState(state);
+  const def = ev.def;
+  $('weekPill').textContent = 'Week ' + state.week;
+  renderPressures();
+  renderRelations();
+  $('tickerText').textContent = pickTicker(def, state.week);
+  $('brief').textContent = def.brief;
+  $('opts').innerHTML = '';
+  def.options.forEach((opt, i) => {
+    const b = document.createElement('button');
+    b.className = 'btn';
+    b.textContent = opt.t;
+    b.onclick = () => choose(opt, ev);
+    $('opts').appendChild(b);
+  });
+  show('screenPlay');
+}
+
+function applyDrift(d){
+  const before = {...state.p};
+  for (const k of Object.keys(d)){
+    state.p[k] = clamp(state.p[k] + d[k]);
+  }
+  const chips = [];
+  for (const k of ['establishment','street','coalition','economy']){
+    const delta = state.p[k] - before[k];
+    if (!d.hasOwnProperty(k) && delta === 0) continue;
+    if (!d.hasOwnProperty(k)) continue;
+    const phrase = driftPhrase(k, d[k]);
+    const cls = d[k] > 0 ? 'down' : (d[k] < 0 ? 'up' : 'flat');
+    // Note: for pressures, higher = worse, so positive drift = "down" (bad for player) visually
+    chips.push({ phrase, cls, delta: d[k] });
+  }
+  return chips;
+}
+
+function checkLoss(){
+  const order = [
+    ['street', EPILOGUES.street],
+    ['establishment', EPILOGUES.establishment],
+    ['coalition', EPILOGUES.coalition],
+    ['economy', EPILOGUES.economy]
+  ];
+  // Highest over critical wins the naming
+  let best = null, bestV = CRITICAL - 1;
+  for (const [k, epi] of order){
+    if (state.p[k] >= CRITICAL && state.p[k] > bestV){
+      bestV = state.p[k]; best = { key:k, epi };
+    }
+  }
+  return best;
+}
+
+function choose(opt, ev){
+  const chips = applyDrift(opt.d);
+  if (ev.type === 'crisis'){
+    state.lastCrisis = ev.def.id;
+    usedCrisis[ev.def.id] = true;
+  } else {
+    state.lastCrisis = null;
+  }
+  state.history.push({ week: state.week, id: ev.def.id, choice: opt.t });
+  pendingChoice = { opt, chips };
+  save(state);
+
+  $('resultTitle').textContent = opt.title;
+  $('resultBody').textContent = opt.body;
+  $('resultTeach').textContent = opt.teach;
+  $('resultDrift').innerHTML = chips.map(c =>
+    `<span class="chip ${c.cls}">${c.phrase}</span>`
+  ).join('');
+  show('screenResult');
+}
+
+function advance(){
+  const loss = checkLoss();
+  if (loss){
+    clearSave();
+    $('endTag').textContent = loss.epi.tag;
+    $('endTitle').textContent = loss.epi.title;
+    $('endBody').textContent = loss.epi.body;
+    $('endStats').textContent = `Survived ${state.week} week${state.week===1?'':'s'} · Exit: ${loss.key}`;
+    show('screenEnd');
+    return;
+  }
+  state.week += 1;
+  if (state.week > 12 && (state.week - 1) % 12 === 0){
+    state.cycle += 1;
+    usedCrisis = {};
+  }
+  save(state);
+  renderPlay();
+}
+
+function startNew(){
+  state = freshState();
+  usedCrisis = {};
+  pendingChoice = null;
+  save(state);
+  renderPlay();
+}
+
+function goMenu(){
+  const s = load();
+  if (s && s.week){
+    $('continueBtn').style.display = 'block';
+  } else {
+    $('continueBtn').style.display = 'none';
+  }
+  show('screenMenu');
+}
+
+// Wire UI
+$('pwBtn').onclick = () => {
+  const v = ($('pwInput').value || '').trim().toLowerCase();
+  if (v === PASSWORD){
+    setUnlocked();
+    $('pwErr').textContent = '';
+    goMenu();
+  } else {
+    $('pwErr').textContent = 'Wrong password.';
+  }
+};
+$('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('pwBtn').click(); });
+
+$('continueBtn').onclick = () => {
+  state = load();
+  if (!state) { startNew(); return; }
+  usedCrisis = {};
+  renderPlay();
+};
+$('newGameBtn').onclick = () => startNew();
+$('lockBtn').onclick = () => { clearUnlock(); show('screenGate'); };
+$('nextWeekBtn').onclick = () => advance();
+$('saveQuitBtn').onclick = () => { save(state); goMenu(); };
+$('abandonBtn').onclick = () => {
+  if (confirm('Abandon this run and start a new game?')){ clearSave(); startNew(); }
+};
+$('endNewBtn').onclick = () => startNew();
+$('endMenuBtn').onclick = () => { clearSave(); goMenu(); };
+
+// boot
+if (isUnlocked()) goMenu();
+else show('screenGate');
+})();
+</script>
+</body>
+</html>
