@@ -454,6 +454,10 @@ const TICKER_POOL = [
 ];
 
 /* Decision topics — agenda mixes several per week */
+const TOPIC_COOLDOWN_WEEKS = 4; // chosen topics stay off the agenda this many weeks
+const AGENDA_MIN = 4;
+const AGENDA_MAX = 5;
+
 const TOPICS = [
   {
     id:'imf',
@@ -553,7 +557,8 @@ const TOPICS = [
   {
     id:'cpec',
     title:'China project bills',
-    tags:['economy','establishment'],
+    tags:['economy'],
+    weight:0.55,
     tickers:['Beijing formal note · Power plant idle · Debt clock','China road review week · Yuan talk · Port photo-op'],
     brief:'China wants overdue power-project bills from the road-and-energy deals cleared — now.',
     options:[
@@ -682,8 +687,333 @@ const TOPICS = [
       { t:'Prepare orderly exit deal', d:{establishment:-2,coalition:5,street:-2,economy:0},
         title:'Exit craft', body:'Not gone yet — but the story is written.', teach:'Orderly exits are rare. Drafting one is wisdom.' }
     ]
+  },
+  {
+    id:'fuel',
+    title:'Petrol price hike',
+    tags:['street','economy'],
+    tickers:['Petrol line forms · Tanker delay · Hashtag #NoMoreHike','OMCs meeting · Smuggling rumor · Rupee soft'],
+    brief:'Another petrol price jump is on your desk. Transport unions are already texting strike dates.',
+    options:[
+      { t:'Pass the full hike', d:{economy:-8,street:12,coalition:3,establishment:-1},
+        title:'Full hike', body:'Pumps rise overnight. Motorbikes become politics.', teach:'Fuel prices are the street’s inflation index.' },
+      { t:'Half hike + delay rest', d:{economy:-3,street:5,coalition:1,establishment:0},
+        title:'Half now', body:'A smaller sting. The second shoe still drops.', teach:'Phased pain is still pain on a schedule.' },
+      { t:'Hold price, burn reserves', d:{economy:8,street:-6,establishment:2,coalition:-1},
+        title:'Hold', body:'Queues calm. The dollar pile thins.', teach:'Frozen pump prices are a quiet subsidy.' },
+      { t:'Cut other subsidies to fund it', d:{economy:-2,street:7,coalition:4,establishment:1},
+        title:'Rob Peter', body:'One fire bankrolled by another.', teach:'Cross-subsidies move anger; they do not erase it.' },
+      { t:'Blame the dollar on TV', d:{street:4,economy:2,coalition:2,establishment:0},
+        title:'Blame dollar', body:'A speech. The pump sticker still changes.', teach:'Exchange-rate lectures do not fill tanks.' }
+    ]
+  },
+  {
+    id:'jobs',
+    title:'Youth jobless rage',
+    tags:['street','coalition'],
+    tickers:['Jobless march · Hiring freeze memo · TikTok rage','Sialkot factory slow · Graduate sit-in · Opposition slogan'],
+    brief:'Young people want jobs, not another speech. Provinces want federal money for hiring schemes.',
+    options:[
+      { t:'Announce big hiring scheme', d:{street:-8,economy:7,coalition:-3,establishment:1},
+        title:'Hiring splash', body:'Applications flood. Budgets do too.', teach:'Job announcements are cheap. Payroll is not.' },
+      { t:'Tax break for factories', d:{economy:-4,street:-3,coalition:2,establishment:0},
+        title:'Factory break', body:'Owners smile. Hiring may follow — later.', teach:'Tax breaks buy hope more reliably than jobs.' },
+      { t:'Skills training TV launch', d:{street:2,economy:2,coalition:0,establishment:1},
+        title:'Training day', body:'Cameras love classrooms. Paychecks do not.', teach:'Training without demand is a waiting room.' },
+      { t:'Push overseas job drive', d:{economy:-3,street:-4,establishment:1,coalition:0},
+        title:'Export labor', body:'Visas become policy. Families become remittances.', teach:'Exporting workers exports pressure — and talent.' },
+      { t:'Ignore — focus next week', d:{street:6,coalition:3,economy:1,establishment:0},
+        title:'Ignore', body:'The sit-in grows a soundtrack.', teach:'Youth anger compounds interest fast.' }
+    ]
+  },
+  {
+    id:'saudi',
+    title:'Saudi money talks',
+    tags:['economy','establishment'],
+    tickers:['Riyadh envoy lunch · Deposit rumor · Quiet corridor','Gulf wire delay · Oil facility chat · Dollar open'],
+    brief:'Saudi officials hint at a deposit — if you show “friendly” policy moves and a cleaner story on reforms.',
+    options:[
+      { t:'Accept deposit + photo-op', d:{economy:-8,establishment:2,street:-1,coalition:1},
+        title:'Deposit', body:'Reserves breathe. Expectations arrive with the money.', teach:'Gulf deposits are bridges with toll booths.' },
+      { t:'Ask for oil on deferred pay', d:{economy:-5,street:-2,establishment:1,coalition:0},
+        title:'Deferred oil', body:'Tankers may keep coming. The invoice ages.', teach:'Deferred oil is a loan wearing a barrel.' },
+      { t:'Offer investment zone ribbon', d:{economy:-2,establishment:1,street:0,coalition:2},
+        title:'Zone ribbon', body:'A MoU. Concrete still pending.', teach:'Investment zones are promises until shovels move.' },
+      { t:'Play hard to get', d:{economy:4,establishment:3,street:1,coalition:0},
+        title:'Hard to get', body:'Pride intact. The wire stays quiet.', teach:'Pride does not clear import bills.' },
+      { t:'Leak that rivals begged harder', d:{street:-2,coalition:3,establishment:2,economy:1},
+        title:'Leak', body:'A story travels. Trust does not.', teach:'Leaking diplomacy is a short-term drug.' }
+    ]
+  },
+  {
+    id:'afg',
+    title:'Afghan border mess',
+    tags:['establishment','street'],
+    tickers:['Border gate closed · Trader protest · Security brief','Torkham jam · Refugee camp rumor · Drone chatter'],
+    brief:'The Afghan border is a mess — trade stuck, security nervous, locals furious at closed gates.',
+    options:[
+      { t:'Seal tighter', d:{establishment:-6,street:5,economy:4,coalition:1},
+        title:'Sealed', body:'Security nods. Markets and families shout.', teach:'Closed gates are policy with a human queue.' },
+      { t:'Reopen with checks', d:{street:-4,establishment:-2,economy:-2,coalition:0},
+        title:'Managed open', body:'Trucks move slower. Anger cools a little.', teach:'Managed borders still need staff who show up.' },
+      { t:'Talk quietly with Kabul contacts', d:{establishment:2,economy:-1,street:1,coalition:0},
+        title:'Quiet talk', body:'A channel opens. Spoilers do not RSVP.', teach:'Afghanistan policy is mostly spoiler management.' },
+      { t:'Blame Kabul on TV', d:{street:-3,establishment:3,economy:1,coalition:1},
+        title:'Blame Kabul', body:'Domestic points scored. Gates still jammed.', teach:'Blame is not a customs system.' },
+      { t:'Let provinces cut local deals', d:{coalition:-4,establishment:5,street:-2,economy:-1},
+        title:'Local deals', body:'Some gates ease. Federal story frays.', teach:'Local deals buy calm and sell coherence.' }
+    ]
+  },
+  {
+    id:'scandal',
+    title:'Corruption leak',
+    tags:['street','coalition'],
+    tickers:['Leaked chat screenshots · Anchor special · Hashtag storm','NAB rumor · Ally distance · Dollar flat'],
+    brief:'A leak names people near your cabinet. Allies want distance. The street wants scalps.',
+    options:[
+      { t:'Fire someone visible', d:{street:-6,coalition:6,establishment:1,economy:0},
+        title:'Scalp', body:'A resignation photo. The leak still circulates.', teach:'One scalp rarely ends a scandal cycle.' },
+      { t:'Order a slow inquiry', d:{street:4,coalition:-2,establishment:2,economy:0},
+        title:'Inquiry', body:'A committee forms. Headlines move on — maybe.', teach:'Slow inquiries are a bet on public amnesia.' },
+      { t:'Call it fake news hard', d:{street:6,coalition:3,establishment:1,economy:0},
+        title:'Deny', body:'Base cheers. Independents squint.', teach:'Blanket denial works until documents do.' },
+      { t:'Quiet deal with leakers', d:{coalition:-3,establishment:3,street:2,economy:1},
+        title:'Quiet deal', body:'Some files vanish. Trust does too.', teach:'Buying silence rents it by the week.' },
+      { t:'Invite opposition joint probe', d:{street:-4,coalition:5,establishment:2,economy:0},
+        title:'Joint probe', body:'Historic optics. Historic knives.', teach:'Bipartisan probes are either cleansing or combat.' }
+    ]
+  },
+  {
+    id:'cricket',
+    title:'Cricket diplomacy',
+    tags:['street','establishment'],
+    tickers:['Series invite rumor · Board meeting · Fan Twitter war','Security plan draft · Sponsor call · Border quiet'],
+    brief:'A cricket series could soften the mood — or blow up into nationalism overnight.',
+    options:[
+      { t:'Greenlight the series', d:{street:-5,establishment:3,economy:-1,coalition:0},
+        title:'Play on', body:'Tickets sell. Security files thicken.', teach:'Soft power is real until a crowd finds a slogan.' },
+      { t:'Postpone “for security”', d:{establishment:-3,street:4,economy:1,coalition:1},
+        title:'Postpone', body:'Safe. Fans call it cowardice.', teach:'Security postponements are also political statements.' },
+      { t:'Use it for quiet backchannel', d:{establishment:-2,economy:0,street:-1,coalition:0},
+        title:'Backchannel', body:'Sport as cover for phones that matter.', teach:'Stadiums can hide diplomacy — until they cannot.' },
+      { t:'Turn it into a patriotic festival', d:{street:-6,establishment:2,economy:2,coalition:-1},
+        title:'Festival', body:'Flags everywhere. Policy room shrinks.', teach:'Patriotism sells seats. It also sells escalation.' },
+      { t:'Let the board decide alone', d:{establishment:4,street:2,coalition:1,economy:0},
+        title:'Board decides', body:'You duck. Blame still finds a desk.', teach:'Outsourcing symbolism rarely outsources fallout.' }
+    ]
+  },
+  {
+    id:'powercut',
+    title:'Power cuts return',
+    tags:['street','economy'],
+    tickers:['Load-shedding map · Fan fury · Circular debt note','Karachi outage · Industry letter · Heatwave alert'],
+    brief:'Longer blackouts are back. Industry wants fuel. Households want someone to shout at.',
+    options:[
+      { t:'Buy expensive fuel fast', d:{economy:8,street:-7,coalition:-1,establishment:0},
+        title:'Expensive fuel', body:'Some lights return. The bill arrives loud.', teach:'Emergency fuel is the cost of yesterday’s delay.' },
+      { t:'Rotate cuts fairly on TV', d:{street:3,economy:2,coalition:1,establishment:0},
+        title:'Fair roster', body:'A schedule. Anger becomes punctual.', teach:'Fairness speeches do not generate megawatts.' },
+      { t:'Prioritize factories over homes', d:{economy:-4,street:9,coalition:2,establishment:1},
+        title:'Industry first', body:'Exports breathe. Neighborhoods boil.', teach:'Prioritizing GDP can torch the street.' },
+      { t:'Prioritize homes over factories', d:{street:-5,economy:6,coalition:1,establishment:0},
+        title:'Homes first', body:'Fans spin. Orders slip.', teach:'Household calm can cost industrial oxygen.' },
+      { t:'Blame the last government', d:{street:2,coalition:-2,economy:1,establishment:0},
+        title:'Blame past', body:'A clip goes viral. Darkness remains.', teach:'Circular debt does not care who you blame.' }
+    ]
+  },
+  {
+    id:'taxraid',
+    title:'Tax raid politics',
+    tags:['economy','coalition'],
+    tickers:['Raid footage · Trader strike whisper · Revenue target','Shop shutter rumor · Ally phone call · Anchor debate'],
+    brief:'Revenue staff want aggressive tax raids. Traders and coalition friends call it harassment.',
+    options:[
+      { t:'Greenlight hard raids', d:{economy:-6,street:5,coalition:6,establishment:0},
+        title:'Hard raids', body:'Some cash lands. Markets sulk.', teach:'Raids raise revenue and enemies on the same day.' },
+      { t:'Soft notices only', d:{economy:3,coalition:-3,street:-1,establishment:0},
+        title:'Soft notices', body:'Less drama. Less cash.', teach:'Polite tax collection is often imaginary.' },
+      { t:'Target opposition donors only', d:{coalition:4,street:3,establishment:2,economy:-2},
+        title:'Selective', body:'A short-term win. A long-term weaponizes tax.', teach:'Weaponized tax becomes everyone’s future problem.' },
+      { t:'Amnesty window again', d:{economy:-4,street:2,coalition:-2,establishment:1},
+        title:'Amnesty', body:'Some money surfaces. Habit deepens.', teach:'Amnesties teach that waiting pays.' },
+      { t:'Pause raids till after by-elections', d:{coalition:-5,economy:4,street:1,establishment:1},
+        title:'Pause', body:'Allies exhale. Revenue calendar slips.', teach:'Election calendars eat reform calendars.' }
+    ]
+  },
+  {
+    id:'gas',
+    title:'Kitchen gas shortage',
+    tags:['street','economy'],
+    tickers:['Cylinder queues · LNG cargo delay · Women protest','Sui gas pressure drop · Import tender · Winter warning'],
+    brief:'Kitchen gas is short. Queues of cylinders are already on morning TV.',
+    options:[
+      { t:'Spot-buy expensive LNG', d:{economy:9,street:-8,coalition:-1,establishment:0},
+        title:'Spot LNG', body:'Flames return. Reserves sulk.', teach:'Spot cargoes are panic priced by design.' },
+      { t:'Ration by neighborhood', d:{street:6,economy:2,coalition:2,establishment:1},
+        title:'Ration', body:'A schedule of unfairness.', teach:'Rationing makes scarcity official.' },
+      { t:'Push electric alternative scheme', d:{economy:4,street:3,coalition:0,establishment:0},
+        title:'Electric push', body:'A pilot. Winter does not wait for pilots.', teach:'Fuel switches need years, not press conferences.' },
+      { t:'Subsidize cylinders quietly', d:{economy:6,street:-5,establishment:2,coalition:-1},
+        title:'Quiet subsidy', body:'Queues shorten. Ledgers notice.', teach:'Quiet subsidies are loud in the loan review.' },
+      { t:'Blame distribution companies', d:{street:2,coalition:3,economy:1,establishment:0},
+        title:'Blame distributors', body:'A scapegoat named. Stoves still cold.', teach:'Naming villains does not fill pipelines.' }
+    ]
+  },
+  {
+    id:'heatwave',
+    title:'City heatwave crisis',
+    tags:['street'],
+    tickers:['Heat index alert · Hospital rush · Water tanker fight','Karachi 42°C · Coolant black market · Mayor blame game'],
+    brief:'A brutal heatwave hits the big city. Hospitals fill. Water tankers become politics.',
+    options:[
+      { t:'Emergency cooling centers', d:{street:-6,economy:4,coalition:-1,establishment:0},
+        title:'Cooling centers', body:'Some lives eased. Logistics scramble.', teach:'Cooling centers are ambulance policy for climate.' },
+      { t:'Free water tankers surge', d:{street:-5,economy:5,coalition:-2,establishment:0},
+        title:'Tanker surge', body:'Queues move. Contractors smile.', teach:'Tanker politics is drought with invoices.' },
+      { t:'Work-from-home order for offices', d:{street:-2,economy:2,coalition:0,establishment:1},
+        title:'Stay home', body:'Some offices empty. Street vendors cannot.', teach:'Heat policy that ignores informal work misses most people.' },
+      { t:'Blame climate only', d:{street:4,coalition:2,economy:0,establishment:0},
+        title:'Climate speech', body:'True — and insufficient.', teach:'Climate is context. Response is still your job.' },
+      { t:'Cut industrial power to save homes', d:{economy:5,street:-4,coalition:1,establishment:0},
+        title:'Homes first power', body:'Fans spin. Factory floors quiet.', teach:'In a heatwave, electricity is triage.' }
+    ]
+  },
+  {
+    id:'media',
+    title:'TV channel crackdown',
+    tags:['establishment','street'],
+    tickers:['PEMRA notice · Anchor walkout · Cable operators tense','License threat · Hashtag #PressFreedom · Ally discomfort'],
+    brief:'A noisy TV channel is roasting you nightly. Advisors want the license leaned on.',
+    options:[
+      { t:'Lean on the license', d:{establishment:-4,street:8,coalition:2,economy:0},
+        title:'License lean', body:'One screen dims. Ten phones light up.', teach:'Press pressure migrates to the places you do not control.' },
+      { t:'Flood airtime with your surrogates', d:{street:2,economy:2,coalition:-1,establishment:1},
+        title:'Surrogate flood', body:'Noise wars noise. Trust flatlines.', teach:'More spokespeople is not more credibility.' },
+      { t:'Invite the anchor for tea', d:{street:-1,establishment:2,coalition:0,economy:0},
+        title:'Tea', body:'A photo. Tomorrow’s monologue may soften — or not.', teach:'Tea diplomacy with TV is a short leash.' },
+      { t:'Ignore and govern', d:{street:3,establishment:3,coalition:-2,economy:-1},
+        title:'Ignore', body:'The monologue continues. So does the inbox.', teach:'Ignoring media is a luxury of quiet weeks.' },
+      { t:'Push a vague “media code”', d:{establishment:-2,street:5,coalition:3,economy:0},
+        title:'Media code', body:'A document. Everyone smells censorship.', teach:'Codes of conduct are often handcuffs in soft language.' }
+    ]
+  },
+  {
+    id:'china2',
+    title:'China port photo-op',
+    tags:['economy','establishment'],
+    weight:0.6,
+    tickers:['Port visit invite · Yuan settlement talk · Security perimeter','Gwadar ribbon rumor · Local protest · Cable from Beijing'],
+    brief:'China wants a high-profile port visit and smoother local security — optics matter to them now.',
+    options:[
+      { t:'Full VIP welcome', d:{economy:-3,establishment:-2,street:2,coalition:1},
+        title:'VIP welcome', body:'Cameras love the handshake. Locals count checkpoints.', teach:'Photo-ops are policy when the guest writes checks.' },
+      { t:'Low-key working visit', d:{economy:-1,establishment:1,street:0,coalition:0},
+        title:'Low-key', body:'Less theater. Slightly cooler cables.', teach:'Downgrading optics can upgrade suspicion.' },
+      { t:'Tie visit to bill relief ask', d:{economy:-4,establishment:2,street:1,coalition:0},
+        title:'Link the ask', body:'You bargain in public-ish. They notice.', teach:'Linkage only works if you can walk away.' },
+      { t:'Delay citing security', d:{establishment:4,economy:3,street:1,coalition:0},
+        title:'Security delay', body:'A postponement. Narratives fill the gap.', teach:'Security delays are read as cold feet.' },
+      { t:'Let provinces host instead', d:{coalition:-3,establishment:3,street:-1,economy:1},
+        title:'Province hosts', body:'Islamabad ducks. Someone else owns the photos.', teach:'Outsourcing hosting outsources credit and blame.' }
+    ]
+  },
+  {
+    id:'students',
+    title:'Campus fee protests',
+    tags:['street','coalition'],
+    tickers:['Campus sit-in · Fee hike memo · Teargas inventory','Vice-chancellor letter · Parent WhatsApp · Opposition visit'],
+    brief:'Public university fee hikes spark sit-ins. Parents and opposition smell opportunity.',
+    options:[
+      { t:'Roll back the hike', d:{street:-8,economy:5,coalition:-2,establishment:0},
+        title:'Rollback', body:'Campuses quiet. Budget hole louder.', teach:'Fee rollbacks teach protest what works.' },
+      { t:'Partial scholarship top-up', d:{street:-4,economy:3,coalition:-1,establishment:0},
+        title:'Scholarships', body:'Some relief. Lines at the aid office.', teach:'Targeted aid is fairer — and harder to explain on TV.' },
+      { t:'Clear campuses hard', d:{street:10,establishment:-5,coalition:2,economy:0},
+        title:'Cleared', body:'Order restored. Videos immortal.', teach:'Campus force creates alumni of anger.' },
+      { t:'Blame university boards', d:{street:3,coalition:4,economy:0,establishment:1},
+        title:'Blame boards', body:'A deflection. Tents stay up.', teach:'Federal blame does not refund a semester.' },
+      { t:'Negotiate with student unions', d:{street:-5,establishment:2,coalition:1,economy:1},
+        title:'Negotiate', body:'A table. Cameras outside the gate.', teach:'Student unions are politics with backpacks.' }
+    ]
+  },
+  {
+    id:'police',
+    title:'Police encounter row',
+    tags:['establishment','street'],
+    tickers:['Encounter footage · Rights group letter · Internal inquiry','Funeral crowd · IG phone call · Anchor special'],
+    brief:'A police “encounter” goes viral. Rights groups want a probe. The establishment wants the force backed.',
+    options:[
+      { t:'Back the police publicly', d:{establishment:-6,street:7,coalition:1,economy:0},
+        title:'Backed', body:'Uniforms exhale. Streets do not.', teach:'Blanket backing turns every bad video into your brand.' },
+      { t:'Independent probe', d:{street:-5,establishment:6,coalition:2,economy:0},
+        title:'Probe', body:'Process begins. Loyalty frays.', teach:'Probes are how you trade force loyalty for legitimacy.' },
+      { t:'Quiet transfer of officers', d:{establishment:2,street:2,coalition:0,economy:0},
+        title:'Transfers', body:'Faces move. Story may not.', teach:'Transfers are perfume on a chain-of-command problem.' },
+      { t:'Visit the victims’ family', d:{street:-4,establishment:3,coalition:0,economy:0},
+        title:'Condolence visit', body:'A photo. Demands remain.', teach:'Condolences without consequences are content.' },
+      { t:'Change the subject with a crime sweep', d:{street:3,establishment:-3,economy:1,coalition:1},
+        title:'Crime sweep', body:'New headlines. Old video still loops.', teach:'Distraction sweeps rarely outrun a viral clip.' }
+    ]
+  },
+  {
+    id:'water',
+    title:'City water fights',
+    tags:['street','coalition'],
+    tickers:['Tanker mafia story · Line pressure zero · Provincial spat','Hydrant fight video · Donor water project · Mayor vs CM'],
+    brief:'Big-city water pressure is near zero. Provinces and the center blame each other; tankers rule the street.',
+    options:[
+      { t:'Federal emergency tankers', d:{street:-6,economy:6,coalition:-3,establishment:0},
+        title:'Federal tankers', body:'Some mohallas drink. The bill is federal.', teach:'Emergency tankers treat symptoms, not pipes.' },
+      { t:'Crack tanker mafia', d:{street:-3,establishment:2,coalition:3,economy:1},
+        title:'Mafia crack', body:'A few arrests. Prices may spike first.', teach:'Scarcity mafias profit from your delay.' },
+      { t:'Force a province deal on TV', d:{coalition:8,street:2,economy:0,establishment:1},
+        title:'TV deal pressure', body:'Humiliation politics. Water still slow.', teach:'Public federal-provincial fights rarely fill reservoirs.' },
+      { t:'Fast-track a big pipe project', d:{economy:5,street:-2,coalition:-2,establishment:1},
+        title:'Pipe project', body:'Ribbon today. Water years later.', teach:'Mega pipes are judged by decades, announced by weeks.' },
+      { t:'Ignore until monsoon', d:{street:7,economy:1,coalition:2,establishment:0},
+        title:'Wait for rain', body:'A gamble on clouds.', teach:'Governance by weather forecast is not a plan.' }
+    ]
+  },
+  {
+    id:'housing',
+    title:'Housing scheme fight',
+    tags:['coalition','economy'],
+    tickers:['Plot allotment row · Satellite photos · Ally rally','Bank loan product · Encroachment notice · Hashtag greenwashing'],
+    brief:'A flashy housing scheme is accused of favoring allies. Banks want clarity; the street wants fairness.',
+    options:[
+      { t:'Audit and pause allotments', d:{street:-5,coalition:7,economy:2,establishment:1},
+        title:'Pause + audit', body:'Process wins. Allies fume.', teach:'Housing schemes are coalitions with deeds attached.' },
+      { t:'Double down and launch phase two', d:{coalition:-6,street:4,economy:3,establishment:0},
+        title:'Phase two', body:'More plots, more headlines.', teach:'Doubling down converts a scandal into a platform.' },
+      { t:'Open balloting on live TV', d:{street:-4,coalition:3,economy:1,establishment:0},
+        title:'Live ballot', body:'Theater of fairness. Lists still contested.', teach:'Transparent draws need clean lists first.' },
+      { t:'Hand it to the army foundation', d:{establishment:-7,street:1,coalition:2,economy:0},
+        title:'Foundation handoff', body:'Delivery may improve. Ownership shifts.', teach:'Outsourced delivery outsources political credit.' },
+      { t:'Quietly reassign contested plots', d:{coalition:-3,street:3,establishment:2,economy:0},
+        title:'Quiet reassign', body:'Some fires dampen. Whispers grow.', teach:'Quiet fixes are loud in the next leak.' }
+    ]
+  },
+  {
+    id:'dengue',
+    title:'Hospital dengue surge',
+    tags:['street'],
+    tickers:['Ward overflow · Fumigation map · Parent panic','Platelet black market · Mayor blame · Clinic strike rumor'],
+    brief:'Dengue wards are overflowing. Parents want fumigation and beds, not another awareness poster.',
+    options:[
+      { t:'Surge field hospitals', d:{street:-7,economy:5,coalition:-1,establishment:0},
+        title:'Field hospitals', body:'Beds appear. Staffing scrambles.', teach:'Field hospitals are honesty about capacity failure.' },
+      { t:'City-wide fumigation blitz', d:{street:-4,economy:3,coalition:0,establishment:0},
+        title:'Fumigation', body:'Fog in the streets. Eggs in the water tanks.', teach:'Fogging without water control is perfume.' },
+      { t:'Price-cap platelets', d:{street:-3,economy:2,coalition:1,establishment:1},
+        title:'Price cap', body:'A cap. Shortages may go quieter and meaner.', teach:'Caps without supply create queues with manners.' },
+      { t:'Blame cities and move on', d:{street:5,coalition:4,economy:0,establishment:0},
+        title:'Blame cities', body:'A press line. Wards still full.', teach:'Health emergencies do not respect jurisdiction charts.' },
+      { t:'Ask army medical corps to help', d:{establishment:-5,street:-5,economy:2,coalition:1},
+        title:'Army medical', body:'Competence arrives wearing a different patch.', teach:'Borrowed medical capacity still has a political ledger.' }
+    ]
   }
 ];
+
 
 
 const CRISES = [
@@ -811,7 +1141,8 @@ function freshState(){
     p: { establishment: 38, street: 52, coalition: 28, economy: 46 },
     relations: REL_START.map(r => ({...r})),
     lastCrisis: null,
-    history: []
+    history: [],
+    topicCooldown: {} // topicId -> week it was last chosen
   };
 }
 
@@ -851,8 +1182,25 @@ function pickCrisis(s){
   return pool[s.week % pool.length];
 }
 
+function topicWeight(t){
+  const w = (t && t.weight != null) ? Number(t.weight) : 1;
+  return (isFinite(w) && w > 0) ? w : 1;
+}
+
 function topicsForPressure(key){
   return TOPICS.filter(t => (t.tags || []).includes(key));
+}
+
+function onCooldown(id, s){
+  if (!id || !s) return false;
+  const chosenWeek = (s.topicCooldown || {})[id];
+  if (chosenWeek == null) return false;
+  // Stay off for TOPIC_COOLDOWN_WEEKS full weeks after the week it was chosen
+  return (s.week - chosenWeek) <= TOPIC_COOLDOWN_WEEKS;
+}
+
+function availableTopics(s, seen){
+  return TOPICS.filter(t => !seen.has(t.id) && !onCooldown(t.id, s));
 }
 
 function shufflePick(arr, n, seed){
@@ -863,53 +1211,106 @@ function shufflePick(arr, n, seed){
     const j = s % (i + 1);
     const tmp = copy[i]; copy[i] = copy[j]; copy[j] = tmp;
   }
-  return copy.slice(0, n);
+  return copy.slice(0, Math.max(0, n));
 }
 
-/** Build 3–5 agenda topics: scheduled + pressure mix + optional forced crisis. */
+/** Weighted shuffle-pick; lower-weight topics (e.g. China bills) appear less often. */
+function weightedShufflePick(arr, n, seed){
+  const copy = arr.slice();
+  let s = seed || 1;
+  const out = [];
+  const take = Math.min(Math.max(0, n), copy.length);
+  for (let k = 0; k < take; k++){
+    let total = 0;
+    for (const t of copy) total += topicWeight(t);
+    if (total <= 0) break;
+    s = (s * 1103515245 + 12345) & 0x7fffffff;
+    let r = (s % 10000) / 10000 * total;
+    let idx = 0;
+    for (let i = 0; i < copy.length; i++){
+      r -= topicWeight(copy[i]);
+      if (r <= 0){ idx = i; break; }
+      idx = i;
+    }
+    out.push(copy[idx]);
+    copy.splice(idx, 1);
+  }
+  return out;
+}
+
+function markTopicCooldown(s, topicId){
+  if (!topicId) return;
+  if (!s.topicCooldown) s.topicCooldown = {};
+  // Store the week the topic was chosen; onCooldown keeps it off for TOPIC_COOLDOWN_WEEKS after
+  s.topicCooldown[topicId] = s.week;
+}
+
+/** Build 4–5 distinct agenda topics: crisis + pressure mix + fillers; respect cooldowns; never duplicate. */
 function buildAgenda(s){
+  if (!s.topicCooldown) s.topicCooldown = {};
   const out = [];
   const seen = new Set();
   const add = (topic, flags) => {
-    if (!topic || seen.has(topic.id)) return;
+    if (!topic || seen.has(topic.id)) return false;
+    // Crises can force onto the agenda even if a related theme is cooling; regular topics respect cooldown
+    if (!flags || !flags.crisis){
+      if (onCooldown(topic.id, s)) return false;
+    }
     seen.add(topic.id);
     out.push(Object.assign({ crisis:false, forced:false }, topic, flags || {}));
+    return true;
   };
 
   const crisis = pickCrisis(s);
   if (crisis) add(crisis, { crisis:true, forced:true });
 
-  const scheduled = TOPICS[baseTopicIndex(s.week)];
-  add(scheduled);
+  // Scheduled rotation — skip if on cooldown, walk forward through the deck
+  let schedIdx = baseTopicIndex(s.week);
+  for (let hop = 0; hop < TOPICS.length; hop++){
+    const cand = TOPICS[(schedIdx + hop) % TOPICS.length];
+    if (add(cand)) break;
+  }
 
-  // Pressure-driven topics (boil/hot meters surface matching files)
+  // Pressure-driven topics (boil/hot meters surface matching files) — weighted, cooldown-aware
   const pressureKeys = [
     ['street', 50],
     ['economy', 50],
     ['establishment', 50],
     ['coalition', 50]
   ];
+  let pressureSeed = s.week * 13 + (s.cycle || 0) * 41 + Math.floor(s.p.economy / 5);
   for (const [key, thr] of pressureKeys){
     if (s.p[key] < thr) continue;
-    const pool = topicsForPressure(key).filter(t => !seen.has(t.id));
+    const pool = availableTopics(s, seen).filter(t => (t.tags || []).includes(key));
     if (!pool.length) continue;
-    const pick = pool[(s.week + Math.floor(s.p[key])) % pool.length];
+    pressureSeed = (pressureSeed * 1103515245 + 12345) & 0x7fffffff;
+    const pick = weightedShufflePick(pool, 1, pressureSeed + Math.floor(s.p[key]))[0];
     add(pick);
   }
 
-  // Fill to at least 3, at most 5, with a rotating mix from the full deck
+  // Fill toward 4–5 distinct topics from the free pool (weighted so China is not sticky)
   const fillSeed = s.week * 17 + (s.cycle || 0) * 31 + Math.floor(s.p.street / 7);
-  const fillers = shufflePick(TOPICS.filter(t => !seen.has(t.id)), 5, fillSeed);
+  const fillers = weightedShufflePick(availableTopics(s, seen), AGENDA_MAX, fillSeed);
   for (const t of fillers){
-    if (out.length >= 5) break;
+    if (out.length >= AGENDA_MAX) break;
     add(t);
   }
-  while (out.length < 3){
-    const t = TOPICS[(out.length + s.week) % TOPICS.length];
-    add(t);
-    if (seen.size >= TOPICS.length) break;
+
+  // If cooldowns emptied the pool, allow cooled topics only to reach AGENDA_MIN (still no duplicates)
+  if (out.length < AGENDA_MIN){
+    const cooled = shufflePick(
+      TOPICS.filter(t => !seen.has(t.id)),
+      AGENDA_MIN,
+      fillSeed + 99
+    );
+    for (const t of cooled){
+      if (out.length >= AGENDA_MIN) break;
+      seen.add(t.id);
+      out.push(Object.assign({ crisis:false, forced:false }, t));
+    }
   }
-  return out.slice(0, 5);
+
+  return out.slice(0, AGENDA_MAX);
 }
 
 
@@ -1121,6 +1522,7 @@ function choose(opt, ev){
   } else {
     state.lastCrisis = null;
   }
+  markTopicCooldown(state, ev.def.id);
   state.history.push({ week: state.week, id: ev.def.id, choice: opt.t });
   pendingChoice = { opt, chips };
   save(state);
