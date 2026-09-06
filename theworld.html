@@ -155,6 +155,40 @@
   }
   .opts .btn:hover { border-left-color:var(--accent); }
 
+  .agenda-hint {
+    font-size:12px; font-weight:700; color:var(--muted);
+    margin:-4px 0 10px; line-height:1.35;
+  }
+  .topics { display:flex; flex-direction:column; gap:7px; }
+  .topics .btn {
+    font-size:14px; font-weight:800; padding:13px 14px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .topics .btn .topic-arrow { color:var(--muted); font-weight:800; opacity:.7; }
+  .topics .btn.crisis {
+    border-color:rgba(240,113,120,.55);
+    border-left:3px solid var(--bad);
+    background:linear-gradient(90deg, rgba(240,113,120,.12), var(--panel2));
+  }
+  .topics .btn.crisis:hover { border-color:var(--bad); }
+  .topic-tag {
+    font-size:9px; font-weight:800; letter-spacing:1px; text-transform:uppercase;
+    color:var(--bad); background:rgba(240,113,120,.15);
+    border-radius:999px; padding:3px 7px; flex-shrink:0;
+  }
+  .topic-head {
+    display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap;
+  }
+  .topic-back {
+    border:1px solid var(--line); background:var(--panel2); color:var(--muted);
+    border-radius:10px; padding:6px 10px; font-size:11px; font-weight:800;
+    cursor:pointer; font-family:'Nunito',sans-serif;
+  }
+  .topic-back:hover { color:var(--ink); border-color:var(--accent); }
+  .topic-title {
+    font-family:'Fraunces',serif; font-size:18px; font-weight:600; line-height:1.2;
+  }
+
   .menu-row { display:flex; gap:8px; margin-top:12px; }
   .menu-row .btn { flex:1; text-align:center; padding:8px; font-size:11px; opacity:.7; }
 
@@ -277,10 +311,20 @@
       <span class="ticker-dot" aria-hidden="true"></span>
       <div class="ticker-text" id="tickerText"></div>
     </div>
-    <div class="decision">
-      <div class="decision-label">This week</div>
-      <div class="brief" id="brief"></div>
-      <div class="opts" id="opts"></div>
+    <div class="decision" id="decisionPanel">
+      <div class="decision-label" id="decisionLabel">This week</div>
+      <div id="agendaView">
+        <p class="agenda-hint" id="agendaHint">Pick which decision to make.</p>
+        <div class="topics" id="topics"></div>
+      </div>
+      <div id="optionsView" style="display:none">
+        <div class="topic-head">
+          <button type="button" class="topic-back" id="topicBackBtn">← Agenda</button>
+          <div class="topic-title" id="topicTitle"></div>
+        </div>
+        <div class="brief" id="brief"></div>
+        <div class="opts" id="opts"></div>
+      </div>
     </div>
     <div class="menu-row">
       <button class="btn btn-ghost" id="saveQuitBtn">Save & quit</button>
@@ -409,10 +453,12 @@ const TICKER_POOL = [
   'Army corps commanders meet · Subsidy bill · Hashtag trending'
 ];
 
-/* 12 unique weeks */
-const WEEKS = [
+/* Decision topics — agenda mixes several per week */
+const TOPICS = [
   {
-    id:'w1_imf',
+    id:'imf',
+    title:'IMF leash',
+    tags:['economy'],
     tickers:['IMF in town · PTI rally weekend · Rupee soft','Fund staff in Islamabad · Rupee soft · Generals watch'],
     brief:'IMF wants energy subsidies cut. Allies fear riots.',
     options:[
@@ -429,7 +475,9 @@ const WEEKS = [
     ]
   },
   {
-    id:'w2_pti',
+    id:'pti',
+    title:'Long march',
+    tags:['street'],
     tickers:['PTI long march talk · Courts packed · Rupee soft','Imran video drops · Police overtime · Hashtag war'],
     brief:'PTI plans a long march on Islamabad. Police want a free hand.',
     options:[
@@ -446,7 +494,9 @@ const WEEKS = [
     ]
   },
   {
-    id:'w3_flood',
+    id:'flood',
+    title:'Flood camps',
+    tags:['street','economy'],
     tickers:['Monsoon damage map · UN flash appeal · Diesel short','Sindh camps overflow · Donors ask questions · Generals tour'],
     brief:'Flood camps overflow. Donors want a transparent rehab board.',
     options:[
@@ -463,7 +513,9 @@ const WEEKS = [
     ]
   },
   {
-    id:'w4_corps',
+    id:'corps',
+    title:'Appointment list',
+    tags:['establishment'],
     tickers:['Corps commanders photo · Defense budget whisper · Media careful','Rawalpindi lunch canceled · File on appointments · Dollar flat'],
     brief:'The establishment wants say on key civilian appointments.',
     options:[
@@ -480,7 +532,9 @@ const WEEKS = [
     ]
   },
   {
-    id:'w5_coalition',
+    id:'coalition',
+    title:'Ministry grab',
+    tags:['coalition'],
     tickers:['Ally presser · Ministry horse-trade · Tea at the house','Junior partner leak · No-confidence math · Gallup dip'],
     brief:'A coalition partner wants two ministries — or walks.',
     options:[
@@ -497,7 +551,9 @@ const WEEKS = [
     ]
   },
   {
-    id:'w6_cpec',
+    id:'cpec',
+    title:'CPEC dues',
+    tags:['economy','establishment'],
     tickers:['Beijing note verbale · Power plant idle · Debt clock','CPEC review week · Yuan talk · Port photo-op'],
     brief:'China wants overdue CPEC power dues cleared — now.',
     options:[
@@ -514,7 +570,9 @@ const WEEKS = [
     ]
   },
   {
-    id:'w7_india',
+    id:'india',
+    title:'Border flare',
+    tags:['establishment','street'],
     tickers:['LoC flare report · Hashtag nationalism · Markets twitch','Diplomatic spat · Cricket rumor · Briefing leak'],
     brief:'A border flare-up. Hawks want a hard line. Markets want calm.',
     options:[
@@ -531,7 +589,9 @@ const WEEKS = [
     ]
   },
   {
-    id:'w8_wheat',
+    id:'wheat',
+    title:'Flour spike',
+    tags:['street','economy'],
     tickers:['Atta price spike · Tractor protest · Import tender','Godown audit · Subsidy fight · Urban queues'],
     brief:'Flour prices spike. Traders hoard. Provinces blame the center.',
     options:[
@@ -548,7 +608,9 @@ const WEEKS = [
     ]
   },
   {
-    id:'w9_court',
+    id:'court',
+    title:'Court calendar',
+    tags:['establishment','coalition'],
     tickers:['Bench formed · Suo motu rumor · Lawyers on roads','Chamber leak · Ordinance draft · Anchors shout'],
     brief:'A judicial calendar threatens a sensitive case. Advisors want an ordinance.',
     options:[
@@ -565,7 +627,9 @@ const WEEKS = [
     ]
   },
   {
-    id:'w10_baloch',
+    id:'baloch',
+    title:'Baloch blackout',
+    tags:['establishment','street'],
     tickers:['Quetta blast report · Internet cut map · Rights groups','Convoy attack · Development ribbon · Briefing closed'],
     brief:'Security incident in Balochistan. Locals want connectivity back. Security wants a blackout.',
     options:[
@@ -582,7 +646,9 @@ const WEEKS = [
     ]
   },
   {
-    id:'w11_remit',
+    id:'remit',
+    title:'Remittance dip',
+    tags:['economy'],
     tickers:['Remittance dip · Gulf labor news · SBP statement','Hundi whisper · Dollar kerb premium · Expat WhatsApp'],
     brief:'Remittances dip. SBP wants incentives. Cabinet wants a feel-good scheme.',
     options:[
@@ -599,7 +665,9 @@ const WEEKS = [
     ]
   },
   {
-    id:'w12_noconf',
+    id:'noconf',
+    title:'No-confidence',
+    tags:['coalition'],
     tickers:['No-confidence math · Lobby dinners · Gallup leak','Speaker calendar · Ally silence · Anchors smell blood'],
     brief:'No-confidence whispers hit critical mass. You need numbers — or an exit narrative.',
     options:[
@@ -617,12 +685,15 @@ const WEEKS = [
   }
 ];
 
+
 const CRISES = [
   {
     id:'c_street',
+    title:'Streets on fire',
+    tags:['street'],
     when: s => s.p.street >= 65,
     tickers:['Teargas inventory · Ring road blocked · Live streams'],
-    brief:'CRISIS: Downtown on fire. Cabinet wants a decision in an hour.',
+    brief:'Downtown on fire. Cabinet wants a decision in an hour.',
     options:[
       { t:'Full curfew', d:{street:-12,establishment:6,coalition:3,economy:4},
         title:'Curfew', body:'Streets empty. Tomorrow\'s anger denser.', teach:'Curfews pause footage. They do not pause politics.' },
@@ -638,9 +709,11 @@ const CRISES = [
   },
   {
     id:'c_est',
+    title:'Align or else',
+    tags:['establishment'],
     when: s => s.p.establishment >= 65,
     tickers:['Silent corridors · Schedule cleared · Phones muted'],
-    brief:'CRISIS: A message arrives — “align, or be aligned.”',
+    brief:'A message arrives — “align, or be aligned.”',
     options:[
       { t:'Full alignment', d:{establishment:-15,coalition:6,street:3,economy:1},
         title:'Aligned', body:'You keep the title. Policy is elsewhere.', teach:'Alignment is survival with a shorter leash.' },
@@ -656,9 +729,11 @@ const CRISES = [
   },
   {
     id:'c_coal',
+    title:'Partner walks',
+    tags:['coalition'],
     when: s => s.p.coalition >= 65,
     tickers:['Partner walkout · Empty benches · Speaker phone'],
-    brief:'CRISIS: Your largest partner walks. Confidence math breaks.',
+    brief:'Your largest partner walks. Confidence math breaks.',
     options:[
       { t:'Emergency sweetener deal', d:{coalition:-14,economy:7,establishment:3,street:1},
         title:'Sweetener', body:'They return — expensive and loud.', teach:'Emergency deals set the new floor price of loyalty.' },
@@ -674,9 +749,11 @@ const CRISES = [
   },
   {
     id:'c_econ',
+    title:'Reserves critical',
+    tags:['economy'],
     when: s => s.p.economy >= 65,
     tickers:['Kerb premium screams · SBP emergency · Petrol lines'],
-    brief:'CRISIS: Reserves critical. IMF board is watching the next tweet.',
+    brief:'Reserves critical. IMF board is watching the next tweet.',
     options:[
       { t:'Shock package now', d:{economy:-14,street:12,coalition:6,establishment:2},
         title:'Shock', body:'Fund smiles. Cities do not.', teach:'Shock therapy is honest — and politically radioactive.' },
@@ -748,6 +825,8 @@ function clearUnlock(){ try{ localStorage.removeItem(UNLOCK_KEY); }catch(e){} }
 let state = null;
 let pendingChoice = null;
 let usedCrisis = {};
+let weekAgenda = [];
+let activeTopic = null;
 
 function $(id){ return document.getElementById(id); }
 function show(id){
@@ -755,26 +834,82 @@ function show(id){
   $(id).classList.add('active');
 }
 
-function pickTicker(weekDef, weekNum){
-  const arr = weekDef.tickers || TICKER_POOL;
+function pickTicker(topicOrList, weekNum){
+  const arr = (topicOrList && topicOrList.tickers) || TICKER_POOL;
   return arr[(weekNum + (state.cycle||0)*3) % arr.length];
 }
 
-function baseWeekIndex(weekNum){
-  return (weekNum - 1) % WEEKS.length;
+function baseTopicIndex(weekNum){
+  return (weekNum - 1) % TOPICS.length;
 }
 
-function getEventForState(s){
-  // Crisis amplifiers when hot, not same crisis twice in a row, prefer unused in cycle
+function pickCrisis(s){
   const crises = CRISES.filter(c => c.when(s) && c.id !== s.lastCrisis);
-  if (crises.length){
-    // Prefer one not used this cycle
-    const fresh = crises.filter(c => !usedCrisis[c.id]);
-    const pool = fresh.length ? fresh : crises;
-    return { type:'crisis', def: pool[s.week % pool.length] };
+  if (!crises.length) return null;
+  const fresh = crises.filter(c => !usedCrisis[c.id]);
+  const pool = fresh.length ? fresh : crises;
+  return pool[s.week % pool.length];
+}
+
+function topicsForPressure(key){
+  return TOPICS.filter(t => (t.tags || []).includes(key));
+}
+
+function shufflePick(arr, n, seed){
+  const copy = arr.slice();
+  let s = seed || 1;
+  for (let i = copy.length - 1; i > 0; i--){
+    s = (s * 1103515245 + 12345) & 0x7fffffff;
+    const j = s % (i + 1);
+    const tmp = copy[i]; copy[i] = copy[j]; copy[j] = tmp;
   }
-  const def = WEEKS[baseWeekIndex(s.week)];
-  return { type:'week', def };
+  return copy.slice(0, n);
+}
+
+/** Build 3–5 agenda topics: scheduled + pressure mix + optional forced crisis. */
+function buildAgenda(s){
+  const out = [];
+  const seen = new Set();
+  const add = (topic, flags) => {
+    if (!topic || seen.has(topic.id)) return;
+    seen.add(topic.id);
+    out.push(Object.assign({ crisis:false, forced:false }, topic, flags || {}));
+  };
+
+  const crisis = pickCrisis(s);
+  if (crisis) add(crisis, { crisis:true, forced:true });
+
+  const scheduled = TOPICS[baseTopicIndex(s.week)];
+  add(scheduled);
+
+  // Pressure-driven topics (boil/hot meters surface matching files)
+  const pressureKeys = [
+    ['street', 50],
+    ['economy', 50],
+    ['establishment', 50],
+    ['coalition', 50]
+  ];
+  for (const [key, thr] of pressureKeys){
+    if (s.p[key] < thr) continue;
+    const pool = topicsForPressure(key).filter(t => !seen.has(t.id));
+    if (!pool.length) continue;
+    const pick = pool[(s.week + Math.floor(s.p[key])) % pool.length];
+    add(pick);
+  }
+
+  // Fill to at least 3, at most 5, with a rotating mix from the full deck
+  const fillSeed = s.week * 17 + (s.cycle || 0) * 31 + Math.floor(s.p.street / 7);
+  const fillers = shufflePick(TOPICS.filter(t => !seen.has(t.id)), 5, fillSeed);
+  for (const t of fillers){
+    if (out.length >= 5) break;
+    add(t);
+  }
+  while (out.length < 3){
+    const t = TOPICS[(out.length + s.week) % TOPICS.length];
+    add(t);
+    if (seen.size >= TOPICS.length) break;
+  }
+  return out.slice(0, 5);
 }
 
 
@@ -883,22 +1018,68 @@ function renderRelations(){
   $('relations').innerHTML = state.relations.map(r => `<span class="rel">${r.label}</span>`).join('');
 }
 
-function renderPlay(){
-  const ev = getEventForState(state);
-  const def = ev.def;
-  $('weekPill').textContent = 'Week ' + state.week;
-  renderPressures();
-  renderRelations();
-  $('tickerText').textContent = pickTicker(def, state.week);
-  $('brief').textContent = def.brief;
-  $('opts').innerHTML = '';
-  def.options.forEach((opt) => {
+function showAgendaView(){
+  activeTopic = null;
+  $('decisionLabel').textContent = 'This week';
+  $('agendaView').style.display = 'block';
+  $('optionsView').style.display = 'none';
+  const n = weekAgenda.length;
+  $('agendaHint').textContent = n === 1
+    ? 'One file demands a call.'
+    : 'Agenda: ' + n + ' decisions — pick one.';
+  const box = $('topics');
+  box.innerHTML = '';
+  weekAgenda.forEach((topic) => {
     const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn' + (topic.crisis ? ' crisis' : '');
+    const label = document.createElement('span');
+    label.textContent = topic.title;
+    b.appendChild(label);
+    if (topic.crisis){
+      const tag = document.createElement('span');
+      tag.className = 'topic-tag';
+      tag.textContent = 'Crisis';
+      b.appendChild(tag);
+    } else {
+      const arrow = document.createElement('span');
+      arrow.className = 'topic-arrow';
+      arrow.textContent = '→';
+      b.appendChild(arrow);
+    }
+    b.onclick = () => openTopic(topic);
+    box.appendChild(b);
+  });
+}
+
+function openTopic(topic){
+  activeTopic = topic;
+  $('decisionLabel').textContent = topic.crisis ? 'Crisis' : 'Decision';
+  $('agendaView').style.display = 'none';
+  $('optionsView').style.display = 'block';
+  $('topicTitle').textContent = topic.title;
+  $('brief').textContent = topic.brief;
+  $('opts').innerHTML = '';
+  const ev = { type: topic.crisis ? 'crisis' : 'week', def: topic };
+  topic.options.forEach((opt) => {
+    const b = document.createElement('button');
+    b.type = 'button';
     b.className = 'btn';
     b.textContent = opt.t;
     b.onclick = () => choose(opt, ev);
     $('opts').appendChild(b);
   });
+}
+
+function renderPlay(){
+  weekAgenda = buildAgenda(state);
+  activeTopic = null;
+  $('weekPill').textContent = 'Week ' + state.week;
+  renderPressures();
+  renderRelations();
+  const tickerSrc = weekAgenda.find(t => t.crisis) || weekAgenda[0] || TOPICS[baseTopicIndex(state.week)];
+  $('tickerText').textContent = pickTicker(tickerSrc, state.week);
+  showAgendaView();
   show('screenPlay');
 }
 
@@ -986,6 +1167,8 @@ function startNew(){
   state = freshState();
   usedCrisis = {};
   pendingChoice = null;
+  weekAgenda = [];
+  activeTopic = null;
   save(state);
   renderPlay();
 }
@@ -1020,10 +1203,13 @@ $('continueBtn').onclick = () => {
   if (!state) { startNew(); return; }
   usedCrisis = {};
   pendingChoice = null;
+  weekAgenda = [];
+  activeTopic = null;
   renderPlay();
 };
 $('newGameBtn').onclick = () => startNew();
 $('lockBtn').onclick = () => { clearUnlock(); show('screenGate'); };
+$('topicBackBtn').onclick = () => showAgendaView();
 $('beatContinueBtn').onclick = () => showResultFromPending();
 $('nextWeekBtn').onclick = () => advance();
 $('saveQuitBtn').onclick = () => { save(state); goMenu(); };
