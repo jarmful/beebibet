@@ -288,7 +288,7 @@
       <div class="art" style="margin-top:-6px;margin-bottom:4px" id="menuFace"></div>
       <h1 class="gate-title" style="font-size:28px">Pakistan</h1>
       <p class="muted" style="margin-bottom:6px">Play as <strong style="color:var(--ink)">Shehbaz Sharif</strong></p>
-      <p class="muted" style="margin-bottom:18px">Sitting PM. IMF in town. Street hot. The file never sleeps.</p>
+      <p class="muted" style="margin-bottom:18px">Sitting prime minister. Loan bosses in town. Street hot. The file never sleeps.</p>
       <button class="btn btn-primary" id="continueBtn" style="margin-bottom:8px;display:none">Continue</button>
       <button class="btn btn-primary" id="newGameBtn">New Game</button>
       <button class="btn btn-ghost" id="lockBtn" style="margin-top:8px">Lock / change country</button>
@@ -394,7 +394,7 @@ const LABEL = {
     [0,'solid'],[20,'ok'],[40,'fraying'],[55,'haggling'],[70,'cracking'],[85,'gone']
   ],
   economy: [
-    [0,'breathing'],[20,'tight'],[35,'on an IMF leash'],[50,'strained'],[65,'bleeding'],[85,'rupee free-fall']
+    [0,'breathing'],[20,'tight'],[35,'loan bosses watching'],[50,'strained'],[65,'bleeding'],[85,'rupee free-fall']
   ]
 };
 
@@ -418,7 +418,7 @@ function driftPhrase(key, delta){
     economy: { neg:'Economy calmer', pos:'Economy worse', zero:'Economy steady' }
   };
   // Special sample phrases for economy/establishment when annoyed
-  if (key === 'economy' && delta > 0) return 'Economy IMF annoyed';
+  if (key === 'economy' && delta > 0) return 'Loan bosses annoyed';
   if (key === 'establishment' && delta > 0 && delta < 8) return 'Establishment unimpressed';
   if (key === 'establishment' && delta >= 8) return 'Establishment furious';
   if (key === 'street' && delta < 0) return 'Street cooler';
@@ -441,33 +441,33 @@ const REL_START = [
 ];
 
 const TICKER_POOL = [
-  'IMF in town · PTI rally weekend · Rupee soft',
-  'CPEC review · Karachi heatwave · Cabinet leak',
-  'Wheat stocks thin · DG ISPR silent · Remittances dip',
+  'Loan bosses in town · Opposition rally weekend · Rupee soft',
+  'China road review · Karachi heatwave · Cabinet leak',
+  'Wheat stocks thin · Army press office quiet · Money from abroad dips',
   'Lahore lockdown rumor · Saudi envoy lunch · Dollar open',
-  'Flood rehab audit · Opposition walkout · Power cuts',
-  'FBR raids · Border skirmish chatter · Gold up',
-  'Supreme Court calendar · LNG tanker delayed · Twitter storm',
-  'Punjab by-poll nerves · China bank note · Petrol queue',
-  'Balochistan curfew · Gulf visas slow · Bond yield spike',
-  'Army corps commanders meet · Subsidy bill · Hashtag trending'
+  'Flood rebuild audit · Opposition walkout · Power cuts',
+  'Tax raids · Border clash chatter · Gold up',
+  'Supreme Court calendar · Gas tanker delayed · Online storm',
+  'Punjab by-election nerves · China bank note · Petrol queue',
+  'Western province curfew · Gulf visas slow · Bond yield spike',
+  'Army commanders meet · Subsidy bill · Hashtag trending'
 ];
 
 /* Decision topics — agenda mixes several per week */
 const TOPICS = [
   {
     id:'imf',
-    title:'IMF leash',
+    title:'Loan payment due',
     tags:['economy'],
-    tickers:['IMF in town · PTI rally weekend · Rupee soft','Fund staff in Islamabad · Rupee soft · Generals watch'],
-    brief:'IMF wants energy subsidies cut. Allies fear riots.',
+    tickers:['Loan bosses in town · Opposition rally weekend · Rupee soft','Lender staff in Islamabad · Rupee soft · Generals watch'],
+    brief:'International loan bosses want energy price supports cut. Allies fear riots.',
     options:[
       { t:'Cut hard', d:{street:14,economy:-12,establishment:-4,coalition:6},
-        title:'Hard cut', body:'Subsidies slash overnight. Markets clap. Streets swear.', teach:'Pain now buys the Fund. The street invoices later.' },
+        title:'Hard cut', body:'Price supports slash overnight. Markets clap. Streets swear.', teach:'Pain now buys the loan package. The street invoices later. That’s the IMF — international lenders who set loan conditions.' },
       { t:'Cut half + cash aid', d:{street:6,economy:-6,establishment:-2,coalition:2},
-        title:'Half cut', body:'A compromise. IMF shrugs. Crowds still gather.', teach:'Half-measures please nobody — but they keep the lights on.' },
+        title:'Half cut', body:'A compromise. Loan bosses shrug. Crowds still gather.', teach:'Half-measures please nobody — but they keep the lights on.' },
       { t:'Delay a month', d:{street:-8,economy:8,establishment:6},
-        title:'Delay', body:'You buy quiet. The Fund marks the calendar in red.', teach:'In Pakistan, delay buys peace today and a bill tomorrow.' },
+        title:'Delay', body:'You buy quiet. The lenders mark the calendar in red.', teach:'In Pakistan, delay buys peace today and a bill tomorrow.' },
       { t:'Call Saudi for money', d:{economy:-5,establishment:2,street:-2,coalition:-1},
         title:'Gulf dial', body:'Riyadh listens. A deposit may come — with strings you pretend not to see.', teach:'Saudi money is never free. It just invoices quietly.' },
       { t:'Let the army handle the street', d:{street:-10,establishment:10,coalition:4,economy:2},
@@ -476,13 +476,13 @@ const TOPICS = [
   },
   {
     id:'pti',
-    title:'Long march',
+    title:'Street protests',
     tags:['street'],
-    tickers:['PTI long march talk · Courts packed · Rupee soft','Imran video drops · Police overtime · Hashtag war'],
-    brief:'PTI plans a long march on Islamabad. Police want a free hand.',
+    tickers:['Opposition long march talk · Courts packed · Rupee soft','Opposition video drops · Police overtime · Hashtag war'],
+    brief:'The opposition street movement plans a long march on Islamabad. Police want a free hand.',
     options:[
       { t:'Ban the march', d:{street:12,establishment:-4,coalition:2,economy:1},
-        title:'Banned', body:'Order on paper. Fury on the ring road.', teach:'Bans convert rallies into myths.' },
+        title:'Banned', body:'Order on paper. Fury on the ring road.', teach:'Bans convert rallies into myths. That’s the opposition street movement — often called PTI in the news.' },
       { t:'Negotiate a route', d:{street:-4,establishment:3,coalition:-2,economy:0},
         title:'Managed protest', body:'They march. You survive the photos.', teach:'Managed chaos is still chaos — just on a schedule.' },
       { t:'Offer early polls rumor', d:{coalition:10,street:-6,establishment:5,economy:2},
@@ -498,7 +498,7 @@ const TOPICS = [
     title:'Flood camps',
     tags:['street','economy'],
     tickers:['Monsoon damage map · UN flash appeal · Diesel short','Sindh camps overflow · Donors ask questions · Generals tour'],
-    brief:'Flood camps overflow. Donors want a transparent rehab board.',
+    brief:'Flood camps overflow. Donors want a clean, open rebuild board.',
     options:[
       { t:'Independent board', d:{establishment:6,street:-8,coalition:4,economy:-3},
         title:'Transparent board', body:'Donors smile. The old networks do not.', teach:'Transparency spends political capital you thought was free.' },
@@ -514,10 +514,10 @@ const TOPICS = [
   },
   {
     id:'corps',
-    title:'Appointment list',
+    title:'Who gets the jobs',
     tags:['establishment'],
-    tickers:['Corps commanders photo · Defense budget whisper · Media careful','Rawalpindi lunch canceled · File on appointments · Dollar flat'],
-    brief:'The establishment wants say on key civilian appointments.',
+    tickers:['Army commanders photo · Defense budget whisper · Media careful','Rawalpindi lunch canceled · File on appointments · Dollar flat'],
+    brief:'The establishment wants a say on key civilian jobs.',
     options:[
       { t:'Accept the list', d:{establishment:-12,coalition:6,street:2,economy:0},
         title:'Accepted', body:'Names clear. Your cabinet looks less like yours.', teach:'Shared appointments are how power is rented.' },
@@ -533,9 +533,9 @@ const TOPICS = [
   },
   {
     id:'coalition',
-    title:'Ministry grab',
+    title:'Ally wants ministries',
     tags:['coalition'],
-    tickers:['Ally presser · Ministry horse-trade · Tea at the house','Junior partner leak · No-confidence math · Gallup dip'],
+    tickers:['Ally presser · Ministry horse-trade · Tea at the house','Junior partner leak · Removal-vote math · Poll numbers dip'],
     brief:'A coalition partner wants two ministries — or walks.',
     options:[
       { t:'Give both ministries', d:{coalition:-12,establishment:3,street:1,economy:2},
@@ -552,17 +552,17 @@ const TOPICS = [
   },
   {
     id:'cpec',
-    title:'CPEC dues',
+    title:'China project bills',
     tags:['economy','establishment'],
-    tickers:['Beijing note verbale · Power plant idle · Debt clock','CPEC review week · Yuan talk · Port photo-op'],
-    brief:'China wants overdue CPEC power dues cleared — now.',
+    tickers:['Beijing formal note · Power plant idle · Debt clock','China road review week · Yuan talk · Port photo-op'],
+    brief:'China wants overdue power-project bills from the road-and-energy deals cleared — now.',
     options:[
       { t:'Pay from reserves', d:{economy:10,establishment:-3,street:2,coalition:1},
-        title:'Paid', body:'Beijing nods. Reserves wince.', teach:'Paying friends with thin reserves is still paying.' },
-      { t:'Restructure ask', d:{economy:4,establishment:2,street:0,coalition:0},
+        title:'Paid', body:'Beijing nods. Reserves wince.', teach:'Paying friends with thin reserves is still paying. That’s CPEC — China’s big road-and-power projects in Pakistan.' },
+      { t:'Ask to restructure', d:{economy:4,establishment:2,street:0,coalition:0},
         title:'Restructure', body:'Talks open. Clocks still tick.', teach:'Restructuring is delay with better stationery.' },
       { t:'Offer new project instead', d:{economy:3,establishment:1,street:1,coalition:2},
-        title:'New ribbon', body:'Another MoU. Old invoices remain.', teach:'New projects do not erase old dues.' },
+        title:'New ribbon', body:'Another handshake deal. Old invoices remain.', teach:'New projects do not erase old dues.' },
       { t:'Ask Saudi to bridge', d:{economy:-2,establishment:2,street:0,coalition:1},
         title:'Triangle finance', body:'Gulf may bridge. China still watches.', teach:'Three-way money means three sets of expectations.' },
       { t:'Public tough talk', d:{street:-3,establishment:6,economy:6,coalition:2},
@@ -571,51 +571,51 @@ const TOPICS = [
   },
   {
     id:'india',
-    title:'Border flare',
+    title:'Border clash talk',
     tags:['establishment','street'],
-    tickers:['LoC flare report · Hashtag nationalism · Markets twitch','Diplomatic spat · Cricket rumor · Briefing leak'],
+    tickers:['Border flare report · Hashtag nationalism · Markets twitch','Diplomatic spat · Cricket rumor · Briefing leak'],
     brief:'A border flare-up. Hawks want a hard line. Markets want calm.',
     options:[
       { t:'Hard statement', d:{street:-6,establishment:-4,economy:4,coalition:-2},
         title:'Hard line', body:'Domestic cheer. Risk premium up.', teach:'Tough talk is cheap until insurance rates move.' },
       { t:'Quiet backchannel', d:{establishment:-2,economy:-3,street:4,coalition:1},
         title:'Backchannel', body:'No headline. A useful silence.', teach:'Quiet channels keep you in the chair longer.' },
-      { t:'UN letter only', d:{street:2,establishment:1,economy:1,coalition:0},
-        title:'Letter', body:'A document. The LoC does not read.', teach:'Letters are for archives. Borders need phones.' },
+      { t:'United Nations letter only', d:{street:2,establishment:1,economy:1,coalition:0},
+        title:'Letter', body:'A document. The border does not read.', teach:'Letters are for archives. Borders need phones.' },
       { t:'Rally the street', d:{street:-8,establishment:5,economy:3,coalition:-1},
         title:'Rally', body:'Flags out. Policy room shrinks.', teach:'Nationalism is easy fuel. Hard to put back.' },
-      { t:'Defer to GHQ tone', d:{establishment:-8,street:1,economy:0,coalition:2},
+      { t:'Match the army\'s tone', d:{establishment:-8,street:1,economy:0,coalition:2},
         title:'Aligned tone', body:'One voice. Not entirely yours.', teach:'Borrowed toughness still has a lender.' }
     ]
   },
   {
     id:'wheat',
-    title:'Flour spike',
+    title:'Bread prices',
     tags:['street','economy'],
-    tickers:['Atta price spike · Tractor protest · Import tender','Godown audit · Subsidy fight · Urban queues'],
+    tickers:['Flour price spike · Tractor protest · Import tender','Warehouse audit · Subsidy fight · Urban queues'],
     brief:'Flour prices spike. Traders hoard. Provinces blame the center.',
     options:[
       { t:'Emergency imports', d:{economy:7,street:-8,coalition:-2,establishment:0},
         title:'Ships ordered', body:'Prices may ease. Dollars leave.', teach:'Imported calm is still an import bill.' },
       { t:'Crack down on hoarders', d:{street:-5,establishment:2,coalition:3,economy:1},
-        title:'Raids', body:'Some godowns open. Optics first.', teach:'Raids are theater unless supply follows.' },
-      { t:'Raise support price', d:{street:-3,economy:8,coalition:-4,establishment:1},
+        title:'Raids', body:'Some warehouses open. Optics first.', teach:'Raids are theater unless supply follows.' },
+      { t:'Raise farmer support price', d:{street:-3,economy:8,coalition:-4,establishment:1},
         title:'Support price', body:'Farmers nod. Urban wallets do not.', teach:'Support prices are a transfer — pick who pays.' },
       { t:'Blame provinces on TV', d:{coalition:8,street:4,establishment:1,economy:0},
         title:'Blame game', body:'Federal vs provincial. Bread still costly.', teach:'Blame does not mill wheat.' },
       { t:'Quiet subsidy top-up', d:{economy:6,street:-6,establishment:3,coalition:-1},
-        title:'Quiet top-up', body:'Queues shorten. IMF notices the line item.', teach:'Hidden subsidies are still subsidies.' }
+        title:'Quiet top-up', body:'Queues shorten. Loan bosses notice the line item.', teach:'Hidden subsidies are still subsidies — and loan programs watch them closely.' }
     ]
   },
   {
     id:'court',
-    title:'Court calendar',
+    title:'Court case timing',
     tags:['establishment','coalition'],
-    tickers:['Bench formed · Suo motu rumor · Lawyers on roads','Chamber leak · Ordinance draft · Anchors shout'],
-    brief:'A judicial calendar threatens a sensitive case. Advisors want an ordinance.',
+    tickers:['Bench formed · Court acting on its own rumor · Lawyers on roads','Chamber leak · Emergency law draft · Anchors shout'],
+    brief:'A court calendar threatens a sensitive case. Advisors want a fast emergency law.',
     options:[
-      { t:'Issue ordinance', d:{establishment:4,street:5,coalition:3,economy:0},
-        title:'Ordinance', body:'Speed. Blowback scheduled for next week.', teach:'Ordinances skip debate. Debate finds you anyway.' },
+      { t:'Issue emergency law', d:{establishment:4,street:5,coalition:3,economy:0},
+        title:'Emergency law', body:'Speed. Blowback scheduled for next week.', teach:'Emergency laws skip debate. Debate finds you anyway. People often call that an ordinance.' },
       { t:'Wait for the bench', d:{establishment:2,street:-2,coalition:1,economy:0},
         title:'Wait', body:'Process. Anxiety in the corridors.', teach:'Waiting on courts is a strategy — until it is not.' },
       { t:'Negotiate a delay quietly', d:{establishment:-3,street:1,coalition:2,economy:0},
@@ -628,10 +628,10 @@ const TOPICS = [
   },
   {
     id:'baloch',
-    title:'Baloch blackout',
+    title:'Province internet cut',
     tags:['establishment','street'],
     tickers:['Quetta blast report · Internet cut map · Rights groups','Convoy attack · Development ribbon · Briefing closed'],
-    brief:'Security incident in Balochistan. Locals want connectivity back. Security wants a blackout.',
+    brief:'Security incident in Balochistan. Locals want the internet back. Security wants a blackout.',
     options:[
       { t:'Full blackout', d:{street:8,establishment:-8,coalition:2,economy:2},
         title:'Blackout', body:'Control today. Anger compounded.', teach:'Connectivity cuts buy hours, not legitimacy.' },
@@ -641,38 +641,38 @@ const TOPICS = [
         title:'Surge', body:'Presence up. Bills and risks up.', teach:'Force without a political track is a treadmill.' },
       { t:'Development package announce', d:{street:-4,economy:5,establishment:2,coalition:-2},
         title:'Package', body:'Promises travel faster than roads.', teach:'Packages are speeches until the asphalt exists.' },
-      { t:'Invite tribal jirga', d:{street:-5,establishment:3,coalition:0,economy:0},
-        title:'Jirga', body:'Talks begin. Spoilers do not RSVP.', teach:'Jirgas work when spoilers fear exclusion.' }
+      { t:'Invite tribal elders to talk', d:{street:-5,establishment:3,coalition:0,economy:0},
+        title:'Elder talks', body:'Talks begin. Spoilers do not RSVP.', teach:'Elder councils (jirgas) work when spoilers fear exclusion.' }
     ]
   },
   {
     id:'remit',
-    title:'Remittance dip',
+    title:'Less money from abroad',
     tags:['economy'],
-    tickers:['Remittance dip · Gulf labor news · SBP statement','Hundi whisper · Dollar kerb premium · Expat WhatsApp'],
-    brief:'Remittances dip. SBP wants incentives. Cabinet wants a feel-good scheme.',
+    tickers:['Money from abroad dips · Gulf labor news · Central bank statement','Informal cash whisper · Street-dollar premium · Expat WhatsApp'],
+    brief:'Money sent home from workers abroad dips. The central bank wants incentives. Cabinet wants a feel-good scheme.',
     options:[
       { t:'Bank bonus for remitters', d:{economy:-5,street:-2,coalition:1,establishment:0},
         title:'Bonus', body:'Official channels thicken a little.', teach:'Incentives beat lectures to the diaspora.' },
-      { t:'Crack down on hundi', d:{economy:3,street:4,establishment:-2,coalition:1},
-        title:'Crackdown', body:'Some networks flinch. Premiums jump.', teach:'Crushing informal flows without formal capacity backfires.' },
+      { t:'Crack down on informal cash', d:{economy:3,street:4,establishment:-2,coalition:1},
+        title:'Crackdown', body:'Some networks flinch. Premiums jump.', teach:'Crushing informal flows (hundi) without formal capacity backfires.' },
       { t:'TV patriotism appeal', d:{street:2,economy:2,coalition:0,establishment:1},
         title:'Appeal', body:'A speech. Wallets unmoved.', teach:'Patriotism does not wire dollars.' },
-      { t:'Ask UAE for labor quota', d:{economy:-3,establishment:1,street:-1,coalition:0},
-        title:'Quota ask', body:'A request filed. Months, not days.', teach:'Labor diplomacy is slow oxygen.' },
-      { t:'Ignore — focus IMF file', d:{economy:4,street:3,establishment:-1,coalition:2},
-        title:'Focus Fund', body:'One fire tended. Another smokes.', teach:'You can only hold so many hoses.' }
+      { t:'Ask the Emirates for more work visas', d:{economy:-3,establishment:1,street:-1,coalition:0},
+        title:'Visa ask', body:'A request filed. Months, not days.', teach:'Labor diplomacy is slow oxygen.' },
+      { t:'Ignore — focus loan file', d:{economy:4,street:3,establishment:-1,coalition:2},
+        title:'Focus lenders', body:'One fire tended. Another smokes.', teach:'You can only hold so many hoses. The loan file is the IMF track — conditions attached to foreign credit.' }
     ]
   },
   {
     id:'noconf',
-    title:'No-confidence',
+    title:'Vote to remove you',
     tags:['coalition'],
-    tickers:['No-confidence math · Lobby dinners · Gallup leak','Speaker calendar · Ally silence · Anchors smell blood'],
-    brief:'No-confidence whispers hit critical mass. You need numbers — or an exit narrative.',
+    tickers:['Removal-vote math · Lobby dinners · Poll leak','Speaker calendar · Ally silence · Anchors smell blood'],
+    brief:'Whispers of a vote to remove you hit critical mass. You need numbers — or an exit story.',
     options:[
       { t:'Buy the swing votes', d:{coalition:-10,economy:6,establishment:4,street:2},
-        title:'Arithmetic', body:'Numbers appear. Reputation invoices.', teach:'Bought stability is leased, not owned.' },
+        title:'Arithmetic', body:'Numbers appear. Reputation invoices.', teach:'Bought stability is leased, not owned. People call this a no-confidence vote.' },
       { t:'Pre-emptive cabinet shuffle', d:{coalition:-4,establishment:2,street:1,economy:1},
         title:'Shuffle', body:'New faces. Same math problem.', teach:'Shuffles are perfume on a numbers problem.' },
       { t:'Threaten early elections', d:{coalition:8,street:-5,establishment:6,economy:2},
@@ -709,11 +709,11 @@ const CRISES = [
   },
   {
     id:'c_est',
-    title:'Align or else',
+    title:'Fall in line — or else',
     tags:['establishment'],
     when: s => s.p.establishment >= 65,
     tickers:['Silent corridors · Schedule cleared · Phones muted'],
-    brief:'A message arrives — “align, or be aligned.”',
+    brief:'A message arrives — “fall in line, or be lined up.”',
     options:[
       { t:'Full alignment', d:{establishment:-15,coalition:6,street:3,economy:1},
         title:'Aligned', body:'You keep the title. Policy is elsewhere.', teach:'Alignment is survival with a shorter leash.' },
@@ -733,7 +733,7 @@ const CRISES = [
     tags:['coalition'],
     when: s => s.p.coalition >= 65,
     tickers:['Partner walkout · Empty benches · Speaker phone'],
-    brief:'Your largest partner walks. Confidence math breaks.',
+    brief:'Your largest partner walks. The numbers to stay in power break.',
     options:[
       { t:'Emergency sweetener deal', d:{coalition:-14,economy:7,establishment:3,street:1},
         title:'Sweetener', body:'They return — expensive and loud.', teach:'Emergency deals set the new floor price of loyalty.' },
@@ -743,20 +743,20 @@ const CRISES = [
         title:'Cross aisle', body:'Historic optics. Historic distrust.', teach:'Opposition talks are either genius or a funeral notice.' },
       { t:'Dissolve and go to polls', d:{coalition:0,establishment:4,street:-2,economy:3},
         title:'Dissolve', body:'The campaign starts whether you are ready or not.', teach:'Choosing elections is still choosing an ending.' },
-      { t:'Ask for a technocrat bridge', d:{establishment:8,coalition:4,street:2,economy:-2},
-        title:'Technocrats', body:'Experts arrive. Politics does not leave.', teach:'Technocrats govern until politics remembers how.' }
+      { t:'Ask for expert caretakers', d:{establishment:8,coalition:4,street:2,economy:-2},
+        title:'Caretakers', body:'Experts arrive. Politics does not leave.', teach:'Technocrat caretakers govern until politics remembers how.' }
     ]
   },
   {
     id:'c_econ',
-    title:'Reserves critical',
+    title:'Foreign cash almost gone',
     tags:['economy'],
     when: s => s.p.economy >= 65,
-    tickers:['Kerb premium screams · SBP emergency · Petrol lines'],
-    brief:'Reserves critical. IMF board is watching the next tweet.',
+    tickers:['Street-dollar premium screams · Central bank emergency · Petrol lines'],
+    brief:'Foreign reserves are critical. International loan bosses are watching your next move.',
     options:[
       { t:'Shock package now', d:{economy:-14,street:12,coalition:6,establishment:2},
-        title:'Shock', body:'Fund smiles. Cities do not.', teach:'Shock therapy is honest — and politically radioactive.' },
+        title:'Shock', body:'Lenders smile. Cities do not.', teach:'Shock therapy is honest — and politically radioactive. That’s what tough IMF programs feel like on the street.' },
       { t:'Capital controls', d:{economy:-6,establishment:4,street:5,coalition:3},
         title:'Controls', body:'Bleeding slows. Investment freezes.', teach:'Controls buy time that markets charge interest on.' },
       { t:'Friend deposits blitz', d:{economy:-8,establishment:2,street:1,coalition:1},
@@ -788,7 +788,7 @@ const EPILOGUES = {
   economy: {
     tag:'Ledger exit',
     title:'The rupee decided',
-    body:'Markets moved faster than cabinet. Shelves and kerb rates wrote the epilogue. You can argue policy; you cannot argue an empty till.'
+    body:'Markets moved faster than cabinet. Shelves and street dollar rates wrote the epilogue. You can argue policy; you cannot argue an empty till.'
   },
   survival_short: {
     tag:'Still standing',
