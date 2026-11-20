@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Jõuluvana loos — beebibet</title>
+<meta name="description" content="Salajane jõuluvana perele: igaüks kirjutab kolm kingisoovi, loos otsustab, kellele sina kingi teed. Keegi ei näe teiste soove." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://beebibet.ee/jouluvana" />
+<meta property="og:title" content="Jõuluvana loos 🎅 — beebibet" />
+<meta property="og:description" content="Salajane jõuluvana perele: igaüks kirjutab kolm kingisoovi, loos otsustab, kellele sina kingi teed." />
+<meta property="og:image" content="https://beebibet.ee/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Jõuluvana loos 🎅 — beebibet" />
+<meta name="twitter:description" content="Salajane jõuluvana perele: igaüks kirjutab kolm kingisoovi, loos otsustab, kellele sina kingi teed." />
+<meta name="twitter:image" content="https://beebibet.ee/og-image.png" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cream:#FBF3E4; --snow:#FFFDF8; --red:#C8423B; --redSoft:#F2C4BC; --pine:#2F6B4F; --pineSoft:#CFE3D4;
+    --gold:#E0B44C; --ink:#3F2E33; --inkSoft:#7A6A6F;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--cream); font-family:'Nunito',sans-serif; color:var(--ink); -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(circle at 15% 10%, rgba(200,66,59,.08) 0, transparent 40%), radial-gradient(circle at 85% 90%, rgba(47,107,79,.1) 0, transparent 45%);
+    background-attachment:fixed; min-height:100vh; }
+  #app { max-width:640px; margin:0 auto; padding:0 20px 80px; position:relative; z-index:2; }
+  h1,h2,h3 { font-family:'Fraunces',serif; font-weight:600; }
+  .deco { position:fixed; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
+  .deco span { position:absolute; font-size:24px; opacity:.2; }
+  @keyframes float0 { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-16px) rotate(8deg)} }
+  @keyframes float1 { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-22px) rotate(-6deg)} }
+  @keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  @keyframes pop { 0%{transform:scale(.95);opacity:0} 100%{transform:scale(1);opacity:1} }
+  @keyframes wiggle { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-6deg)} 75%{transform:rotate(6deg)} }
+  .card { background:#fff; border-radius:28px; padding:28px 24px; box-shadow:0 16px 40px rgba(63,46,51,.1); border:2px solid var(--redSoft); animation:pop .35s ease; margin-bottom:18px; }
+  .card.green { border-color:var(--pineSoft); }
+  label { display:block; font-size:13px; font-weight:700; margin-bottom:6px; color:var(--inkSoft); }
+  input, textarea { width:100%; padding:13px 16px; border-radius:16px; border:2px solid var(--redSoft); font-size:16px; font-family:'Nunito',sans-serif; font-weight:600; color:var(--ink); background:var(--cream); }
+  textarea { resize:vertical; min-height:120px; line-height:1.5; }
+  input:focus, textarea:focus { outline:none; border-color:var(--red); }
+  input.big { padding:16px 18px; font-size:24px; font-weight:800; letter-spacing:4px; text-align:center; }
+  .fld { margin-bottom:18px; }
+  .btn { width:100%; padding:15px; border-radius:16px; border:none; font-size:17px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; letter-spacing:.3px; color:#fff; transition:transform .15s; margin-bottom:10px; }
+  .btn:active { transform:scale(.97); }
+  .btn.small { width:auto; padding:8px 14px; font-size:14px; margin:0; border-radius:12px; }
+  .toast { position:fixed; top:18px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--cream); padding:12px 22px; border-radius:999px; z-index:100; font-weight:700; font-size:14px; box-shadow:0 8px 30px rgba(63,46,51,.3); max-width:90%; text-align:center; }
+  .hdr { text-align:center; padding:36px 0 20px; cursor:pointer; }
+  .hint { font-size:13px; color:var(--inkSoft); line-height:1.5; }
+  .row { display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:16px; margin-bottom:8px; background:var(--cream); }
+  .names { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+  .chip { padding:10px 16px; border-radius:999px; border:2px solid var(--pineSoft); background:var(--snow); font-weight:800; font-size:15px; cursor:pointer; font-family:'Nunito',sans-serif; color:var(--ink); }
+  .chip.on { background:var(--pine); border-color:var(--pine); color:#fff; }
+  .wish { display:flex; gap:12px; align-items:flex-start; padding:14px 16px; border-radius:16px; background:var(--cream); margin-bottom:8px; font-weight:700; font-size:16px; line-height:1.4; word-break:break-word; }
+  .wish b { color:var(--red); font-family:'Fraunces',serif; font-size:18px; }
+  .gift { font-size:84px; cursor:pointer; display:inline-block; animation:wiggle 1.6s ease-in-out infinite; user-select:none; }
+  .bar { height:12px; border-radius:999px; background:var(--pineSoft); overflow:hidden; margin:8px 0 16px; }
+  .bar > div { height:100%; background:var(--pine); border-radius:999px; transition:width .4s; }
+</style>
+</head>
+<body>
+<div class="deco" id="deco"></div>
+<div id="app"></div>
+
+<!-- Teegid on samas repos (vendor/) — ei sõltu välistest CDN-idest -->
+<script src="/vendor/react-18.min.js"></script>
+<script src="/vendor/react-dom-18.min.js"></script>
+<script src="/vendor/supabase-2.min.js"></script>
+
+<script>
+const SUPABASE_URL = "https://thrsacygpqwbnkcppmpk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_-QaY7mGpitakhestu3w1fg_sCGquRvx";
+
+let sb = null;
+try {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} catch (err) {
+  document.getElementById("app").innerHTML =
+    "<div style='padding:40px;text-align:center;font-family:sans-serif'>Supabase init viga: " + err.message + "</div>";
+}
+
+/* Kõik andmed käivad läbi serveri RPC funktsioonide (vt jouluvana_loos.sql):
+   tabelitele otse ligi ei pääse, PIN kontrollitakse serveris. */
+function withTimeout(p, ms) {
+  return Promise.race([
+    Promise.resolve(p),
+    new Promise((_, rej) => setTimeout(() => rej(new Error("Ajalõpp — server ei vasta")), ms))
+  ]);
+}
+async function rpc(fn, args) {
+  const { data, error } = await withTimeout(sb.rpc(fn, args), 15000);
+  if (error) throw error;
+  return data || { ok:false, error:"Tühi vastus" };
+}
+
+const e = React.createElement;
+const { useState, useEffect } = React;
+
+const decoEl = document.getElementById("deco");
+["❄️","🎄","⭐","🎁","❄️","🔔","🦌","❄️"].forEach((emoji,i)=>{
+  const s=document.createElement("span");
+  s.textContent=emoji;
+  s.style.left=[8,82,15,88,45,70,30,60][i]+"%";
+  s.style.top=[12,8,70,60,90,35,45,18][i]+"%";
+  s.style.animation=`float${i%3} ${6+i}s ease-in-out infinite`;
+  decoEl.appendChild(s);
+});
+
+const C = { cream:"#FBF3E4", red:"#C8423B", redSoft:"#F2C4BC", pine:"#2F6B4F", pineSoft:"#CFE3D4", gold:"#E0B44C", ink:"#3F2E33", inkSoft:"#7A6A6F" };
+const LS_KEY = "jouluvana_v1";
+function loadLS(){ try { return JSON.parse(localStorage.getItem(LS_KEY)||"{}"); } catch { return {}; } }
+function saveLS(o){ try { localStorage.setItem(LS_KEY, JSON.stringify({ ...loadLS(), ...o })); } catch {} }
+const digits = (v,n) => v.replace(/\D/g,"").slice(0,n);
+const shareLink = code => `https://beebibet.ee/jouluvana?kood=${code}`;
+
+function Btn({color,outline,onClick,disabled,children,small}){
+  return e("button",{ className:"btn"+(small?" small":""),
+    style:{ background:outline?"transparent":color, color:outline?color:"#fff",
+      border:outline?`2px solid ${color}`:"none", boxShadow:outline?"none":`0 8px 20px ${color}55`,
+      opacity:disabled?.6:1 },
+    onClick, disabled }, children);
+}
+
+function Field({label,value,onChange,placeholder,inputMode,big,type,maxLength}){
+  return e("div",{className:"fld"},
+    e("label",null,label),
+    e("input",{ className:big?"big":"", type:type||"text", value:value||"", placeholder, inputMode, maxLength,
+      onChange:ev=>onChange(ev.target.value) })
+  );
+}
+
+function Progress({participants}){
+  const total=participants.length, done=participants.filter(p=>p.submitted).length;
+  return e("div",null,
+    e("div",{style:{display:"flex",justifyContent:"space-between",fontWeight:800,fontSize:14}},
+      e("span",null,"Soovid esitatud"), e("span",null,`${done} / ${total}`)),
+    e("div",{className:"bar"}, e("div",{style:{width:(total?100*done/total:0)+"%"}})),
+    e("div",{className:"names"},
+      ...participants.map(p=>e("span",{key:p.name,className:"chip"+(p.submitted?" on":""),style:{cursor:"default",fontSize:14,padding:"7px 13px"}},
+        (p.submitted?"✓ ":"⏳ ")+p.name)))
+  );
+}
+
+/* ---------------- vaated ---------------- */
+
+function Home({setView}){
+  return e("div",{className:"card",style:{textAlign:"center"}},
+    e("div",{style:{fontSize:56,marginBottom:8}},"🎅"),
+    e("h2",{style:{fontSize:26,margin:"0 0 8px"}},"Salajane jõuluvana"),
+    e("p",{style:{color:C.inkSoft,fontSize:15,lineHeight:1.55,margin:"0 0 24px"}},
+      "Igaüks kirjutab oma nime alla kolm kingisoovi. Kui kõik on soovid esitanud, toimub loos ja igaüks näeb ",
+      e("b",null,"ainult"), " seda, kellele tema kingi teeb, ja selle inimese soove. Teiste soove ei näe keegi."),
+    e(Btn,{color:C.pine,onClick:()=>setView("join")},"Liitu loosiga 🎄"),
+    e(Btn,{color:C.red,outline:true,onClick:()=>setView("create")},"Loo uus loos"),
+    e("button",{className:"btn",style:{background:"transparent",color:C.inkSoft,fontSize:14,marginBottom:0},onClick:()=>setView("admin")},"⚙️ Admin")
+  );
+}
+
+function Create({flash,onCreated}){
+  const [title,setTitle]=useState("Jõulud "+new Date().getFullYear());
+  const [adminPin,setAdminPin]=useState("");
+  const [names,setNames]=useState("");
+  const [loading,setLoading]=useState(false);
+  const list = names.split(/[\n,]/).map(s=>s.trim()).filter(Boolean);
+  async function go(){
+    if(!title.trim()) return flash("Sisesta loosi nimi");
+    if(!/^\d{4}$/.test(adminPin)) return flash("Admin PIN peab olema 4 numbrit");
+    if(list.length<3) return flash("Lisa vähemalt 3 osalejat");
+    setLoading(true);
+    try {
+      const r=await rpc("ss_create_event",{ p_title:title.trim(), p_admin_pin:adminPin, p_names:list });
+      if(!r.ok) flash(r.error); else onCreated(r.code, title.trim());
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+    setLoading(false);
+  }
+  return e("div",{className:"card"},
+    e("h2",{style:{fontSize:24,margin:"0 0 20px"}},"Loo uus loos"),
+    e(Field,{label:"Loosi nimi",value:title,onChange:setTitle,placeholder:"nt Jõulud 2026",maxLength:80}),
+    e("div",{className:"fld"},
+      e("label",null,`Osalejad — üks nimi rea kohta (${list.length})`),
+      e("textarea",{value:names,onChange:ev=>setNames(ev.target.value),placeholder:"Mari\nJüri\nKati\n…"})),
+    e(Field,{label:"Admin PIN (4 numbrit) — sellega saad hiljem osalejaid lisada ja loosi hallata",value:adminPin,
+      onChange:v=>setAdminPin(digits(v,4)),placeholder:"••••",inputMode:"numeric"}),
+    e("p",{className:"hint",style:{marginTop:-6,marginBottom:16}},"Osalejaid saad hiljem admin-vaates juurde lisada (kuni loosini)."),
+    e(Btn,{color:C.red,onClick:go,disabled:loading},loading?"Loon…":"Loo loos ✨")
+  );
+}
+
+function Created({code,title,setView}){
+  const [copied,setCopied]=useState("");
+  const copy=(txt,k)=>{ try{navigator.clipboard.writeText(txt);}catch(e){} setCopied(k); setTimeout(()=>setCopied(""),1500); };
+  return e("div",{className:"card"},
+    e("h2",{style:{fontSize:24,margin:"0 0 12px"}},"Loos on loodud! 🎉"),
+    e("p",{className:"hint",style:{marginTop:-8}},"Jaga seda PIN-koodi või linki perega:"),
+    e("div",{style:{background:C.gold,borderRadius:20,padding:24,textAlign:"center",margin:"8px 0 20px"}},
+      e("div",{style:{fontSize:13,fontWeight:700,color:C.ink,opacity:.75,letterSpacing:2,textTransform:"uppercase"}},title),
+      e("div",{style:{fontFamily:"'Fraunces',serif",fontSize:52,fontWeight:600,letterSpacing:8,color:C.ink,margin:"4px 0"}},code)
+    ),
+    e(Btn,{color:C.pine,onClick:()=>copy(shareLink(code),"link")},copied==="link"?"Kopeeritud! ✓":"Kopeeri link"),
+    e(Btn,{color:C.pine,outline:true,onClick:()=>copy(code,"pin")},copied==="pin"?"Kopeeritud! ✓":"Kopeeri PIN"),
+    e(Btn,{color:C.red,outline:true,onClick:()=>setView("join")},"Esita oma soovid →"),
+    e("p",{className:"hint",style:{marginTop:16}},
+      "💡 Hoia oma admin PIN alles — sellega saad lisada osalejaid, määrata unustatud PIN-i asemele uue või loosi uuesti teha (avalehel → ⚙️ Admin). Admin ei näe kellegi soove ega loosi tulemust.")
+  );
+}
+
+function Join({flash,code,setCode,onIn}){
+  const ls=loadLS();
+  const [info,setInfo]=useState(null);
+  const [name,setName]=useState(ls.name||"");
+  const [pin,setPin]=useState("");
+  const [loading,setLoading]=useState(false);
+
+  async function loadInfo(c){
+    setLoading(true);
+    try {
+      const r=await rpc("ss_event_info",{ p_code:c });
+      if(!r.ok){ flash(r.error); setInfo(null); }
+      else { setInfo(r); saveLS({ code:c }); }
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+    setLoading(false);
+  }
+  useEffect(()=>{ if(/^\d{6}$/.test(code)) loadInfo(code); },[]);
+
+  async function go(){
+    if(!name) return flash("Vali oma nimi");
+    if(!/^\d{4}$/.test(pin)) return flash("PIN on 4 numbrit");
+    setLoading(true);
+    try {
+      const r=await rpc("ss_me",{ p_code:code, p_name:name, p_pin:pin });
+      if(!r.ok) flash(r.error);
+      else {
+        if(r.new && r.drawn){ flash("Loos on juba toimunud"); setLoading(false); return; }
+        saveLS({ code, name:r.name });
+        onIn({ code, name:r.name, pin }, r);
+      }
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+    setLoading(false);
+  }
+
+  if(!info){
+    return e("div",{className:"card"},
+      e("h2",{style:{fontSize:24,margin:"0 0 20px"}},"Liitu loosiga"),
+      e(Field,{label:"Loosi PIN (6 numbrit)",value:code,big:true,inputMode:"numeric",
+        onChange:v=>setCode(digits(v,6)),placeholder:"123456"}),
+      e(Btn,{color:C.pine,onClick:()=>{ if(!/^\d{6}$/.test(code)) return flash("Loosi PIN on 6 numbrit"); loadInfo(code); },disabled:loading},loading?"Otsin…":"Edasi →")
+    );
+  }
+  const sel = info.participants.find(p=>p.name===name);
+  return e("div",{className:"card"},
+    e("div",{style:{textAlign:"center",marginBottom:14}},
+      e("span",{style:{display:"inline-block",background:C.redSoft,padding:"8px 20px",borderRadius:999,fontWeight:800,fontFamily:"'Fraunces',serif"}},"🎄 "+info.title)),
+    e("label",{style:{fontSize:14,fontWeight:800,color:C.ink}},"Kes sa oled?"),
+    e("div",{className:"names",style:{marginTop:8}},
+      ...info.participants.map(p=>e("button",{key:p.name,type:"button",className:"chip"+(p.name===name?" on":""),onClick:()=>setName(p.name)},p.name))),
+    name && sel ? e(React.Fragment,null,
+      e(Field,{label:sel.submitted?"Sinu PIN (4 numbrit)":"Vali endale PIN (4 numbrit)",value:pin,inputMode:"numeric",type:"password",
+        onChange:v=>setPin(digits(v,4)),placeholder:"••••"}),
+      e("p",{className:"hint",style:{marginTop:-8,marginBottom:14}},
+        sel.submitted ? "Sisesta PIN, mille valisid soove esitades."
+                      : "Jäta see PIN meelde! Selle abil näed pärast loosi, kellele kingi teed. Keegi teine ei saa sinu nime alt sisse."),
+      e(Btn,{color:C.pine,onClick:go,disabled:loading},loading?"Kontrollin…":(sel.submitted?"Sisene →":"Edasi soovide juurde →"))
+    ) : (name ? null : e("p",{className:"hint"},"Vajuta oma nimele.")),
+    e("p",{className:"hint",style:{marginTop:10}},"Sinu nime pole nimekirjas? Palu loosi korraldajal sind lisada.")
+  );
+}
+
+function Wishes({me,initial,flash,onSaved}){
+  const [w,setW]=useState(initial && initial.length===3 ? initial : ["","",""]);
+  const [loading,setLoading]=useState(false);
+  async function go(){
+    if(w.some(x=>!x.trim())) return flash("Kirjuta kõik kolm soovi");
+    setLoading(true);
+    try {
+      const r=await rpc("ss_submit",{ p_code:me.code, p_name:me.name, p_pin:me.pin, p_wishes:w.map(x=>x.trim()) });
+      if(!r.ok) flash(r.error);
+      else { flash(r.drawn?"Soovid salvestatud — kõik on valmis, loos toimus! 🎉":"Soovid salvestatud! 🎁"); onSaved(); }
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+    setLoading(false);
+  }
+  return e("div",{className:"card"},
+    e("h2",{style:{fontSize:24,margin:"0 0 6px"}},`Tere, ${me.name}! 🎅`),
+    e("p",{style:{color:C.inkSoft,fontSize:14,marginTop:0,marginBottom:20,lineHeight:1.5}},
+      "Kirjuta kolm asja, mida tahaksid jõuludeks saada. Sinu soove näeb ainult see, kes sulle loosiga kingi teeb."),
+    ...[0,1,2].map(i=>e("div",{key:i,className:"fld"},
+      e("label",{style:{fontSize:14,fontWeight:800,color:C.ink}},`${i+1}. soov`),
+      e("input",{ value:w[i], maxLength:300, placeholder:["nt hea raamat","nt soojad sokid","nt kinopilet"][i],
+        onChange:ev=>{ const v=ev.target.value; setW(prev=>prev.map((x,j)=>j===i?v:x)); } }))),
+    e(Btn,{color:C.red,onClick:go,disabled:loading},loading?"Salvestan…":"Saada soovid 🎁"),
+    e("p",{className:"hint",style:{marginTop:6}},"Soove saad muuta kuni loosini.")
+  );
+}
+
+function Mine({me,data,refresh,setView,loading}){
+  const [open,setOpen]=useState(false);
+  if(data.drawn && data.recipient){
+    const r=data.recipient;
+    return e("div",null,
+      e("div",{className:"card green",style:{textAlign:"center"}},
+        e("div",{style:{fontSize:13,fontWeight:700,letterSpacing:2,textTransform:"uppercase",color:C.inkSoft}},data.title),
+        !open ? e(React.Fragment,null,
+          e("h2",{style:{fontSize:24,margin:"10px 0 4px"}},`${me.name}, loos on toimunud!`),
+          e("p",{className:"hint",style:{margin:"0 0 14px"}},"Vaata, et keegi üle õla ei piiluks 🤫"),
+          e("div",{className:"gift",onClick:()=>setOpen(true)},"🎁"),
+          e("div",{style:{marginTop:10}}, e(Btn,{color:C.red,onClick:()=>setOpen(true)},"Ava kink — kellele ma kingi teen?"))
+        ) : e(React.Fragment,null,
+          e("p",{style:{margin:"12px 0 4px",fontWeight:700,color:C.inkSoft}},"Sina oled salajane jõuluvana inimesele"),
+          e("div",{style:{fontFamily:"'Fraunces',serif",fontSize:44,fontWeight:600,color:C.red,margin:"0 0 16px"}},"🎅 "+r.name),
+          e("div",{style:{textAlign:"left"}},
+            e("label",{style:{fontSize:14,fontWeight:800,color:C.ink,marginBottom:10}},`${r.name} soovib:`),
+            ...(r.wishes||[]).map((x,i)=>e("div",{key:i,className:"wish"},e("b",null,(i+1)+"."),e("span",null,x)))),
+          e("p",{className:"hint",style:{marginTop:12}},"Ära kellelegi ütle! 🤐")
+        )
+      ),
+      e("button",{className:"btn",style:{background:"transparent",color:C.inkSoft,fontSize:14},onClick:()=>setView("home")},"← Avalehele")
+    );
+  }
+  return e("div",null,
+    e("div",{className:"card"},
+      e("h2",{style:{fontSize:24,margin:"0 0 6px"}},`Aitäh, ${me.name}! 🎄`),
+      e("p",{className:"hint",style:{marginTop:0}},"Loos toimub automaatselt, kui kõik on oma soovid esitanud. Siis tule tagasi ja sisene sama nime ja PIN-iga."),
+      data.participants ? e(Progress,{participants:data.participants}) : null,
+      e(Btn,{color:C.pine,outline:true,onClick:refresh,disabled:loading},loading?"…":"↻ Värskenda")
+    ),
+    e("div",{className:"card"},
+      e("h3",{style:{fontSize:20,margin:"0 0 12px"}},"Sinu soovid"),
+      ...(data.wishes||[]).map((x,i)=>e("div",{key:i,className:"wish"},e("b",null,(i+1)+"."),e("span",null,x))),
+      e("div",{style:{marginTop:12}}, e(Btn,{color:C.red,outline:true,onClick:()=>setView("wishes")},"✏️ Muuda soove"))
+    )
+  );
+}
+
+function Admin({flash,code,setCode}){
+  const [pin,setPin]=useState("");
+  const [st,setSt]=useState(null);
+  const [add,setAdd]=useState("");
+  const [loading,setLoading]=useState(false);
+
+  async function call(fn,args,okMsg){
+    setLoading(true);
+    try {
+      const r=await rpc(fn,{ p_code:code, p_admin_pin:pin, ...(args||{}) });
+      if(!r.ok){ flash(r.error); setLoading(false); return false; }
+      if(okMsg) flash(okMsg);
+      const s=await rpc("ss_admin_status",{ p_code:code, p_admin_pin:pin });
+      if(s.ok) setSt(s); else flash(s.error);
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+    setLoading(false); return true;
+  }
+  async function login(){
+    if(!/^\d{6}$/.test(code)) return flash("Loosi PIN on 6 numbrit");
+    if(!/^\d{4}$/.test(pin)) return flash("Admin PIN on 4 numbrit");
+    setLoading(true);
+    try {
+      const s=await rpc("ss_admin_status",{ p_code:code, p_admin_pin:pin });
+      if(s.ok){ setSt(s); saveLS({ code }); } else flash(s.error);
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+    setLoading(false);
+  }
+
+  if(!st){
+    return e("div",{className:"card"},
+      e("h2",{style:{fontSize:24,margin:"0 0 12px"}},"Admin ⚙️"),
+      e("p",{className:"hint",style:{marginTop:-6,marginBottom:14}},"Sisesta loosi PIN ja admin PIN, mille valisid loosi luues."),
+      e(Field,{label:"Loosi PIN (6 numbrit)",value:code,inputMode:"numeric",onChange:v=>setCode(digits(v,6)),placeholder:"123456"}),
+      e(Field,{label:"Admin PIN",value:pin,type:"password",inputMode:"numeric",onChange:v=>setPin(digits(v,4)),placeholder:"••••"}),
+      e(Btn,{color:C.red,onClick:login,disabled:loading},loading?"…":"Sisene")
+    );
+  }
+  const total=st.participants.length, done=st.participants.filter(p=>p.submitted).length;
+  const addList=add.split(/[\n,]/).map(s=>s.trim()).filter(Boolean);
+  return e("div",null,
+    e("div",{className:"card"},
+      e("h2",{style:{fontSize:24,margin:"0 0 4px"}},st.title),
+      e("p",{className:"hint",style:{marginTop:0}},`Loosi PIN ${code} · ${st.drawn?"✅ loos on toimunud":"⏳ loos ootab — "+done+" / "+total+" esitanud"}`),
+      e("p",{className:"hint"},"Admin näeb ainult, kes on soovid esitanud — mitte soove ega seda, kes kellele kingi teeb."),
+      ...st.participants.map(p=>e("div",{key:p.name,className:"row"},
+        e("div",{style:{flex:1}},
+          e("div",{style:{fontWeight:800}},p.name),
+          e("div",{style:{fontSize:12.5,color:C.inkSoft}},(p.submitted?"✓ soovid esitatud":"⏳ ootab")+(p.locked?" · 🔒 lukus (valed PIN-id)":""))),
+        p.has_pin ? e("button",{className:"btn small",style:{background:C.gold,color:C.ink},disabled:loading,onClick:()=>{
+          const np=prompt(`Uus 4-numbriline PIN osalejale ${p.name}:`); if(np==null) return;
+          if(!/^\d{4}$/.test(np)) return flash("PIN peab olema 4 numbrit");
+          call("ss_admin_set_pin",{ p_name:p.name, p_new_pin:np },`${p.name}: uus PIN määratud`);
+        }},"Uus PIN") : null,
+        !st.drawn ? e("button",{className:"btn small",style:{background:"transparent",color:C.red,border:`2px solid ${C.red}`},disabled:loading,onClick:()=>{
+          if(confirm(`Eemalda ${p.name} loosist?`)) call("ss_admin_remove",{ p_name:p.name },`${p.name} eemaldatud`);
+        }},"✕") : null
+      ))
+    ),
+    !st.drawn ? e("div",{className:"card green"},
+      e("h3",{style:{fontSize:20,margin:"0 0 12px"}},"Lisa osalejaid"),
+      e("textarea",{value:add,onChange:ev=>setAdd(ev.target.value),placeholder:"Üks nimi rea kohta",style:{minHeight:80,marginBottom:12}}),
+      e(Btn,{color:C.pine,disabled:loading||!addList.length,onClick:async()=>{ if(await call("ss_admin_add",{ p_names:addList },"Lisatud!")) setAdd(""); }},`Lisa ${addList.length||""} osalejat`),
+      (total>=3 && done===total) ? e(Btn,{color:C.red,disabled:loading,onClick:()=>call("ss_admin_draw",{},"Loos tehtud! 🎉")},"🎲 Kõik on esitanud — tee loos") : null
+    ) : e("div",{className:"card"},
+      e("h3",{style:{fontSize:20,margin:"0 0 8px"}},"Tühista loos"),
+      e("p",{className:"hint",style:{marginTop:0}},"Kui keegi on veel lisamata, tühista loos, lisa osalejad ja loos tehakse uuesti, kui ka uued on soovid esitanud. Kõik paarid muutuvad!"),
+      e(Btn,{color:C.red,outline:true,disabled:loading,onClick:()=>{
+        if(confirm("Tühista loos? Kõik paarid kustutatakse ja loos tuleb uuesti teha.")) call("ss_admin_reset_draw",{},"Loos tühistatud");
+      }},"Tühista loos")
+    ),
+    e(Btn,{color:C.pine,outline:true,disabled:loading,onClick:()=>call("ss_admin_status",{})},"↻ Värskenda")
+  );
+}
+
+function App(){
+  const params=new URLSearchParams(location.search);
+  const urlCode=digits(params.get("kood")||"",6);
+  const [view,setView]=useState(urlCode?"join":"home");
+  const [code,setCode]=useState(urlCode||loadLS().code||"");
+  const [created,setCreated]=useState(null);
+  const [me,setMe]=useState(null);
+  const [data,setData]=useState(null);
+  const [loading,setLoading]=useState(false);
+  const [toast,setToast]=useState("");
+  const flash=m=>{ setToast(m); setTimeout(()=>setToast(""),3400); };
+
+  async function refreshMe(m){
+    m=m||me; setLoading(true);
+    try {
+      const r=await rpc("ss_me",{ p_code:m.code, p_name:m.name, p_pin:m.pin });
+      if(r.ok){ setData(r); setView("mine"); } else flash(r.error);
+    } catch(err){ flash("Ühenduse viga: "+(err.message||err)); }
+    setLoading(false);
+  }
+
+  function goHome(){ setView("home"); setMe(null); setData(null); }
+
+  let body;
+  if(view==="home") body=e(Home,{setView});
+  else if(view==="create") body=e(Create,{flash,onCreated:(c,t)=>{ setCode(c); saveLS({ code:c }); setCreated({code:c,title:t}); setView("created"); }});
+  else if(view==="created") body=e(Created,{...created,setView});
+  else if(view==="join") body=e(Join,{flash,code,setCode,onIn:(m,r)=>{ setMe(m); setData(r); setView(r.new?"wishes":"mine"); }});
+  else if(view==="wishes") body=e(Wishes,{me,initial:data&&data.wishes,flash,onSaved:()=>refreshMe()});
+  else if(view==="mine") body=e(Mine,{me,data,refresh:()=>refreshMe(),setView,loading});
+  else if(view==="admin") body=e(Admin,{flash,code,setCode});
+
+  return e(React.Fragment,null,
+    toast?e("div",{className:"toast"},toast):null,
+    e("div",{className:"hdr",onClick:goHome},
+      e("h1",{style:{fontSize:44,margin:0,letterSpacing:"-1px"}},
+        "beebi",e("span",{style:{color:C.red}},"bet")),
+      e("p",{style:{margin:"4px 0 0",fontSize:13,letterSpacing:3,textTransform:"uppercase",color:C.inkSoft,fontWeight:700}},
+        "🎅 jõuluvana loos")),
+    body
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(e(App));
+</script>
+</body>
+</html>
